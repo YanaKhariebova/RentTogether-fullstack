@@ -279,7 +279,7 @@ Anzeigen», может изменить или снять с публикаци�
 
 ## План по рабочим дням до 20 ноября
 
-| Даты        | Влад: auth/profile                                                           | Ольга: items                                                        | Яна: catalog/bookings                                                  | Общий результат                                         |
+| Даты        | Влад: auth/profile                                                           | Ольга: items                                                       | Яна: catalog/bookings                                                 | Общий результат                                         |
 | ----------- | ---------------------------------------------------------------------------- | ------------------------------------------------------------------ | --------------------------------------------------------------------- | ------------------------------------------------------- |
 | 27–30 окт.  | Настроить app shell, Router, Query, Clerk; `User`/`Category`; profile API/UI | Описать `Item`/`ItemImage`, миграцию и DTO; собрать форму на mock  | Согласовать Booking DTO, статусы и правила; каталог и date UI на mock | Структура, `.env.example`, API-контракты, mobile tokens |
 | 2–6 нояб.   | Header + mobile bottom nav, atoms/molecules, profile page и protected routes | CRUD API items, фото, `Meine Anzeigen`, create/edit form           | Каталог, фильтры, item detail; создать `Booking` и `POST /bookings`   | Можно создать item, найти его с mobile и desktop        |
