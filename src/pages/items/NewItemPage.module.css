@@ -1,0 +1,10 @@
+.page { display: grid; gap: 28px; max-width: 880px; margin: 32px auto 0; }
+.title { margin: 0; font-size: 28px; }
+.notice { padding: 16px; border: 1px solid #b6d6c1; border-radius: 8px; background: #f0fdf4; line-height: 1.5; }
+.preview { min-width: 0; padding: 20px; border: 1px solid #166534; border-radius: 12px; background: #f0fdf4; overflow-wrap: anywhere; }
+.preview h2 { margin-top: 12px; }
+.description { white-space: pre-wrap; }
+.details { display: grid; gap: 8px; }
+.details dt { font-weight: 700; }
+.details dd { margin: 0 0 8px; }
+@media (min-width: 768px) { .details { grid-template-columns: max-content minmax(0, 1fr); gap: 12px 24px; } .details dd { margin: 0; } }
