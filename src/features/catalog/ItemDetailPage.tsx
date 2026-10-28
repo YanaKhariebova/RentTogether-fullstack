@@ -42,7 +42,7 @@ export function ItemDetailPage() {
             <p className={styles.description}>{item.description}</p>
             <p className={styles.owner}>Angeboten von {item.owner.name}</p>
 
-            <DateRangePicker />
+            <DateRangePicker pricePerDay={item.pricePerDay} />
           </div>
         </div>
       </section>
