@@ -1,9 +1,9 @@
-import { useState } from "react";
-import { useItemImages } from "./useItemImages";
-import { initialItemFormValues, itemFormSchema } from "../model/itemFormSchema";
-import type { ItemFormValues, ValidatedItemForm } from "../model/itemFormSchema";
+import { useState } from 'react';
+import { useItemImages } from './useItemImages';
+import { initialItemFormValues, itemFormSchema } from '../model/itemFormSchema';
+import type { ItemFormValues, ValidatedItemForm } from '../model/itemFormSchema';
 
-type FormFields = Omit<ItemFormValues, "images">;
+type FormFields = Omit<ItemFormValues, 'images'>;
 type FormErrors = Partial<Record<keyof ItemFormValues, string>>;
 
 export function useItemForm(
@@ -17,7 +17,7 @@ export function useItemForm(
     categoryId: initialValues.categoryId,
     pricePerDay: initialValues.pricePerDay,
   }));
-  const gallery = useItemImages(initialValues.images.filter((image) => image.kind === "stored"));
+  const gallery = useItemImages(initialValues.images.filter((image) => image.kind === 'stored'));
   const [errors, setErrors] = useState<FormErrors>({});
   const [submitAttempts, setSubmitAttempts] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -35,7 +35,10 @@ export function useItemForm(
 
   async function submit() {
     if (isSubmitting) return;
-    const result = itemFormSchema.safeParse({ ...values, images: gallery.images.map((entry) => entry.image) });
+    const result = itemFormSchema.safeParse({
+      ...values,
+      images: gallery.images.map((entry) => entry.image),
+    });
     setSubmitAttempts((count) => count + 1);
     if (!result.success) {
       const nextErrors: FormErrors = {};
@@ -52,18 +55,30 @@ export function useItemForm(
     try {
       await onValidSubmit(result.data);
     } catch {
-      setSubmitError("Die Anzeige konnte nicht gespeichert werden. Bitte versuche es erneut.");
+      setSubmitError('Die Anzeige konnte nicht gespeichert werden. Bitte versuche es erneut.');
     } finally {
       setIsSubmitting(false);
     }
   }
 
   return {
-    values, errors, submitAttempts, isSubmitting, submitError, changeField, submit,
+    values,
+    errors,
+    submitAttempts,
+    isSubmitting,
+    submitError,
+    changeField,
+    submit,
     images: gallery.images,
     imageErrors: gallery.errors,
-    addFiles(files: File[]) { gallery.addFiles(files); clearError("images"); },
-    removeImage(id: string) { gallery.removeImage(id); clearError("images"); },
+    addFiles(files: File[]) {
+      gallery.addFiles(files);
+      clearError('images');
+    },
+    removeImage(id: string) {
+      gallery.removeImage(id);
+      clearError('images');
+    },
     reorderImage: gallery.reorderImage,
   };
 }

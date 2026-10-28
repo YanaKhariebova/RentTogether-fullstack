@@ -1,47 +1,56 @@
 # Подключение объявлений к общей основе
 
-## Что нужно от Влада
+## Полученный ответ Влада
 
-Готовый текст для командного чата. Ольга отправляет его сама:
+28 октября получен foundation PR № 3, коммит 0428c22. Контракты прочитаны,
+совместимость проверена; результаты и ограничения — в [review](foundation-review.md).
+Foundation объединён с main и веткой Ольги. Общие atoms, Header, Inter и
+Router подключены к кабинету; объявления пока остаются mock-данными.
+Текущее состояние описано в [интеграции](foundation-integration.md).
 
-> Влад, для подключения объявлений пришли, пожалуйста:
->
-> 1. Модели User и Category с типами ID, настройку Prisma и порядок добавления
->    связей Item/ItemImage и миграций. До согласования общую миграцию не создаём.
-> 2. Как после requireAuth получить ID локального User на сервере и какие
->    публичные поля User соответствуют name и city.
-> 3. Пути импорта и props Button, Input, Textarea, Select и остальных atoms;
->    design tokens и шрифты по макету Яны.
-> 4. API client с Clerk-токеном, формат ошибок и query keys; ожидаемый ответ
->    GET /api/categories.
-> 5. Пути TanStack Router для Neue Anzeige, Anzeige bearbeiten и Meine Anzeigen.
->    Предлагаю /items/new, /items/$itemId/edit, /account/items.
-> 6. Есть ли уже выбранное хранилище изображений. Нужны URL для показа фото
->    и способ серверной загрузки/удаления, без бинарных данных в PostgreSQL.
->
-> Мои типы соответствуют контракту с Яной: pricePerDay — строка EUR,
-> images — id/url/order, owner — id/name/city. Контракт в docs/items-api.md.
-> Сейчас создание, редактирование и кабинет работают на mock-данных.
+| Область                       | Принятый интерфейс foundation                                                                    |
+| ----------------------------- | ------------------------------------------------------------------------------------------------ |
+| User / Category               | `String @id @default(uuid()) @db.Uuid`; JSON ID — строки                                         |
+| Связи Item                    | Будущие `ownerId`, `categoryId` — `String @db.Uuid`                                              |
+| Текущий пользователь backend  | `res.locals.currentUser` после `deps.authenticate`                                               |
+| Проверка владельца            | `requireOwner(item.ownerId, res.locals.currentUser.id)`                                          |
+| Текущий пользователь frontend | `useCurrentUser()`, результат `data.user`                                                        |
+| Atoms                         | `Button`, `Input`, `Textarea`, `Select`, `Badge`, `Spinner`, `IconButton` из `@/shared/ui/atoms` |
+| API client                    | `useApi()` из `@/features/auth/api/useApi`; путь `/items`, без повторного `/api`                 |
+| Категории                     | `useCategoriesQuery()`, результат `data.categories`                                              |
+| Ошибки                        | `ApiError`: status, detail.code, detail.fields; fields — массивы строк                           |
+| Query keys                    | `apiKeys.items`, `itemList(query)`, `item(id)`, `myItems(userId)`                                |
+| Routes                        | `/account/items`, `/account/items/new`, `/account/items/$itemId/edit`                            |
+| Layout                        | PageLayout уже подключён в root route                                                            |
+| Шрифт                         | Inter Variable подключён локально со стороны foundation                                          |
+| Логотип                       | Одинаковый SVG в `src/shared/assets/renttogether-icon.svg`                                       |
 
-## Что нужно от Яны
+Подробные props atoms описаны Владом в `docs/ui.md` его ветки. Input/Textarea
+получают label и error, Select — label и options из value/label, Button —
+variant и loading. OnChange — стандартный DOM event; молекулы Ольги могут
+сохранить onChange(value), адаптируя событие внутри. Submit-кнопке явно нужен
+`type="submit"`.
 
-Исходный SVG логотипа получен и сохранён в `src/shared/assets/renttogether-icon.svg`.
-Яна предложила Inter для всего интерфейса. Владу нужно подтвердить и
-подключить общий шрифт; до этого в коде остаётся Arial.
-Присланное изображение сохранено как `docs/design-reference.jpg`.
+## Следующие действия после интеграции frontend
 
-## Что уже подготовлено к замене
+1. Настроить ключи Clerk и проверить настоящий вход.
+2. Подключить категории, локального пользователя и общий формат ошибок.
+3. Добавить Item/ItemImage и обратные relations в User/Category; затем миграцию.
+4. После owner API заменить useMockOwnerItems настоящими запросами и мутациями.
+5. Инвалидировать согласованные ключи каталога, карточки и кабинета.
 
-- `useMockOwnerItems` хранит временные объявления и URL фото в памяти.
-  Его заменим запросами и мутациями API, не меняя `OwnerItemCard`.
-- `OwnerItemsWorkspace` временно переключает страницы через React state.
-  Страницы `NewItemPage`, `EditItemPage`, `MyItemsPage` подключим к Router.
-- `ItemForm` и gallery organisms получают props и не выполняют запросы.
-- `useItemForm` и `useItemImages` остаются в feature.
-- Обычные HTML-кнопки и поля заменим общими atoms; отдельные Button/Input
-  в зоне Ольги не создаются.
-- После мутаций нужно инвалидировать согласованные ключи каталога, карточки
-  и кабинета. Ключи согласовать с Яной и Владом при интеграции Query.
+Общую схему меняем последовательно: User/Category → Item/ItemImage → Booking.
+Схему Booking согласует Яна до своей миграции. Item требует createdAt для
+сортировки, публичный DTO пока обходится без даты.
 
-В mock-кабинете нет реальной авторизации. При реализации backend каждый
-изменяющий маршрут обязан проверять владельца на сервере.
+## Что ещё нужно согласовать
+
+- Ключи одного Clerk-приложения для проверки реального входа. Секретный ключ
+  используется только в server/.env, файлы env в Git не добавляются.
+- Хранилище фото, серверная загрузка/удаление и постоянный image.url.
+- Upload response и серверные ограничения: текущая форма допускает
+  JPEG/PNG/WebP, до 5 МБ, до 8 фото. Сервер должен проверять их независимо.
+- Контракты owner API и обновление кеша бронирований после нужных мутаций.
+
+Mock-кабинет не проверяет реальное право доступа. Каждый изменяющий маршрут
+backend обязан получить локального пользователя из auth и проверить владельца.

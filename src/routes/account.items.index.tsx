@@ -1,5 +1,3 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { FeaturePlaceholder } from '../pages/FeaturePlaceholder';
-export const Route = createFileRoute('/account/items/')({
-  component: () => <FeaturePlaceholder title="Meine Anzeigen" />,
-});
+import { OwnerItemsWorkspace } from '@/pages/items/OwnerItemsWorkspace';
+export const Route = createFileRoute('/account/items/')({ component: OwnerItemsWorkspace });

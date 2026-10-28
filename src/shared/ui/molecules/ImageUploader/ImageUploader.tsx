@@ -1,29 +1,33 @@
-import { useId } from "react";
-import styles from "./ImageUploader.module.css";
-
+import { Input } from '@/shared/ui/atoms';
+import styles from './ImageUploader.module.css';
 interface ImageUploaderProps {
   accept: string;
   disabled?: boolean;
   error?: string;
   onFilesSelected: (files: File[]) => void;
 }
-
-export function ImageUploader({ accept, disabled = false, error, onFilesSelected }: ImageUploaderProps) {
-  const hintId = useId();
+export function ImageUploader({
+  accept,
+  disabled = false,
+  error,
+  onFilesSelected,
+}: ImageUploaderProps) {
   return (
     <div className={styles.uploader}>
-      <label className={styles.label}>
-        Fotos auswählen
-        <input className={styles.input} type="file" accept={accept} multiple disabled={disabled}
-          aria-invalid={Boolean(error)}
-          aria-describedby={`${hintId}${error ? ` ${hintId}-error` : ""}`}
-          onChange={(event) => {
-            onFilesSelected(Array.from(event.currentTarget.files ?? []));
-            event.currentTarget.value = "";
-          }} />
-      </label>
-      <p className={styles.hint} id={hintId}>JPEG, PNG oder WebP. Maximal 5 MB pro Foto, bis zu 8 Fotos.</p>
-      {error && <p className={styles.error} id={`${hintId}-error`}>{error}</p>}
+      <Input
+        label="Fotos auswählen"
+        name="images"
+        type="file"
+        accept={accept}
+        multiple
+        disabled={disabled}
+        error={error}
+        hint="JPEG, PNG oder WebP. Maximal 5 MB pro Foto, bis zu 8 Fotos."
+        onChange={(event) => {
+          onFilesSelected(Array.from(event.currentTarget.files ?? []));
+          event.currentTarget.value = '';
+        }}
+      />
     </div>
   );
 }

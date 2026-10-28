@@ -29,3 +29,4 @@ playwright-report/
 test-results/
 server/.local-postgres/
 .local-tools/
+.tanstack/

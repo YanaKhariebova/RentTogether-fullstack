@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from "react";
-import type { FormImage } from "../model/itemFormSchema";
-import { moveImage, validateImageSelection } from "../model/imageSelection";
+import { useEffect, useRef, useState } from 'react';
+import type { FormImage } from '../model/itemFormSchema';
+import { moveImage, validateImageSelection } from '../model/imageSelection';
 
 export interface PreviewImage {
   id: string;
@@ -9,10 +9,15 @@ export interface PreviewImage {
   image: FormImage;
 }
 
-export function useItemImages(initialImages: Extract<FormImage, { kind: "stored" }>[] = []) {
-  const [images, setImages] = useState<PreviewImage[]>(() => initialImages.map((image) => ({
-    id: image.id, url: image.url, name: "Gespeichertes Foto", image,
-  })));
+export function useItemImages(initialImages: Extract<FormImage, { kind: 'stored' }>[] = []) {
+  const [images, setImages] = useState<PreviewImage[]>(() =>
+    initialImages.map((image) => ({
+      id: image.id,
+      url: image.url,
+      name: 'Gespeichertes Foto',
+      image,
+    })),
+  );
   const [errors, setErrors] = useState<string[]>([]);
   const objectUrls = useRef(new Set<string>());
 
@@ -30,7 +35,7 @@ export function useItemImages(initialImages: Extract<FormImage, { kind: "stored"
       const id = crypto.randomUUID();
       const url = URL.createObjectURL(file);
       objectUrls.current.add(url);
-      return { id, url, name: file.name, image: { kind: "local", id, file } };
+      return { id, url, name: file.name, image: { kind: 'local', id, file } };
     });
     setImages((current) => [...current, ...added]);
     setErrors(result.errors);

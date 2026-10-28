@@ -1,4 +1,4 @@
-import { itemImageFileSchema, MAX_ITEM_IMAGES } from "./itemFormSchema.ts";
+import { itemImageFileSchema, MAX_ITEM_IMAGES } from './itemFormSchema.ts';
 
 export function validateImageSelection(files: File[], existingCount: number) {
   const accepted: File[] = [];
@@ -18,7 +18,11 @@ export function validateImageSelection(files: File[], existingCount: number) {
   return { accepted, errors };
 }
 
-export function moveImage<T extends { id: string }>(images: T[], id: string, direction: -1 | 1): T[] {
+export function moveImage<T extends { id: string }>(
+  images: T[],
+  id: string,
+  direction: -1 | 1,
+): T[] {
   const index = images.findIndex((image) => image.id === id);
   const target = index + direction;
   if (index < 0 || target < 0 || target >= images.length) return images;

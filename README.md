@@ -19,8 +19,14 @@ Den Express-Server bei Bedarf in einem zweiten Terminal starten:
 npm --prefix server run dev
 ```
 
-Der Besitzerbereich läuft aktuell mit Mock-Daten im Arbeitsspeicher.
-Beim Neuladen gehen Änderungen verloren. Anmeldung, Datenbank und echte Bild-Uploads sind noch nicht verbunden.
+Foundation mit Clerk, Router, Query und Inter ist integriert. Kopiere `.env.example`
+nach `.env.local` und `server/.env.example` nach `server/.env` und konfiguriere
+Clerk und PostgreSQL gemäß [Setup](docs/foundation-setup.md). Ohne Clerk Publishable Key
+zeigt das Frontend einen Einrichtungshinweis.
+
+Der Besitzerbereich unter `/account/items` verwendet weiterhin Mock-Daten.
+Änderungen gehen beim Neuladen oder Verlassen des Bereichs verloren. Echte
+Item-Endpunkte und Bild-Uploads sind noch nicht verbunden.
 
 ## Prüfungen
 
@@ -28,7 +34,9 @@ Beim Neuladen gehen Änderungen verloren. Anmeldung, Datenbank und echte Bild-Up
 npm run build
 npm run lint
 npm --prefix server run build
-node --test src/features/items/model/*.test.mjs
+npm run test:items
+npm run format:check
+npm --prefix server test
 ```
 
 ## Dokumentation
@@ -41,3 +49,9 @@ Die Projektdokumentation liegt in [`docs/`](docs/):
 - [Abgestimmter öffentlicher Items API Vertrag](docs/items-api.md)
 - [Abhängigkeiten und Abstimmung mit dem Team](docs/integration.md)
 - [Tagesberichte von Olga](docs/progress.md)
+
+- [Foundation Setup](docs/foundation-setup.md)
+- [Gemeinsame Verträge](docs/contracts.md)
+- [Gemeinsame UI Komponenten](docs/ui.md)
+- [Review des Foundation PR](docs/foundation-review.md)
+- [Integration des Besitzerbereichs](docs/foundation-integration.md)

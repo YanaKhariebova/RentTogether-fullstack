@@ -1,6 +1,6 @@
-import { ItemEditor } from "../../features/items/components/ItemEditor";
-import type { ValidatedItemForm } from "../../features/items/model/itemFormSchema";
-import type { OwnerItem } from "../../features/items/types/item";
+import { ItemEditor } from '../../features/items/components/ItemEditor';
+import type { ValidatedItemForm } from '../../features/items/model/itemFormSchema';
+import type { OwnerItem } from '../../features/items/types/item';
 
 interface EditItemPageProps {
   item: OwnerItem;

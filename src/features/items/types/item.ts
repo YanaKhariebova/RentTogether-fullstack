@@ -1,46 +1,15 @@
-// Публичный контракт согласован с Яной. Цена в API — строка EUR: "15.50".
-export interface ItemImage {
-  id: string;
-  url: string;
-  order: number;
-}
-
-export interface ItemCategory {
-  id: string;
-  name: string;
-}
-
-export interface ItemOwner {
-  id: string;
-  name: string;
-  city: string;
-}
-
-export interface PublicItem {
-  id: string;
-  title: string;
-  description: string;
-  city: string;
-  category: ItemCategory;
-  pricePerDay: string;
-  owner: ItemOwner;
-  isPublished: boolean;
-  images: ItemImage[];
-}
-
+// Общие публичные DTO берём из foundation, без второй копии контракта.
+import type { Category, Item } from '@/shared/api/types';
+export type PublicItem = Item;
+export type ItemCategory = Category;
+export type ItemImage = Item['images'][number];
+export type ItemOwner = Item['owner'];
 export interface OwnerItem extends PublicItem {
   createdAt: string;
   updatedAt: string;
 }
 
-export interface ItemsResponse {
-  items: PublicItem[];
-  pagination: { page: number; limit: number; total: number; totalPages: number };
-}
-
-export interface ItemResponse {
-  item: PublicItem;
-}
+export type { ItemsResponse, ItemResponse } from '@/shared/api/types';
 
 // ownerId определяет сервер по авторизации, а не по данным формы.
 // Фотографии загружаются отдельным запросом после создания черновика.

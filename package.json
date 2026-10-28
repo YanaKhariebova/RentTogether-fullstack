@@ -11,7 +11,8 @@
     "routes:generate": "node scripts/generate-routes.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test:ui": "playwright test"
+    "test:ui": "playwright test",
+    "test:items": "node --test src/features/items/model/*.test.mjs"
   },
   "dependencies": {
     "@clerk/localizations": "^4.24.3",

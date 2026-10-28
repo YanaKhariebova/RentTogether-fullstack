@@ -1,15 +1,84 @@
-.form { display: grid; gap: 16px; }
-.hint { margin: 0; color: #475569; font-size: 14px; }
-.fields { display: grid; gap: 24px; min-width: 0; margin: 0; padding: 0; border: 0; }
-.legend { margin-bottom: 20px; font-weight: 700; font-size: 20px; }
-.field { display: grid; gap: 8px; min-width: 0; }
-.field label { font-weight: 700; }
-.field input, .field textarea { width: 100%; min-width: 0; min-height: 44px; padding: 12px; border: 1px solid #64748b; border-radius: 8px; background: #fff; }
-.field textarea { resize: vertical; }
-.field input:focus-visible, .field textarea:focus-visible, .submit:focus-visible { outline: 3px solid #166534; outline-offset: 2px; }
-.field [aria-invalid="true"] { border-color: #b91c1c; }
-.error { margin: 0; color: #b91c1c; font-size: 14px; }
-.row { display: grid; gap: 24px; }
-.submit { min-height: 48px; padding: 12px 24px; border: 0; border-radius: 9px; color: #fff; background: #123d2c; font-weight: 700; cursor: pointer; }
-.submit:disabled, .fields:disabled .submit { opacity: .65; cursor: wait; }
-@media (min-width: 768px) { .row { grid-template-columns: repeat(2, minmax(0, 1fr)); } .submit { justify-self: start; } }
+.form {
+  display: grid;
+  gap: 16px;
+}
+.hint {
+  margin: 0;
+  color: #475569;
+  font-size: 14px;
+}
+.fields {
+  display: grid;
+  gap: 24px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.legend {
+  margin-bottom: 20px;
+  font-weight: 700;
+  font-size: 20px;
+}
+.field {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+.field label {
+  font-weight: 700;
+}
+.field input,
+.field textarea {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 12px;
+  border: 1px solid #64748b;
+  border-radius: 8px;
+  background: #fff;
+}
+.field textarea {
+  resize: vertical;
+}
+.field input:focus-visible,
+.field textarea:focus-visible,
+.submit:focus-visible {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 2px;
+}
+.field [aria-invalid='true'] {
+  border-color: var(--color-danger);
+}
+.error {
+  margin: 0;
+  color: var(--color-danger);
+  font-size: 14px;
+}
+.row {
+  display: grid;
+  gap: 24px;
+}
+.submit {
+  min-height: 48px;
+  padding: 12px 24px;
+  border: 0;
+  border-radius: 9px;
+  color: #fff;
+  background: var(--color-primary);
+  font-weight: 700;
+  cursor: pointer;
+}
+.submit:disabled,
+.fields:disabled .submit {
+  opacity: 0.65;
+  cursor: wait;
+}
+@media (min-width: 768px) {
+  .row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .submit {
+    justify-self: start;
+  }
+}
