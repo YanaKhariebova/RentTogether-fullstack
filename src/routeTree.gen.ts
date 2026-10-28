@@ -15,6 +15,7 @@ import { Route as CatalogRouteImport } from './routes/catalog'
 import { Route as SignInRouteImport } from './routes/sign-in'
 import { Route as SignUpRouteImport } from './routes/sign-up'
 import { Route as AccountBookingsRouteImport } from './routes/account.bookings'
+import { Route as AccountItemsRouteImport } from './routes/account.items'
 import { Route as AccountProfileRouteImport } from './routes/account.profile'
 import { Route as ItemsItemIdRouteImport } from './routes/items.$itemId'
 import { Route as AccountBookingsIncomingRouteImport } from './routes/account.bookings.incoming'
@@ -53,6 +54,11 @@ const AccountBookingsRoute = AccountBookingsRouteImport.update({
   path: '/bookings',
   getParentRoute: () => AccountRoute,
 } as any)
+const AccountItemsRoute = AccountItemsRouteImport.update({
+  id: '/items',
+  path: '/items',
+  getParentRoute: () => AccountRoute,
+} as any)
 const AccountProfileRoute = AccountProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
@@ -75,19 +81,19 @@ const AccountBookingsMyRentalsRoute =
     getParentRoute: () => AccountBookingsRoute,
   } as any)
 const AccountItemsIndexRoute = AccountItemsIndexRouteImport.update({
-  id: '/items/',
-  path: '/items/',
-  getParentRoute: () => AccountRoute,
+  id: '/',
+  path: '/',
+  getParentRoute: () => AccountItemsRoute,
 } as any)
 const AccountItemsNewRoute = AccountItemsNewRouteImport.update({
-  id: '/items/new',
-  path: '/items/new',
-  getParentRoute: () => AccountRoute,
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => AccountItemsRoute,
 } as any)
 const AccountItemsItemIdEditRoute = AccountItemsItemIdEditRouteImport.update({
-  id: '/items/$itemId/edit',
-  path: '/items/$itemId/edit',
-  getParentRoute: () => AccountRoute,
+  id: '/$itemId/edit',
+  path: '/$itemId/edit',
+  getParentRoute: () => AccountItemsRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -97,6 +103,7 @@ export interface FileRoutesByFullPath {
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
   '/account/bookings': typeof AccountBookingsRouteWithChildren
+  '/account/items': typeof AccountItemsRouteWithChildren
   '/account/profile': typeof AccountProfileRoute
   '/items/$itemId': typeof ItemsItemIdRoute
   '/account/bookings/incoming': typeof AccountBookingsIncomingRoute
@@ -128,6 +135,7 @@ export interface FileRoutesById {
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
   '/account/bookings': typeof AccountBookingsRouteWithChildren
+  '/account/items': typeof AccountItemsRouteWithChildren
   '/account/profile': typeof AccountProfileRoute
   '/items/$itemId': typeof ItemsItemIdRoute
   '/account/bookings/incoming': typeof AccountBookingsIncomingRoute
@@ -145,6 +153,7 @@ export interface FileRouteTypes {
     | '/sign-in'
     | '/sign-up'
     | '/account/bookings'
+    | '/account/items'
     | '/account/profile'
     | '/items/$itemId'
     | '/account/bookings/incoming'
@@ -175,6 +184,7 @@ export interface FileRouteTypes {
     | '/sign-in'
     | '/sign-up'
     | '/account/bookings'
+    | '/account/items'
     | '/account/profile'
     | '/items/$itemId'
     | '/account/bookings/incoming'
@@ -237,6 +247,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AccountBookingsRouteImport
       parentRoute: typeof AccountRoute
     }
+    '/account/items': {
+      id: '/account/items'
+      path: '/items'
+      fullPath: '/account/items'
+      preLoaderRoute: typeof AccountItemsRouteImport
+      parentRoute: typeof AccountRoute
+    }
     '/account/profile': {
       id: '/account/profile'
       path: '/profile'
@@ -267,24 +284,24 @@ declare module '@tanstack/react-router' {
     }
     '/account/items/': {
       id: '/account/items/'
-      path: '/items'
+      path: '/'
       fullPath: '/account/items/'
       preLoaderRoute: typeof AccountItemsIndexRouteImport
-      parentRoute: typeof AccountRoute
+      parentRoute: typeof AccountItemsRoute
     }
     '/account/items/new': {
       id: '/account/items/new'
-      path: '/items/new'
+      path: '/new'
       fullPath: '/account/items/new'
       preLoaderRoute: typeof AccountItemsNewRouteImport
-      parentRoute: typeof AccountRoute
+      parentRoute: typeof AccountItemsRoute
     }
     '/account/items/$itemId/edit': {
       id: '/account/items/$itemId/edit'
-      path: '/items/$itemId/edit'
+      path: '/$itemId/edit'
       fullPath: '/account/items/$itemId/edit'
       preLoaderRoute: typeof AccountItemsItemIdEditRouteImport
-      parentRoute: typeof AccountRoute
+      parentRoute: typeof AccountItemsRoute
     }
   }
 }
@@ -303,20 +320,32 @@ const AccountBookingsRouteWithChildren = AccountBookingsRoute._addFileChildren(
   AccountBookingsRouteChildren,
 )
 
-interface AccountRouteChildren {
-  AccountBookingsRoute: typeof AccountBookingsRouteWithChildren
-  AccountProfileRoute: typeof AccountProfileRoute
+interface AccountItemsRouteChildren {
   AccountItemsNewRoute: typeof AccountItemsNewRoute
   AccountItemsIndexRoute: typeof AccountItemsIndexRoute
   AccountItemsItemIdEditRoute: typeof AccountItemsItemIdEditRoute
 }
 
-const AccountRouteChildren: AccountRouteChildren = {
-  AccountBookingsRoute: AccountBookingsRouteWithChildren,
-  AccountProfileRoute: AccountProfileRoute,
+const AccountItemsRouteChildren: AccountItemsRouteChildren = {
   AccountItemsNewRoute: AccountItemsNewRoute,
   AccountItemsIndexRoute: AccountItemsIndexRoute,
   AccountItemsItemIdEditRoute: AccountItemsItemIdEditRoute,
+}
+
+const AccountItemsRouteWithChildren = AccountItemsRoute._addFileChildren(
+  AccountItemsRouteChildren,
+)
+
+interface AccountRouteChildren {
+  AccountBookingsRoute: typeof AccountBookingsRouteWithChildren
+  AccountItemsRoute: typeof AccountItemsRouteWithChildren
+  AccountProfileRoute: typeof AccountProfileRoute
+}
+
+const AccountRouteChildren: AccountRouteChildren = {
+  AccountBookingsRoute: AccountBookingsRouteWithChildren,
+  AccountItemsRoute: AccountItemsRouteWithChildren,
+  AccountProfileRoute: AccountProfileRoute,
 }
 
 const AccountRouteWithChildren =

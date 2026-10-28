@@ -16,7 +16,9 @@
   border-radius: 16px;
   background: #ffffff;
   box-shadow: 0 4px 12px rgb(15 45 34 / 8%);
-  transition: transform 160ms ease, box-shadow 160ms ease;
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease;
 }
 
 .link:hover .card {

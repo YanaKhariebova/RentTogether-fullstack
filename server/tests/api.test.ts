@@ -27,7 +27,7 @@ const prisma = {
       return { ...user, ...data };
     },
   },
-} as unknown as Pick<PrismaClient, 'user' | 'category'>;
+} as unknown as Pick<PrismaClient, 'user' | 'category' | 'item' | '$transaction'>;
 let server: Server;
 let base: string;
 before(async () => {
@@ -82,6 +82,19 @@ test('current user response excludes Clerk ID and internal timestamps', async ()
     user: { id: user.id, name: user.name, city: user.city, email: user.email, phone: '' },
   });
 });
+test('all owner item endpoints require authentication', async () => {
+  for (const [method, path] of [
+    ['POST', '/api/items'],
+    ['PATCH', `/api/items/${user.id}`],
+    ['DELETE', `/api/items/${user.id}`],
+    ['GET', '/api/my/items'],
+  ]) {
+    const response = await fetch(`${base}${path}`, { method });
+    assert.equal(response.status, 401);
+    assert.equal((await response.json()).error.code, 'UNAUTHENTICATED');
+  }
+});
+
 test('profile patch trims input and uses the authenticated local user', async () => {
   const response = await fetch(`${base}/api/me`, {
     method: 'PATCH',

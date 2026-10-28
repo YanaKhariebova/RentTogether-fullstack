@@ -4,9 +4,10 @@ import type { RequestHandler } from 'express';
 import type { PrismaClient } from './generated/prisma/client.js';
 import { ApiError, errorHandler } from './lib/errors.js';
 import { profilePatchSchema, toCurrentUser } from './modules/users/profile.js';
+import { createItemsRoutes } from './modules/items/routes.js';
 
 export function createApp(deps: {
-  prisma: Pick<PrismaClient, 'user' | 'category'>;
+  prisma: Pick<PrismaClient, 'user' | 'category' | 'item' | '$transaction'>;
   authenticate: RequestHandler;
   authMiddleware?: RequestHandler;
   clientUrl?: string;
@@ -34,6 +35,9 @@ export function createApp(deps: {
     const user = await deps.prisma.user.update({ where: { id: res.locals.currentUser.id }, data });
     res.json({ user: toCurrentUser(user) });
   });
+  const { itemsRouter, myRouter } = createItemsRoutes(deps.prisma, deps.authenticate);
+  app.use('/api/items', itemsRouter);
+  app.use('/api/my', myRouter);
   app.use((_req, _res) => {
     throw new ApiError(404, 'NOT_FOUND', 'Die Seite wurde nicht gefunden.');
   });
