@@ -125,6 +125,18 @@ export function BookingList({ view }: BookingListProps) {
                   </Button>
                 </div>
               )}
+
+              {!isRentals && booking.status === 'APPROVED' && (
+                <Button variant="primary" onClick={() => updateStatus(booking.id, 'ACTIVE')}>
+                  Übergabe starten
+                </Button>
+              )}
+
+              {!isRentals && booking.status === 'ACTIVE' && (
+                <Button variant="primary" onClick={() => updateStatus(booking.id, 'COMPLETED')}>
+                  Abschließen
+                </Button>
+              )}
             </li>
           ))}
         </ul>
