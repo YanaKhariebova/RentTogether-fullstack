@@ -1,0 +1,22 @@
+.panel {
+  max-width: 620px;
+}
+.panel h1 {
+  margin-top: 0;
+  letter-spacing: -0.03em;
+}
+.panel > p {
+  color: var(--color-muted);
+  margin-bottom: 28px;
+}
+.form {
+  display: grid;
+  gap: 20px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  background: var(--color-surface);
+}
+.success {
+  color: var(--color-primary);
+}

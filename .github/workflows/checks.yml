@@ -1,0 +1,53 @@
+name: Checks
+on: [push, pull_request]
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: rent_together
+          POSTGRES_PASSWORD: ci_test_password
+          POSTGRES_DB: foundation_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U rent_together -d foundation_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://rent_together:ci_test_password@localhost:5432/foundation_test?schema=public
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            server/package-lock.json
+      - run: npm ci
+      - run: npm ci
+        working-directory: server
+      - run: npm run lint
+      - run: npm run format:check
+      - run: npm run build
+      - run: npm run db:validate
+        working-directory: server
+      - run: npm run build
+        working-directory: server
+      - run: npm run lint
+        working-directory: server
+      - run: npm test
+        working-directory: server
+      - name: Apply migrations and seed twice on clean PostgreSQL
+        run: |
+          npm run db:deploy
+          npm run db:seed
+          npm run db:deploy
+          npm run db:seed
+        working-directory: server
+      - run: npm run test:db
+        working-directory: server
