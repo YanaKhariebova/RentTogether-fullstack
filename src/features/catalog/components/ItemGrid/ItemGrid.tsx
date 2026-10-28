@@ -1,11 +1,15 @@
-import { mockItems } from '../../mocks/items.mock';
+import type { ItemCardData } from '../../types/item';
 import { ItemCard } from '../ItemCard/ItemCard';
 import styles from './ItemGrid.module.css';
 
-export function ItemGrid() {
+type ItemGridProps = {
+  items: ItemCardData[];
+};
+
+export function ItemGrid({ items }: ItemGridProps) {
   return (
     <div className={styles.grid}>
-      {mockItems.map((item) => (
+      {items.map((item) => (
         <ItemCard key={item.id} item={item} />
       ))}
     </div>
