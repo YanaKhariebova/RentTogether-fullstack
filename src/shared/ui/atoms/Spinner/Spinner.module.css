@@ -1,0 +1,25 @@
+.spinner {
+  display: inline-flex;
+  gap: 10px;
+  align-items: center;
+  color: var(--color-muted);
+}
+.spinner::before {
+  content: '';
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--color-border);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: rotate 1s linear infinite;
+}
+@keyframes rotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .spinner::before {
+    animation: none;
+  }
+}

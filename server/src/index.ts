@@ -1,23 +1,45 @@
-import cors from "cors";
-import dotenv from "dotenv";
-import express from "express";
+﻿import 'dotenv/config';
+import { clerkClient, clerkMiddleware, getAuth } from '@clerk/express';
+import { createApp } from './app.js';
+import { createPrisma } from './lib/prisma.js';
+import { createRequireAuth } from './middleware/requireAuth.js';
+import { syncUser } from './modules/users/syncUser.js';
 
-dotenv.config();
-
-const app = express();
-const port = Number(process.env.PORT ?? 3000);
-
-app.use(
-  cors({
-    origin: process.env.CLIENT_URL ?? "http://localhost:5173",
+for (const key of ['DATABASE_URL', 'CLERK_SECRET_KEY', 'CLERK_PUBLISHABLE_KEY']) {
+  if (!process.env[key]) throw new Error(`${key} is required. See server/.env.example.`);
+}
+const prisma = createPrisma();
+const authenticate = createRequireAuth({
+  getSubject: (req) => getAuth(req).userId,
+  loadIdentity: async (clerkUserId) => {
+    const user = await clerkClient.users.getUser(clerkUserId);
+    return {
+      clerkUserId,
+      name:
+        [user.firstName, user.lastName].filter(Boolean).join(' ') || user.username || 'Mitglied',
+      email:
+        user.emailAddresses.find((email) => email.id === user.primaryEmailAddressId)
+          ?.emailAddress ?? '',
+    };
+  },
+  syncUser: (identity) => syncUser(prisma, identity),
+});
+const app = createApp({
+  prisma,
+  authenticate,
+  authMiddleware: clerkMiddleware({
+    authorizedParties: [process.env.CLIENT_URL ?? 'http://localhost:5173'],
   }),
+  clientUrl: process.env.CLIENT_URL,
+});
+const port = Number(process.env.PORT ?? 3000);
+const server = app.listen(port, () =>
+  console.log(`RentTogether API runs at http://localhost:${port}`),
 );
-app.use(express.json());
-
-app.get("/api/health", (_request, response) => {
-  response.status(200).json({ status: "ok" });
-});
-
-app.listen(port, () => {
-  console.log(`RentTogether API runs at http://localhost:${port}`);
-});
+for (const signal of ['SIGINT', 'SIGTERM'] as const) {
+  process.on(signal, () => {
+    server.close(() => {
+      void prisma.$disconnect().then(() => process.exit(0));
+    });
+  });
+}

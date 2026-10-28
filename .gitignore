@@ -24,3 +24,8 @@ dist-ssr
 *.sw?
 .env
 server/.env
+server/src/generated/
+playwright-report/
+test-results/
+server/.local-postgres/
+.local-tools/

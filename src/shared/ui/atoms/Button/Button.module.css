@@ -1,0 +1,28 @@
+.button {
+  min-height: 44px;
+  padding: 10px 20px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-weight: 600;
+}
+.primary {
+  color: white;
+  background: var(--color-primary);
+}
+.secondary {
+  color: var(--color-text);
+  background: var(--color-surface);
+  border-color: var(--color-border);
+}
+.danger {
+  color: white;
+  background: var(--color-danger);
+}
+.button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+.button:hover:enabled {
+  filter: brightness(0.92);
+}

@@ -108,20 +108,62 @@ server/
   неструктурированную папку. Переносить hook в `shared` стоит только после
   реального повторного использования минимум в двух feature.
 
+## Влад — выполнено за 27–28 октября 2026
+
+Ветка: `feat/foundation-auth`. Исходный план объединял 27–30 октября;
+за первые два дня сделаны фундамент и интерфейсы, необходимые Ольге и Яне.
+
+- [x] 27 октября: контракты User/Category, UUID ID, current user, auth,
+      маршруты и props UI опубликованы в `docs/contracts.md` и `docs/ui.md`
+      как реализованное предложение для командного review.
+- [x] 27 октября: Prisma 7 + PostgreSQL adapter, User/Category schema,
+      начальная SQL-миграция, идемпотентный seed категорий и опциональных
+      реальных Clerk demo accounts; команды generate/validate/deploy/seed.
+- [x] 27 октября: общий формат ошибок, Clerk auth и локальный User sync,
+      GET/PATCH /api/me, GET /api/categories, проверка владельца, Zod profile validation.
+- [x] 28 октября: TanStack file-based Router, QueryClient, Bearer API client,
+      scoped profile cache, страницы входа/регистрации и защищённый /account.
+- [x] 28 октября: PageLayout, Header, mobile bottom nav, главная, 404,
+      Button/Input/Textarea/Select/Badge/Spinner/IconButton и CSS Modules/tokens.
+- [x] 28 октября: просмотр/редактирование профиля, loading/error/success,
+      немецкая локализация Clerk, alias @/, форматирование и CI lint/build/API tests.
+- [x] Согласованный Ольгой/Яной Item DTO и query/response types добавлены;
+      createdAt отмечен как требование к будущему Item, без изменения чужой схемы.
+- [x] Проверки: lint и build клиента/сервера, Prisma validate, форматирование;
+      8 API-тестов и 5 UI-проверок на 360/390/768/1024/1440 px.
+- [x] Настроить переносимую локальную PostgreSQL; применить миграцию/seed
+      дважды к чистой БД. Четыре дополнительных DB-теста проверяют сохранение
+      профилей и разделение двух пользователей с подменённой Clerk-идентичностью.
+- [x] Применить миграцию и seed к рабочей локальной БД rent_together;
+      подготовить игнорируемые env-файлы без Clerk-ключей.
+- [x] Прочитать актуальный docs/integration.md Ольги из da7d2c2;
+      подключить предложенный Inter и предоставленный SVG логотип.
+- [ ] Создать Clerk-приложение в аккаунте Влада, добавить ключи в env,
+      проверить настоящий вход/выход и профиль двумя аккаунтами в браузере.
+- [x] Подготовить текст для Ольги/Яны в docs/team-message.md; Влад отправляет сам.
+- [x] Подготовить описание PR в docs/foundation-pr.md.
+- [ ] Опубликовать commit/ветку foundation и создать PR; получить review команды.
+- [ ] Получить командный review предложенных User/Category/auth/UI/routes;
+      согласовать Booking до миграции и отдельно выбрать хранилище фото.
+
+Ни Item/Booking, ни их endpoints в эту ветку не включены. Их страницы пока
+являются точками подключения feature-команд. Чекбоксы ниже, включающие
+проверку реальной БД/Clerk или всего MVP, остаются открытыми до интеграции.
+
 ## Общие задачи — согласовать в первый день
 
 - [x] Создан отдельный `server/` на Express + TypeScript; установлены Zod,
       Clerk, TanStack Query и TanStack Router.
 - [x] Создан `server/.env.example` без секретов: `DATABASE_URL`, Clerk publishable
       key, Clerk secret key, `CLIENT_URL`, `PORT`.
-- [ ] Подключить PostgreSQL и настроить Prisma schema, migration и Prisma
+- [x] Подключить PostgreSQL и настроить Prisma schema, migration и Prisma
       client.
 - [ ] Согласовать единый формат ошибок:
       `{ "error": { "code": "...", "message": "...", "fields": {} } }`.
 - [ ] Согласовать DTO и OpenAPI/README с маршрутами до начала реализации.
-- [ ] Настроить ESLint, форматирование, алиасы импортов и проверку `lint` +
+- [x] Настроить ESLint, форматирование, алиасы импортов и проверку `lint` +
       `build` в каждом PR.
-- [ ] В `index.css` завести только design tokens: цвета, радиусы, тени,
+- [x] В `index.css` завести только design tokens: цвета, радиусы, тени,
       breakpoints, spacing и typography; не хранить там стили конкретных блоков.
 - [ ] Сделать seed: категории, два тестовых пользователя, проектор и минимум
       одно бронирование для демонстрации.
@@ -131,27 +173,27 @@ server/
 ### Backend
 
 - [x] Настроить минимальный Express-сервер, CORS и `GET /api/health`.
-- [ ] Настроить Prisma client и централизованный `errorHandler`.
-- [ ] Описать Prisma-модели `User` и `Category`; добавить миграции и seed.
-- [ ] Подключить Clerk middleware: получать `clerkUserId`, создавать/обновлять
+- [x] Настроить Prisma client и централизованный `errorHandler`.
+- [x] Описать Prisma-модели `User` и `Category`; добавить миграции и seed.
+- [x] Подключить Clerk middleware: получать `clerkUserId`, создавать/обновлять
       локального `User` при первом входе.
-- [ ] Реализовать `GET /api/me` и `PATCH /api/me` (имя, город, контакты).
-- [ ] Реализовать `GET /api/categories`.
-- [ ] Написать middleware `requireAuth`, `requireOwner`/проверку владельца в
+- [x] Реализовать `GET /api/me` и `PATCH /api/me` (имя, город, контакты).
+- [x] Реализовать `GET /api/categories`.
+- [x] Написать middleware `requireAuth`, `requireOwner`/проверку владельца в
       сервисах и Zod-валидацию request body/query.
 
 ### Frontend и дизайн-система
 
-- [ ] Настроить TanStack Router (типизированные file-based routes), QueryClient
+- [x] Настроить TanStack Router (типизированные file-based routes), QueryClient
       и API client с токеном Clerk.
-- [ ] Собрать `PageLayout`, `Header`, навигацию, responsive mobile menu и
+- [x] Собрать `PageLayout`, `Header`, навигацию, responsive mobile menu и
       страницу 404.
-- [ ] Создать базовые atoms: `Button`, `Input`, `Textarea`, `Select`, `Badge`,
+- [x] Создать базовые atoms: `Button`, `Input`, `Textarea`, `Select`, `Badge`,
       `Spinner`, `IconButton` — с вариантами и CSS Modules.
-- [ ] Реализовать вход/выход Clerk и защищённый route wrapper.
-- [ ] Реализовать страницу профиля: просмотр и редактирование имени, города,
+- [x] Реализовать вход/выход Clerk и защищённый route wrapper.
+- [x] Реализовать страницу профиля: просмотр и редактирование имени, города,
       контактов, состояния loading/error/success.
-- [ ] Описать краткий UI-гайд в README: токены, naming CSS-классов, примеры
+- [x] Описать краткий UI-гайд в README: токены, naming CSS-классов, примеры
       компонентов и правила адаптива.
 
 ## Ольга — участник 2: объявления и кабинет владельца
@@ -312,7 +354,7 @@ Anzeigen», может изменить или снять с публикаци�
 
 ## Definition of Done
 
-- [ ] `npm run lint` проходит на клиенте и сервере.
+- [x] `npm run lint` проходит на клиенте и сервере.
 - [x] `npm run build` проходит на клиенте и сервере.
 - [ ] Все API входы валидируются Zod; закрытые endpoints требуют Clerk auth.
 - [ ] Нельзя изменить чужое объявление, увидеть чужие заявки или забронировать
