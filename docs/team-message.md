@@ -1,6 +1,7 @@
 # Текст для Ольги и Яны
 
-Привет! Я подготовил основу в ветке `feat/foundation-auth`.
+Привет! Я подготовил основу в ветке `feat/foundation-auth`,
+[PR #3](https://github.com/YanaKhariebova/RentTogether-fullstack/pull/3).
 
 Контракты:
 

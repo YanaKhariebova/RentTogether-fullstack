@@ -142,7 +142,9 @@ server/
       проверить настоящий вход/выход и профиль двумя аккаунтами в браузере.
 - [x] Подготовить текст для Ольги/Яны в docs/team-message.md; Влад отправляет сам.
 - [x] Подготовить описание PR в docs/foundation-pr.md.
-- [ ] Опубликовать commit/ветку foundation и создать PR; получить review команды.
+- [x] Опубликовать commit 3338be1 в feat/foundation-auth и открыть PR #3:
+      https://github.com/YanaKhariebova/RentTogether-fullstack/pull/3.
+- [ ] Получить review команды и подтверждение контрактов до merge в main.
 - [ ] Получить командный review предложенных User/Category/auth/UI/routes;
       согласовать Booking до миграции и отдельно выбрать хранилище фото.
 
