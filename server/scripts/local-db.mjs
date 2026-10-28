@@ -1,0 +1,108 @@
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { randomBytes } from 'node:crypto';
+import { fileURLToPath } from 'node:url';
+import path from 'node:path';
+import { spawn } from 'node:child_process';
+import EmbeddedPostgres from 'embedded-postgres';
+
+const serverDir = fileURLToPath(new URL('../', import.meta.url));
+const stateDir = path.join(serverDir, '.local-postgres');
+mkdirSync(stateDir, { recursive: true });
+const credentialsPath = path.join(stateDir, 'credentials.json');
+if (!existsSync(credentialsPath)) {
+  writeFileSync(credentialsPath, JSON.stringify({ password: randomBytes(24).toString('hex') }), {
+    mode: 0o600,
+  });
+}
+const { password } = JSON.parse(readFileSync(credentialsPath, 'utf8'));
+const port = 55432;
+const user = 'rent_together';
+const databaseDir = path.join(stateDir, 'data');
+const cluster = new EmbeddedPostgres({
+  databaseDir,
+  port,
+  user,
+  password,
+  persistent: true,
+  authMethod: 'scram-sha-256',
+  initdbFlags: ['--encoding=UTF8', '--locale=C'],
+  postgresFlags: ['-h', '127.0.0.1'],
+  onLog: () => {},
+});
+const check = process.argv.includes('--check');
+const database = check ? `foundation_check_${Date.now()}` : 'rent_together';
+const databaseUrl = `postgresql://${user}:${password}@127.0.0.1:${port}/${database}?schema=public`;
+
+async function run(args, extraEnv = {}) {
+  await new Promise((resolve, reject) => {
+    const child = spawn(process.execPath, args, {
+      cwd: serverDir,
+      stdio: 'inherit',
+      windowsHide: true,
+      env: { ...process.env, DATABASE_URL: databaseUrl, ...extraEnv },
+    });
+    child.on('error', reject);
+    child.on('exit', (code) =>
+      code === 0 ? resolve() : reject(new Error(`Database command failed (exit ${code})`)),
+    );
+  });
+}
+
+let started = false;
+async function stop() {
+  if (started) {
+    started = false;
+    await cluster.stop();
+  }
+}
+try {
+  if (!existsSync(path.join(databaseDir, 'PG_VERSION'))) await cluster.initialise();
+  await cluster.start();
+  started = true;
+  const admin = cluster.getPgClient('postgres', '127.0.0.1');
+  await admin.connect();
+  try {
+    const result = await admin.query('SELECT 1 FROM pg_database WHERE datname = $1', [database]);
+    if (!result.rowCount) await cluster.createDatabase(database);
+  } finally {
+    await admin.end();
+  }
+
+  if (check) {
+    for (let attempt = 0; attempt < 2; attempt++) {
+      await run(['node_modules/prisma/build/index.js', 'migrate', 'deploy']);
+      await run(['node_modules/prisma/build/index.js', 'db', 'seed'], {
+        SEED_OWNER_CLERK_ID: '',
+        SEED_RENTER_CLERK_ID: '',
+      });
+    }
+    await run(['--import', 'tsx', '--test', 'tests/database.integration.ts']);
+    console.log('Clean PostgreSQL migration, repeated seed and profile persistence checks passed.');
+  } else {
+    const envPath = path.join(serverDir, '.env');
+    if (!existsSync(envPath)) {
+      const template = readFileSync(path.join(serverDir, '.env.example'), 'utf8');
+      writeFileSync(
+        envPath,
+        template.replace(/^DATABASE_URL=.*$/m, `DATABASE_URL="${databaseUrl}"`),
+        { mode: 0o600 },
+      );
+      console.log(
+        'Created ignored server/.env with the local database configuration. Clerk keys are still required.',
+      );
+    } else {
+      console.log(
+        'Kept existing server/.env. Local database credentials are in server/.local-postgres/credentials.json.',
+      );
+    }
+    console.log(
+      `PostgreSQL is ready on 127.0.0.1:${port}. Database: ${database}. Keep this terminal open.`,
+    );
+    await new Promise((resolve) => {
+      process.once('SIGINT', resolve);
+      process.once('SIGTERM', resolve);
+    });
+  }
+} finally {
+  await stop();
+}

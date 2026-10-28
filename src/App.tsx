@@ -1,12 +1,26 @@
-import styles from "./App.module.css";
+﻿import { ClerkProvider } from '@clerk/react';
+import { deDE } from '@clerk/localizations';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { RouterProvider } from '@tanstack/react-router';
+import { ConfigurationNotice } from './app/ConfigurationNotice';
+import { router } from './app/router';
 
-function App() {
+const queryClient = new QueryClient({ defaultOptions: { queries: { staleTime: 30_000 } } });
+const publishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+
+export default function App() {
+  if (!publishableKey) return <ConfigurationNotice />;
   return (
-    <main className={styles.container}>
-      <h1 className={styles.title}>RentTogether</h1>
-      <p>Miete, was du brauchst. Teile, was du hast.</p>
-    </main>
+    <ClerkProvider
+      publishableKey={publishableKey}
+      localization={deDE}
+      signInUrl="/sign-in"
+      signUpUrl="/sign-up"
+      afterSignOutUrl="/"
+    >
+      <QueryClientProvider client={queryClient}>
+        <RouterProvider router={router} />
+      </QueryClientProvider>
+    </ClerkProvider>
   );
 }
-
-export default App;

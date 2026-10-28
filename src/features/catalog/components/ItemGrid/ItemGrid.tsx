@@ -1,6 +1,6 @@
-import { mockItems } from "../../mocks/items.mock";
-import { ItemCard } from "../ItemCard/ItemCard";
-import styles from "./ItemGrid.module.css";
+import { mockItems } from '../../mocks/items.mock';
+import { ItemCard } from '../ItemCard/ItemCard';
+import styles from './ItemGrid.module.css';
 
 export function ItemGrid() {
   return (

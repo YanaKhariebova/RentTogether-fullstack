@@ -1,17 +1,16 @@
-import type { ItemCardData } from "../../types/item";
-import styles from "./ItemCard.module.css";
+import type { ItemCardData } from '../../types/item';
+import styles from './ItemCard.module.css';
 
 type ItemCardProps = {
   item: ItemCardData;
 };
 
 export function ItemCard({ item }: ItemCardProps) {
-  const imageUrl =
-    item.images[0]?.url ?? "https://picsum.photos/seed/rent-together/800/600";
+  const imageUrl = item.images[0]?.url ?? 'https://picsum.photos/seed/rent-together/800/600';
 
-  const formattedPrice = new Intl.NumberFormat("de-DE", {
-    style: "currency",
-    currency: "EUR",
+  const formattedPrice = new Intl.NumberFormat('de-DE', {
+    style: 'currency',
+    currency: 'EUR',
   }).format(Number(item.pricePerDay));
 
   return (

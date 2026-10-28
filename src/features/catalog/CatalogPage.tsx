@@ -1,5 +1,5 @@
-import { ItemGrid } from "./components/ItemGrid/ItemGrid";
-import styles from "./CatalogPage.module.css";
+import { ItemGrid } from './components/ItemGrid/ItemGrid';
+import styles from './CatalogPage.module.css';
 
 export function CatalogPage() {
   return (

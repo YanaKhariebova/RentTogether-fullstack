@@ -1,5 +1,18 @@
 # Подключение каталога и бронирований к общей основе
 
+## Статус foundation — 28 октября 2026
+
+В эту ветку объединена `main` с foundation из PR #3 (merge commit `8180d9d`).
+Clerk/Query providers, API client, общие atoms, дизайн-токены, Inter и Router
+уже доступны. Контракты — в [contracts.md](contracts.md), UI — в [ui.md](ui.md).
+Mock-каталог и booking mocks сохранены; подключение страниц к routes остаётся
+за Яной. Реальные API каталога/бронирований пока не реализованы.
+
+Подтверждённые frontend routes: `/catalog`, `/items/$itemId`,
+`/account/bookings/my-rentals`, `/account/bookings/incoming`.
+Для запуска локально нужны свои игнорируемые env-файлы по README;
+ключи и данные PostgreSQL из окружения Влада в ветку не копируются.
+
 ## Зона Яны: catalog и bookings
 
 Цель моей части — пользователь находит опубликованную вещь в каталоге,
@@ -33,18 +46,16 @@
 
 ## Что нужно от Влада
 
-1. Подключить TanStack Router и выделить маршруты для каталога и заявок.
-   Предлагаемые пути:
-   - `/` или `/catalog` — каталог;
+1. TanStack Router подключён. Подтверждённые маршруты:
+   - `/catalog` — каталог;
    - `/items/$itemId` — детальная страница вещи;
-   - `/account/rentals` — `Meine Mieten`;
-   - `/account/requests` — `Eingehende Anfragen`.
+   - `/account/bookings/my-rentals` — `Meine Mieten`;
+   - `/account/bookings/incoming` — `Eingehende Anfragen`.
 2. Подготовить общий API client с Clerk-токеном, единый формат ошибок и
    TanStack Query provider.
 3. Согласовать общие query keys для каталога, детали объявления, моих аренд
    и входящих заявок.
-4. Подтвердить подключение общего шрифта. Предложение команды — `Inter`; до
-   его подключения текущий шрифт остаётся Arial.
+4. Общий шрифт `Inter` подключён в foundation, токены находятся в `src/index.css`.
 5. Общий логотип находится в
    `src/shared/assets/renttogether-icon.svg`.
 
