@@ -92,8 +92,9 @@ try {
     for (let attempt = 0; attempt < 2; attempt++) {
       await run(['node_modules/prisma/build/index.js', 'migrate', 'deploy']);
       await run(['node_modules/prisma/build/index.js', 'db', 'seed'], {
-        SEED_OWNER_CLERK_ID: '',
-        SEED_RENTER_CLERK_ID: '',
+        // Explicit fixtures belong only to this temporary test database.
+        SEED_OWNER_CLERK_ID: 'test_seed_owner',
+        SEED_RENTER_CLERK_ID: 'test_seed_renter',
       });
     }
     await run([

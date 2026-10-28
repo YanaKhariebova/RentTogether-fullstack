@@ -7,6 +7,7 @@ import { createPrisma } from '../src/lib/prisma.js';
 import { createApp } from '../src/app.js';
 import { createRequireAuth } from '../src/middleware/requireAuth.js';
 import { syncUser } from '../src/modules/users/syncUser.js';
+import { seedDemoItem } from '../prisma/seedItems.js';
 
 const prisma = createPrisma();
 const ownerIds: string[] = [];
@@ -336,4 +337,38 @@ test('HTTP publishing a draft without images fails and leaves it unpublished', a
     (await prisma.item.findUniqueOrThrow({ where: { id: item.id } })).isPublished,
     false,
   );
+});
+
+test('demo item seed creates a draft and repeated seed preserves edits', async () => {
+  const own = await createItemFixture();
+  const id = randomUUID();
+  assert.equal(await seedDemoItem(prisma, own.owner.clerkUserId, id), 'ready');
+  const first = await prisma.item.findUniqueOrThrow({ where: { id }, include: { images: true } });
+  assert.equal(first.ownerId, own.ownerId);
+  assert.equal(first.categoryId, own.categoryId);
+  assert.equal(first.pricePerDay.toFixed(2), '15.50');
+  assert.equal(first.isPublished, false);
+  assert.deepEqual(first.images, []);
+
+  await prisma.item.update({
+    where: { id },
+    data: { title: 'Mein bearbeiteter Beamer', pricePerDay: '18.00' },
+  });
+  assert.equal(await seedDemoItem(prisma, own.owner.clerkUserId, id), 'ready');
+  const again = await prisma.item.findUniqueOrThrow({ where: { id } });
+  assert.equal(again.title, 'Mein bearbeiteter Beamer');
+  assert.equal(again.pricePerDay.toFixed(2), '18.00');
+  assert.equal(again.createdAt.getTime(), first.createdAt.getTime());
+  assert.equal(await prisma.item.count({ where: { id } }), 1);
+});
+
+test('demo item seed needs an explicit owner and never transfers another owner item', async () => {
+  const own = await createItemFixture();
+  const other = await createItemFixture();
+  const id = randomUUID();
+  assert.equal(await seedDemoItem(prisma, undefined, id), 'skipped');
+  assert.equal(await prisma.item.count({ where: { id } }), 0);
+  await seedDemoItem(prisma, own.owner.clerkUserId, id);
+  assert.equal(await seedDemoItem(prisma, other.owner.clerkUserId, id), 'kept-other-owner');
+  assert.equal((await prisma.item.findUniqueOrThrow({ where: { id } })).ownerId, own.ownerId);
 });

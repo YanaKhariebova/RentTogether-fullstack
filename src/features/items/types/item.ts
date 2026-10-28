@@ -9,6 +9,14 @@ export interface OwnerItem extends PublicItem {
   updatedAt: string;
 }
 
+export interface OwnerItemResponse {
+  item: OwnerItem;
+}
+
+export interface OwnerItemsResponse {
+  items: OwnerItem[];
+}
+
 export type { ItemsResponse, ItemResponse } from '@/shared/api/types';
 
 // ownerId определяет сервер по авторизации, а не по данным формы.
