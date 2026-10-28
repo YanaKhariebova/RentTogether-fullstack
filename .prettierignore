@@ -7,3 +7,6 @@ src/routeTree.gen.ts
 TODO.md
 server/.local-postgres
 .local-tools
+.tanstack
+
+docs/final-projekt-info.md

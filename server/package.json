@@ -16,7 +16,7 @@
     "db:seed": "prisma db seed",
     "db:local": "node scripts/local-db.mjs",
     "db:check": "prisma generate && node scripts/local-db.mjs --check",
-    "test:db": "tsx --test tests/database.integration.ts"
+    "test:db": "tsx --test tests/database.integration.ts tests/items.database.integration.ts"
   },
   "keywords": [],
   "author": "",
