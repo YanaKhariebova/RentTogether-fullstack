@@ -130,8 +130,8 @@ code=NETWORK_ERROR. На сервере ApiError/errorHandler находятся
 реализованы `/account/items/new` и `/account/items/$itemId/edit`, чтобы все
 защищённые страницы наследовали общий `/account` wrapper. Эти пути подтверждены
 командой 28 октября; публичным остаётся `/items/$itemId`.
-Для Яны выбраны `/account/rentals` и `/account/requests`; Router и навигация
-обновлены под эти URL.
+Яна подтвердила `/account/bookings/my-rentals` и `/account/bookings/incoming`;
+Router и навигация используют эти исходные пути foundation.
 
 ## Логотип и шрифт
 

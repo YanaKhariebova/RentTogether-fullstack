@@ -12,7 +12,7 @@ for (const width of [360, 390, 768, 1024, 1440]) {
     await expect(width < 1024 ? desktop : mobile).toBeHidden();
     await expect(
       (width < 1024 ? mobile : desktop).getByRole('link', { name: 'Anfragen' }),
-    ).toHaveAttribute('href', '/account/requests');
+    ).toHaveAttribute('href', '/account/bookings');
     expect(
       await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
     ).toBe(true);

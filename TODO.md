@@ -146,8 +146,8 @@ server/
       https://github.com/YanaKhariebova/RentTogether-fullstack/pull/3.
 - [x] По сообщению команды 28 октября review foundation пройден без блокирующих
       замечаний; User/Category, authenticate, atoms, API client, ошибки и owner routes подтверждены.
-- [x] Выбрать для Яны /account/rentals и /account/requests;
-      синхронизировать Router, навигацию и документацию.
+- [x] По подтверждению Яны оставить /account/bookings/my-rentals и
+      /account/bookings/incoming; синхронизировать Router, навигацию и документацию.
 - [ ] Согласовать Booking до миграции и отдельно выбрать хранилище фото.
 
 Ни Item/Booking, ни их endpoints в эту ветку не включены. Их страницы пока

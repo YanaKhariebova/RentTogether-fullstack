@@ -22,6 +22,6 @@
 
 По сообщению команды 28 октября review foundation пройден без блокирующих
 замечаний: модели, authenticate, atoms, API client, ошибки и owner routes подтверждены.
-Для аренды и входящих заявок выбраны предложенные Яной /account/rentals и
-/account/requests; Router и навигация синхронизированы. Настоящий Clerk-вход
+Яна подтвердила исходные /account/bookings/my-rentals и
+/account/bookings/incoming; Router и навигация синхронизированы. Настоящий Clerk-вход
 остаётся отдельной непроверенной интеграцией до настройки ключей.

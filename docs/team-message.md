@@ -23,9 +23,9 @@ DTO Item соответствует договорённости Ольги и �
 Мои routes: `/account/items`, `/account/items/new`, `/account/items/$itemId/edit`.
 Они наследуют общую защиту кабинета и подтверждены командой.
 Публичная страница остаётся `/items/$itemId`.
-Яна, для твоей части выбрал предложенные тобой `/account/rentals` и
-`/account/requests`, обновил Router и навигацию. `Anfragen` ведёт на requests;
-из обоих разделов доступны ссылки между арендой и входящими заявками.
+Яна, принял твоё подтверждение: оставляем `/account/bookings/my-rentals` и
+`/account/bookings/incoming`. Router и навигация приведены к этим путям foundation.
+`Anfragen` ведёт на `/account/bookings`, оттуда доступны оба раздела.
 
 Inter подключён локально, SVG из ветки Ольги добавлен в Header/favicon.
 User/Category миграция и seed проверены на настоящей локальной PostgreSQL,
