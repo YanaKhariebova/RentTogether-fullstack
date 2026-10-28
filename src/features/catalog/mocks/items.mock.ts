@@ -110,7 +110,7 @@ export const mockItems: ItemCardData[] = [
     images: [
       {
         id: 'image-5',
-        url: 'https://images.unsplash.com/photo-1571068316344-75bc76f77890?auto=format&fit=crop&w=900&q=80',
+        url: 'https://images.unsplash.com/photo-1780047836158-63cbe0172663?auto=format&fit=crop&w=900&q=80',
         order: 0,
       },
     ],
@@ -134,7 +134,7 @@ export const mockItems: ItemCardData[] = [
     images: [
       {
         id: 'image-6',
-        url: 'https://images.unsplash.com/photo-1517668808822-9ebb02f2a0e6?auto=format&fit=crop&w=900&q=80',
+        url: 'https://images.unsplash.com/photo-1461988091159-192b6df7054f?auto=format&fit=crop&w=900&q=80',
         order: 0,
       },
     ],
@@ -158,7 +158,7 @@ export const mockItems: ItemCardData[] = [
     images: [
       {
         id: 'image-7',
-        url: 'https://images.unsplash.com/photo-1504148455328-c376907d081c?auto=format&fit=crop&w=900&q=80',
+        url: 'https://www.protoolreviews.com/wp-content/uploads/2015/09/Powerhorse-3000-PSI-Pressure-Washer-Handle-Removed.jpg',
         order: 0,
       },
     ],
@@ -182,7 +182,7 @@ export const mockItems: ItemCardData[] = [
     images: [
       {
         id: 'image-8',
-        url: 'https://images.unsplash.com/photo-1603569283847-aa295f0d016a?auto=format&fit=crop&w=900&q=80',
+        url: 'https://images.unsplash.com/photo-1642693252490-ace96a2681ee?auto=format&fit=crop&w=900&q=80',
         order: 0,
       },
     ],
@@ -206,7 +206,7 @@ export const mockItems: ItemCardData[] = [
     images: [
       {
         id: 'image-9',
-        url: 'https://images.unsplash.com/photo-1591088398332-8a7791972843?auto=format&fit=crop&w=900&q=80',
+        url: 'https://cdn.shopify.com/s/files/1/0741/6220/9018/files/newborn-first-walk-stroller-park.jpg?v=1773880344',
         order: 0,
       },
     ],
@@ -278,7 +278,7 @@ export const mockItems: ItemCardData[] = [
     images: [
       {
         id: 'image-12',
-        url: 'https://images.unsplash.com/photo-1461360228754-6e81c478b882?auto=format&fit=crop&w=900&q=80',
+        url: 'https://images.unsplash.com/photo-1558584609-4f40c370b7ec?auto=format&fit=crop&w=900&q=80',
         order: 0,
       },
     ],
@@ -302,7 +302,7 @@ export const mockItems: ItemCardData[] = [
     images: [
       {
         id: 'image-13',
-        url: 'https://images.unsplash.com/photo-1502744688674-c619d1586c9e?auto=format&fit=crop&w=900&q=80',
+        url: 'https://hdpic.club/uploads/posts/2022-02/1644051682_30-hdpic-club-p-detei-na-velosipede-letom-67.jpg',
         order: 0,
       },
     ],
@@ -326,7 +326,7 @@ export const mockItems: ItemCardData[] = [
     images: [
       {
         id: 'image-14',
-        url: 'https://images.unsplash.com/photo-1507504031003-b417219a0fde?auto=format&fit=crop&w=900&q=80',
+        url: 'https://tarpaulinscompany.co.uk/cdn/shop/files/5x8m_White_PE_Party_Marquee_Tent_-_PLUS_Grade_Outdoor_Event_Shelter.jpg?v=1775904595',
         order: 0,
       },
     ],
@@ -350,7 +350,7 @@ export const mockItems: ItemCardData[] = [
     images: [
       {
         id: 'image-15',
-        url: 'https://images.unsplash.com/photo-1570222094114-d054a817e56b?auto=format&fit=crop&w=900&q=80',
+        url: 'https://images.unsplash.com/photo-1646829816804-d2e5baf17d93?auto=format&fit=crop&w=900&q=80',
         order: 0,
       },
     ],
