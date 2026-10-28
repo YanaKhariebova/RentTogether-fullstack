@@ -1,0 +1,13 @@
+.page { display: grid; gap: 28px; max-width: 880px; margin: 0 auto; }
+.title { margin: 24px 0 8px; font-size: clamp(28px, 4vw, 36px); color: #183e2e; }
+.back { min-height: 44px; padding: 10px 0; border: 0; background: transparent; color: #214d35; font-weight: 700; cursor: pointer; }
+.notice { padding: 16px; border: 1px solid #d7e0cf; border-radius: 12px; background: #edf3e7; line-height: 1.6; }
+.preview { min-width: 0; padding: 24px; border: 1px solid #d7e0cf; border-radius: 16px; background: #fffefb; overflow-wrap: anywhere; }
+.cover { display: block; width: 100%; max-height: 320px; object-fit: contain; border-radius: 12px; background: #ecefe7; }
+.description { white-space: pre-wrap; }
+.details { display: grid; gap: 8px; }
+.details dt { font-weight: 700; }
+.details dd { margin: 0 0 8px; }
+.save { min-height: 48px; margin-top: 16px; padding: 12px 20px; border: 0; border-radius: 9px; background: #123d2c; color: #fff; font-weight: 700; cursor: pointer; }
+.back:focus-visible, .save:focus-visible { outline: 3px solid #1d6444; outline-offset: 3px; }
+@media (min-width: 768px) { .details { grid-template-columns: max-content minmax(0, 1fr); gap: 12px 24px; } .details dd { margin: 0; } }

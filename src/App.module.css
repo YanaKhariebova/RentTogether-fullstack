@@ -2,10 +2,25 @@
   max-width: 1200px;
   margin: 0 auto;
   padding: 32px 20px;
+  min-height: 100vh;
+  background: #f8f7f3;
 }
 
 .title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   margin: 0 0 16px;
-  color: #166534;
-  font-size: 36px;
+  color: #123d2c;
+  font-size: clamp(28px, 4vw, 36px);
+}
+
+.logo {
+  flex-shrink: 0;
+  width: 46px;
+  height: auto;
+}
+
+@media (min-width: 768px) {
+  .logo { width: 54px; }
 }

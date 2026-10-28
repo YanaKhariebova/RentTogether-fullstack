@@ -10,6 +10,6 @@
 .field [aria-invalid="true"] { border-color: #b91c1c; }
 .error { margin: 0; color: #b91c1c; font-size: 14px; }
 .row { display: grid; gap: 24px; }
-.submit { min-height: 48px; padding: 12px 24px; border: 0; border-radius: 8px; color: #fff; background: #166534; font-weight: 700; cursor: pointer; }
+.submit { min-height: 48px; padding: 12px 24px; border: 0; border-radius: 9px; color: #fff; background: #123d2c; font-weight: 700; cursor: pointer; }
 .submit:disabled, .fields:disabled .submit { opacity: .65; cursor: wait; }
 @media (min-width: 768px) { .row { grid-template-columns: repeat(2, minmax(0, 1fr)); } .submit { justify-self: start; } }
