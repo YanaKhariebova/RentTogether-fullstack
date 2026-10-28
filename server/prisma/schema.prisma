@@ -16,9 +16,43 @@ model User {
   phone       String   @default("")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  items       Item[]
 }
 
 model Category {
-  id   String @id @default(uuid()) @db.Uuid
-  name String @unique
+  id    String @id @default(uuid()) @db.Uuid
+  name  String @unique
+  items Item[]
+}
+
+model Item {
+  id          String      @id @default(uuid()) @db.Uuid
+  ownerId     String      @db.Uuid
+  categoryId  String      @db.Uuid
+  title       String      @db.VarChar(100)
+  description String
+  pricePerDay Decimal     @db.Decimal(8, 2)
+  city        String      @db.VarChar(100)
+  isPublished Boolean     @default(false)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  owner       User        @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+  category    Category    @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  images      ItemImage[]
+
+  @@index([ownerId, createdAt, id])
+  @@index([isPublished, createdAt, id])
+  @@index([categoryId])
+}
+
+model ItemImage {
+  id         String  @id @default(uuid()) @db.Uuid
+  itemId     String  @db.Uuid
+  url        String
+  // Ключ объекта для будущего удаления из хранилища; в публичный DTO не входит.
+  storageKey String?
+  order      Int     @default(0)
+  item       Item    @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@unique([itemId, order])
 }
