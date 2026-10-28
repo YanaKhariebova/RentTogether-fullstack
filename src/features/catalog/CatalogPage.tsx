@@ -1,12 +1,18 @@
 import { useMemo, useState } from 'react';
+import { Button } from '@/shared/ui/atoms';
 import { ItemGrid } from './components/ItemGrid/ItemGrid';
 import { mockItems } from './mocks/items.mock';
 import styles from './CatalogPage.module.css';
+
+const pageSize = 9;
 
 export function CatalogPage() {
   const [search, setSearch] = useState('');
   const [cities, setCities] = useState<string[]>([]);
   const [category, setCategory] = useState('');
+  const [minPrice, setMinPrice] = useState('');
+  const [maxPrice, setMaxPrice] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
   const [areFiltersOpen, setAreFiltersOpen] = useState(false);
 
   const cityOptions = useMemo(
@@ -41,10 +47,13 @@ export function CatalogPage() {
           .includes(normalizedSearch);
       const matchesCity = cities.length === 0 || cities.includes(item.city);
       const matchesCategory = !category || item.category.id === category;
+      const price = Number(item.pricePerDay);
+      const matchesMinPrice = !minPrice || price >= Number(minPrice);
+      const matchesMaxPrice = !maxPrice || price <= Number(maxPrice);
 
-      return matchesSearch && matchesCity && matchesCategory;
+      return matchesSearch && matchesCity && matchesCategory && matchesMinPrice && matchesMaxPrice;
     });
-  }, [category, cities, search]);
+  }, [category, cities, maxPrice, minPrice, search]);
 
   function toggleCity(selectedCity: string) {
     setCities((currentCities) =>
@@ -53,6 +62,10 @@ export function CatalogPage() {
         : [...currentCities, selectedCity],
     );
   }
+
+  const totalPages = Math.max(1, Math.ceil(filteredItems.length / pageSize));
+  const activePage = Math.min(currentPage, totalPages);
+  const paginatedItems = filteredItems.slice((activePage - 1) * pageSize, activePage * pageSize);
 
   return (
     <main className={styles.page}>
@@ -122,6 +135,31 @@ export function CatalogPage() {
                 <path d="m7 10 5 5 5-5" />
               </svg>
             </label>
+
+            <div className={styles.mobilePriceRange}>
+              <label>
+                <span>Min. Preis (€)</span>
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  min="0"
+                  placeholder="0"
+                  value={minPrice}
+                  onChange={(event) => setMinPrice(event.target.value)}
+                />
+              </label>
+              <label>
+                <span>Max. Preis (€)</span>
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  min="0"
+                  placeholder="Beliebig"
+                  value={maxPrice}
+                  onChange={(event) => setMaxPrice(event.target.value)}
+                />
+              </label>
+            </div>
           </div>
 
           <button type="button" className={styles.searchButton} aria-label="Suche ausführen">
@@ -190,11 +228,74 @@ export function CatalogPage() {
                 ))}
               </div>
             </section>
+
+            <section className={styles.filterGroup}>
+              <h2>Preis pro Tag</h2>
+              <div className={styles.sidebarPriceRange}>
+                <label>
+                  <span>Min. Preis (€)</span>
+                  <input
+                    type="number"
+                    inputMode="decimal"
+                    min="0"
+                    placeholder="0"
+                    value={minPrice}
+                    onChange={(event) => setMinPrice(event.target.value)}
+                  />
+                </label>
+                <label>
+                  <span>Max. Preis (€)</span>
+                  <input
+                    type="number"
+                    inputMode="decimal"
+                    min="0"
+                    placeholder="Beliebig"
+                    value={maxPrice}
+                    onChange={(event) => setMaxPrice(event.target.value)}
+                  />
+                </label>
+              </div>
+            </section>
           </aside>
 
           <div>
             {filteredItems.length > 0 ? (
-              <ItemGrid items={filteredItems} />
+              <>
+                <ItemGrid items={paginatedItems} />
+
+                {totalPages > 1 && (
+                  <nav className={styles.pagination} aria-label="Seitennavigation">
+                    <Button
+                      variant="secondary"
+                      disabled={activePage === 1}
+                      onClick={() => setCurrentPage((page) => page - 1)}
+                    >
+                      Zurück
+                    </Button>
+                    <div className={styles.pageNumbers}>
+                      {Array.from({ length: totalPages }, (_, index) => index + 1).map((page) => (
+                        <button
+                          key={page}
+                          type="button"
+                          className={page === activePage ? styles.currentPage : ''}
+                          aria-label={`Seite ${page}`}
+                          aria-current={page === activePage ? 'page' : undefined}
+                          onClick={() => setCurrentPage(page)}
+                        >
+                          {page}
+                        </button>
+                      ))}
+                    </div>
+                    <Button
+                      variant="secondary"
+                      disabled={activePage === totalPages}
+                      onClick={() => setCurrentPage((page) => page + 1)}
+                    >
+                      Weiter
+                    </Button>
+                  </nav>
+                )}
+              </>
             ) : (
               <p className={styles.empty}>Keine passenden Anzeigen gefunden.</p>
             )}

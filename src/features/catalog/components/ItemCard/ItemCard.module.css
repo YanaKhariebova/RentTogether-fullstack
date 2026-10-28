@@ -121,12 +121,16 @@
 }
 
 .category {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   padding: 5px 10px;
   border-radius: 999px;
   background: #e7f1e9;
   color: #245b3e;
   font-size: 0.75rem;
   font-weight: 600;
+  text-align: center;
 }
 
 .price {
