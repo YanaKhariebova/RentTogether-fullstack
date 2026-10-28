@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { FeaturePlaceholder } from '../pages/FeaturePlaceholder';
+import { CatalogPage } from '../features/catalog/CatalogPage';
+
 export const Route = createFileRoute('/catalog')({
-  component: () => <FeaturePlaceholder title="Entdecken" />,
+  component: CatalogPage,
 });

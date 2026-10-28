@@ -1,0 +1,10 @@
+.picker {
+  display: grid;
+  gap: 16px;
+}
+
+.total {
+  margin: 0;
+  color: var(--color-primary);
+  font-weight: 700;
+}

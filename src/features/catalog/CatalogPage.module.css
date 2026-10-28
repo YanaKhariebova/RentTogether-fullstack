@@ -1,0 +1,27 @@
+.page {
+  min-height: 100vh;
+  padding: 32px 16px 48px;
+  background: #eef1eb;
+}
+
+.section {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.title {
+  margin: 0 0 24px;
+  color: #17382d;
+  font-size: 2rem;
+  line-height: 1.2;
+}
+
+@media (min-width: 768px) {
+  .page {
+    padding: 48px 32px 64px;
+  }
+
+  .title {
+    font-size: 2.5rem;
+  }
+}
