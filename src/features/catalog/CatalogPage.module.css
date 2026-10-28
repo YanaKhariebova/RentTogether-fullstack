@@ -16,19 +16,131 @@
   line-height: 1.2;
 }
 
-.filters {
+.filterPanel {
   display: grid;
+  grid-template-columns: minmax(0, 1fr) 48px;
   gap: 12px;
   margin-bottom: 16px;
-  padding: 16px;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
+  padding: 12px;
+  border: 1px solid #e7e6e0;
+  border-radius: 18px;
+  background: var(--color-surface);
+  box-shadow: 0 2px 10px rgb(29 48 39 / 4%);
+}
+
+.searchField,
+.selectField {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: 48px;
+  border: 1px solid #e7e6e0;
+  border-radius: 12px;
+  background: #f8f8f6;
+}
+
+.searchField svg {
+  width: 22px;
+  height: 22px;
+  margin-left: 16px;
+  color: #34424a;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-width: 2;
+}
+
+.searchField input,
+.selectField select {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--color-text);
+  font: inherit;
+}
+
+.searchField input {
+  padding: 12px;
+}
+
+.searchField input::placeholder {
+  color: #8a8f94;
+}
+
+.filterToggle,
+.searchButton {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  min-height: 48px;
+  border: 1px solid #e7e6e0;
+  border-radius: 12px;
+  background: #f8f8f6;
+  color: #34424a;
+  cursor: pointer;
+}
+
+.filterToggle svg,
+.searchButton svg,
+.selectField svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+}
+
+.filterControls {
+  display: none;
+  grid-column: 1 / -1;
+  gap: 12px;
+}
+
+.filterControls.filtersOpen {
+  display: grid;
+}
+
+.selectField {
   background: var(--color-surface);
 }
 
+.selectField select {
+  height: 48px;
+  padding: 0 42px 0 16px;
+  appearance: none;
+}
+
+.selectField svg {
+  position: absolute;
+  right: 14px;
+  pointer-events: none;
+}
+
+.searchButton {
+  display: none;
+  border-color: transparent;
+  background: var(--color-primary);
+  color: white;
+}
+
+.filterToggle:hover,
+.filterToggle[aria-expanded='true'] {
+  border-color: #cbd5cb;
+  background: #eef4ed;
+  color: var(--color-primary);
+}
+
 .resultCount {
-  margin: 0 0 16px;
-  color: var(--color-muted);
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }
 
 .empty {
@@ -37,6 +149,19 @@
   border-radius: var(--radius-lg);
   background: var(--color-surface);
   color: var(--color-muted);
+}
+
+.sidebar {
+  display: none;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }
 
 @media (min-width: 768px) {
@@ -48,9 +173,103 @@
     font-size: 2.5rem;
   }
 
-  .filters {
-    grid-template-columns: minmax(0, 2fr) repeat(2, minmax(160px, 1fr));
+  .filterPanel {
+    grid-template-columns: minmax(0, 1fr) 206px 194px 72px;
     align-items: end;
+    gap: 14px;
+    padding: 16px;
+  }
+
+  .filterControls {
+    display: grid;
+    grid-column: span 2;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .filterToggle {
+    display: none;
+  }
+
+  .searchButton {
+    display: grid;
+    width: 72px;
+    grid-column: 4;
+    grid-row: 1;
+  }
+
+  .searchButton:hover {
+    background: #1c4b32;
+  }
+}
+
+@media (min-width: 1024px) {
+  .catalogLayout {
+    display: grid;
+    grid-template-columns: 220px minmax(0, 1fr);
+    gap: 16px;
+  }
+
+  .sidebar {
+    display: grid;
+    align-self: start;
+    gap: 20px;
     padding: 20px;
+    border-radius: 14px;
+    background: var(--color-surface);
+    box-shadow: 0 2px 10px rgb(29 48 39 / 4%);
+  }
+
+  .filterGroup + .filterGroup {
+    padding-top: 18px;
+    border-top: 1px solid #e7e6e0;
+  }
+
+  .filterGroup h2 {
+    margin: 0 0 12px;
+    color: #121b1a;
+    font-size: 1rem;
+  }
+
+  .categoryList,
+  .cityList {
+    display: grid;
+    gap: 4px;
+  }
+
+  .categoryList button,
+  .cityList button {
+    padding: 8px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--color-text);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .categoryList button:hover,
+  .cityList button:hover,
+  .categoryList .isSelected,
+  .cityList .isSelected {
+    background: #e1ecdf;
+    color: #174d34;
+    font-weight: 600;
+  }
+
+  .cityList label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 28px;
+    color: #34424a;
+    cursor: pointer;
+  }
+
+  .cityList input {
+    width: 20px;
+    height: 20px;
+    margin: 0;
+    accent-color: var(--color-primary);
   }
 }

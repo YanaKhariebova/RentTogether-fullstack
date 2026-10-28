@@ -241,4 +241,124 @@ export const mockItems: ItemCardData[] = [
     },
     isPublished: true,
   },
+  {
+    id: 'item-11',
+    title: 'Werkzeugkoffer für kleine Reparaturen',
+    description: 'Vollständiger Werkzeugkoffer mit Hammer, Schraubendrehern und Zangen.',
+    pricePerDay: '11.00',
+    city: 'Stuttgart',
+    category: {
+      id: 'category-2',
+      name: 'Werkzeuge',
+    },
+    images: [
+      {
+        id: 'image-11',
+        url: 'https://images.unsplash.com/photo-1530124566582-a618bc2615dc?auto=format&fit=crop&w=900&q=80',
+        order: 0,
+      },
+    ],
+    owner: {
+      id: 'user-11',
+      name: 'Nora',
+      city: 'Stuttgart',
+    },
+    isPublished: true,
+  },
+  {
+    id: 'item-12',
+    title: 'Plattenspieler mit Lautsprechern',
+    description: 'Plattenspieler inklusive zwei kompakter Lautsprecher für einen Musikabend.',
+    pricePerDay: '19.00',
+    city: 'Leipzig',
+    category: {
+      id: 'category-1',
+      name: 'Elektronik',
+    },
+    images: [
+      {
+        id: 'image-12',
+        url: 'https://images.unsplash.com/photo-1461360228754-6e81c478b882?auto=format&fit=crop&w=900&q=80',
+        order: 0,
+      },
+    ],
+    owner: {
+      id: 'user-12',
+      name: 'Tobias',
+      city: 'Leipzig',
+    },
+    isPublished: true,
+  },
+  {
+    id: 'item-13',
+    title: 'Kinderfahrrad mit Helm',
+    description: 'Gut erhaltenes Kinderfahrrad inklusive passendem Fahrradhelm.',
+    pricePerDay: '9.00',
+    city: 'Dresden',
+    category: {
+      id: 'category-3',
+      name: 'Sport & Freizeit',
+    },
+    images: [
+      {
+        id: 'image-13',
+        url: 'https://images.unsplash.com/photo-1502744688674-c619d1586c9e?auto=format&fit=crop&w=900&q=80',
+        order: 0,
+      },
+    ],
+    owner: {
+      id: 'user-13',
+      name: 'Jana',
+      city: 'Dresden',
+    },
+    isPublished: true,
+  },
+  {
+    id: 'item-14',
+    title: 'Partyzelt für den Garten',
+    description: 'Wetterfestes Partyzelt mit Seitenwänden für Feiern im Freien.',
+    pricePerDay: '30.00',
+    city: 'Düsseldorf',
+    category: {
+      id: 'category-3',
+      name: 'Sport & Freizeit',
+    },
+    images: [
+      {
+        id: 'image-14',
+        url: 'https://images.unsplash.com/photo-1507504031003-b417219a0fde?auto=format&fit=crop&w=900&q=80',
+        order: 0,
+      },
+    ],
+    owner: {
+      id: 'user-14',
+      name: 'Sven',
+      city: 'Düsseldorf',
+    },
+    isPublished: true,
+  },
+  {
+    id: 'item-15',
+    title: 'Standmixer für Smoothies',
+    description: 'Leistungsstarker Standmixer mit Glasbehälter und mehreren Stufen.',
+    pricePerDay: '8.00',
+    city: 'Nürnberg',
+    category: {
+      id: 'category-5',
+      name: 'Küche & Haushalt',
+    },
+    images: [
+      {
+        id: 'image-15',
+        url: 'https://images.unsplash.com/photo-1570222094114-d054a817e56b?auto=format&fit=crop&w=900&q=80',
+        order: 0,
+      },
+    ],
+    owner: {
+      id: 'user-15',
+      name: 'Mara',
+      city: 'Nürnberg',
+    },
+    isPublished: true,
+  },
 ];
