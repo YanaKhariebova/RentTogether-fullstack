@@ -1,25 +1,44 @@
 import { useState } from 'react';
-import { Button, Input } from '@/shared/ui/atoms';
+import { DayPicker, type DateRange } from 'react-day-picker';
+import 'react-day-picker/style.css';
+import { Button } from '@/shared/ui/atoms';
 import styles from './DateRangePicker.module.css';
 
 type DateRangePickerProps = {
   pricePerDay: string;
+  unavailableRanges?: {
+    pickupDate: string;
+    returnDate: string;
+  }[];
 };
 
-export function DateRangePicker({ pricePerDay }: DateRangePickerProps) {
-  const [pickupDate, setPickupDate] = useState('');
-  const [returnDate, setReturnDate] = useState('');
+function toLocalDate(date: string) {
+  return new Date(`${date}T12:00:00`);
+}
+
+function toDateString(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+
+  return `${year}-${month}-${day}`;
+}
+
+export function DateRangePicker({ pricePerDay, unavailableRanges = [] }: DateRangePickerProps) {
+  const [selectedRange, setSelectedRange] = useState<DateRange>();
   const [isRequestSent, setIsRequestSent] = useState(false);
-  const dateError =
-    pickupDate && returnDate && returnDate <= pickupDate
-      ? 'Das Rückgabedatum muss nach dem Abholdatum liegen.'
-      : undefined;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const pickupDate = selectedRange?.from ? toDateString(selectedRange.from) : '';
+  const returnDate = selectedRange?.to ? toDateString(selectedRange.to) : '';
+  const unavailableDateRanges = unavailableRanges.map((range) => ({
+    from: toLocalDate(range.pickupDate),
+    to: toLocalDate(range.returnDate),
+  }));
   const totalDays =
-    pickupDate && returnDate && !dateError
+    selectedRange?.from && selectedRange.to
       ? Math.round(
-          (new Date(`${returnDate}T00:00:00`).getTime() -
-            new Date(`${pickupDate}T00:00:00`).getTime()) /
-            (1000 * 60 * 60 * 24),
+          (selectedRange.to.getTime() - selectedRange.from.getTime()) / (1000 * 60 * 60 * 24),
         )
       : 0;
   const totalPrice = totalDays * Number(pricePerDay);
@@ -30,32 +49,40 @@ export function DateRangePicker({ pricePerDay }: DateRangePickerProps) {
 
   return (
     <section className={styles.picker}>
-      <h2>Zeitraum auswählen</h2>
+      <div>
+        <h2>Zeitraum auswählen</h2>
+        <p className={styles.hint}>Wähle Abhol- und Rückgabedatum aus.</p>
+      </div>
 
-      <Input
-        label="Abholdatum"
-        type="date"
-        value={pickupDate}
-        onChange={(event) => setPickupDate(event.target.value)}
+      <DayPicker
+        mode="range"
+        selected={selectedRange}
+        onSelect={(range) => {
+          setSelectedRange(range);
+          setIsRequestSent(false);
+        }}
+        disabled={[{ before: today }, ...unavailableDateRanges]}
+        excludeDisabled
+        modifiers={{ unavailable: unavailableDateRanges }}
+        modifiersClassNames={{ unavailable: styles.unavailableDay }}
+        weekStartsOn={1}
+        className={styles.calendar}
       />
 
-      <Input
-        label="Rückgabedatum"
-        type="date"
-        value={returnDate}
-        min={pickupDate || undefined}
-        error={dateError}
-        onChange={(event) => setReturnDate(event.target.value)}
-      />
+      {unavailableDateRanges.length > 0 && (
+        <p className={styles.legend}>
+          <span aria-hidden="true" /> Bereits vergeben
+        </p>
+      )}
 
-      {totalDays > 0 && (
+      {pickupDate && returnDate && totalDays > 0 && (
         <p className={styles.total}>
           {totalDays} {totalDays === 1 ? 'Tag' : 'Tage'} · Gesamt: {formattedTotalPrice}
         </p>
       )}
 
       <Button
-        disabled={!pickupDate || !returnDate || Boolean(dateError)}
+        disabled={!pickupDate || !returnDate || totalDays === 0}
         onClick={() => setIsRequestSent(true)}
       >
         Anfrage senden
