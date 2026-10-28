@@ -144,9 +144,11 @@ server/
 - [x] Подготовить описание PR в docs/foundation-pr.md.
 - [x] Опубликовать commit 3338be1 в feat/foundation-auth и открыть PR #3:
       https://github.com/YanaKhariebova/RentTogether-fullstack/pull/3.
-- [ ] Получить review команды и подтверждение контрактов до merge в main.
-- [ ] Получить командный review предложенных User/Category/auth/UI/routes;
-      согласовать Booking до миграции и отдельно выбрать хранилище фото.
+- [x] По сообщению команды 28 октября review foundation пройден без блокирующих
+      замечаний; User/Category, authenticate, atoms, API client, ошибки и owner routes подтверждены.
+- [x] Выбрать для Яны /account/rentals и /account/requests;
+      синхронизировать Router, навигацию и документацию.
+- [ ] Согласовать Booking до миграции и отдельно выбрать хранилище фото.
 
 Ни Item/Booking, ни их endpoints в эту ветку не включены. Их страницы пока
 являются точками подключения feature-команд. Чекбоксы ниже, включающие

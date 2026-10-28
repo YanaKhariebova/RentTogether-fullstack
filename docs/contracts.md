@@ -1,7 +1,9 @@
 # Контракты команды — 28 октября 2026
 
-Item API ниже согласован Ольгой и Яной в переписке. Auth, User/Category и UI —
-реализованное предложение Влада для командного review. Наличие DTO не означает,
+Item API ниже согласован Ольгой и Яной в переписке. По сообщению команды
+28 октября review foundation пройден: User/Category, authenticate, atoms,
+API client, ошибки и owner routes подтверждены без блокирующих замечаний.
+Для аренды/заявок выбраны предложенные Яной короткие URL ниже. Наличие DTO не означает,
 что Item endpoints уже реализованы в этой ветке.
 
 ## User / Category
@@ -143,24 +145,25 @@ Item/ItemImage делает Ольга; публичные GET endpoints — Я�
 Booking, семантику диапазонов дат и endpoint занятых дат согласовываем отдельно,
 до миграции. Хранилище фото ещё не выбрано, UI использует только image.url.
 
-## Предлагаемые frontend URL
+## Frontend URL
 
-| URL                            | Доступ      | Ответственный |
-| ------------------------------ | ----------- | ------------- |
-| `/`                            | публичный   | Влад          |
-| `/sign-in`, `/sign-up`         | публичный   | Влад          |
-| `/catalog`                     | публичный   | Яна           |
-| `/items/$itemId`               | публичный   | Яна           |
-| `/account/profile`             | после входа | Влад          |
-| `/account/items`               | после входа | Ольга         |
-| `/account/items/new`           | после входа | Ольга         |
-| `/account/items/$itemId/edit`  | после входа | Ольга         |
-| `/account/bookings`            | после входа | Яна           |
-| `/account/bookings/my-rentals` | после входа | Яна           |
-| `/account/bookings/incoming`   | после входа | Яна           |
+| URL                           | Доступ      | Ответственный |
+| ----------------------------- | ----------- | ------------- |
+| `/`                           | публичный   | Влад          |
+| `/sign-in`, `/sign-up`        | публичный   | Влад          |
+| `/catalog`                    | публичный   | Яна           |
+| `/items/$itemId`              | публичный   | Яна           |
+| `/account/profile`            | после входа | Влад          |
+| `/account/items`              | после входа | Ольга         |
+| `/account/items/new`          | после входа | Ольга         |
+| `/account/items/$itemId/edit` | после входа | Ольга         |
+| `/account/rentals`            | после входа | Яна           |
+| `/account/requests`           | после входа | Яна           |
 
 В HTTP URL `$itemId` заменяется фактическим ID. В TanStack Link передаётся
 `params={{ itemId }}`. Каталог/объявления/бронирования пока имеют заглушки.
+Навигация `Anfragen` ведёт на `/account/requests`; внутри разделов есть ссылки
+между `Meine Mieten` и `Eingehende Anfragen`. Оба route наследуют защиту `/account`.
 `src/routeTree.gen.ts` не редактировать вручную: `npm run routes:generate`.
 
 ## Предлагаемые query keys

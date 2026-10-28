@@ -56,8 +56,9 @@ Item и Booking seed добавляют ответственные за эти �
 
 См. [контракты API, auth и маршрутов](docs/contracts.md) и
 [UI-гайд](docs/ui.md). Согласованный Ольгой и Яной Item DTO уже находится в
-`src/shared/api/types.ts`. Предложения Влада по auth/UI/User/Category реализованы
-в этой ветке и требуют командного review перед merge.
+`src/shared/api/types.ts`. По сообщению команды от 28 октября review foundation
+пройден без блокирующих замечаний: auth/UI/User/Category и owner routes подтверждены.
+Для разделов Яны выбраны `/account/rentals` и `/account/requests`.
 
 Ветки: Влад — `feat/foundation-auth`, Ольга — `feat/items-owner-dashboard`,
 Яна — `feat/catalog-bookings`. Общую Prisma-схему меняем последовательно:

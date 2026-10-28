@@ -128,8 +128,10 @@ code=NETWORK_ERROR. На сервере ApiError/errorHandler находятся
 
 Ольга предложила `/items/new` и `/items/$itemId/edit`. В foundation уже
 реализованы `/account/items/new` и `/account/items/$itemId/edit`, чтобы все
-защищённые страницы наследовали общий `/account` wrapper. Предлагаю использовать
-эти пути и подтвердить их при review; публичным остаётся `/items/$itemId`.
+защищённые страницы наследовали общий `/account` wrapper. Эти пути подтверждены
+командой 28 октября; публичным остаётся `/items/$itemId`.
+Для Яны выбраны `/account/rentals` и `/account/requests`; Router и навигация
+обновлены под эти URL.
 
 ## Логотип и шрифт
 
