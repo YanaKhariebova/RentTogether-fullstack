@@ -48,6 +48,24 @@ npm --prefix server test
 npm --prefix server run db:check
 ```
 
+Для проверки настоящих Clerk-сессий и сохранения профиля двумя аккаунтами:
+
+```sh
+npm run test:auth
+```
+
+Это отдельная проверка с Development-ключами и локальной PostgreSQL, не обычный
+CI. Она создаёт двух временных пользователей, проверяет профиль/выход/переключение
+и удаляет созданные данные. Подробности и ограничения —
+[auth-verification.md](docs/auth-verification.md).
+
+API-тесты используют отдельный HTTP-сервер и подменяют Clerk/репозиторий;
+они не требуют ключей и не доказывают подключение к настоящей БД/Clerk.
+UI-тесты в Playwright проверяют реальные компоненты в изолированной fixture:
+360/390/768/1024/1440 px, переполнение, навигацию, доступные подписи и клавиатуру.
+По умолчанию используется установленный Microsoft Edge. Для Linux можно запустить
+`npx playwright install chromium` и задать `PLAYWRIGHT_CHANNEL=chromium`.
+
 ## Dokumentation
 
 Die Projektdokumentation liegt in [`docs/`](docs/):

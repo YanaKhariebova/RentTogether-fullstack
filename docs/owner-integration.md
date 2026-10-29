@@ -152,6 +152,8 @@ SVG из ветки Ольги скопирован без изменений и
 Новый контракт upload response пока не утверждён.
 
 Полный публичный Item контракт: [contracts.md](contracts.md).
-Настоящий вход через Clerk и upload требуют отдельной интеграционной проверки;
-PostgreSQL проверена локально через `npm --prefix server run db:check`.
+Настоящие Clerk-сессии, профиль и переключение двух аккаунтов проверены через
+`npm run test:auth`; границы helper-based проверки — в [auth-verification.md](auth-verification.md).
+Ручные пароль/OTP/Google OAuth и upload требуют отдельной проверки.
+PostgreSQL также проверена локально через `npm --prefix server run db:check`.
 готовность кабинета на mock взята из сообщения команды.
