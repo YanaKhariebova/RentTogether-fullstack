@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { DayPicker, type DateRange } from 'react-day-picker';
+import { de } from 'react-day-picker/locale';
 import 'react-day-picker/style.css';
 import { Button } from '@/shared/ui/atoms';
 import styles from './DateRangePicker.module.css';
@@ -26,7 +27,7 @@ function toDateString(date: Date) {
 
 export function DateRangePicker({ pricePerDay, unavailableRanges = [] }: DateRangePickerProps) {
   const [selectedRange, setSelectedRange] = useState<DateRange>();
-  const [isRequestSent, setIsRequestSent] = useState(false);
+  const [isNoticeShown, setIsNoticeShown] = useState(false);
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const pickupDate = selectedRange?.from ? toDateString(selectedRange.from) : '';
@@ -56,10 +57,11 @@ export function DateRangePicker({ pricePerDay, unavailableRanges = [] }: DateRan
 
       <DayPicker
         mode="range"
+        locale={de}
         selected={selectedRange}
         onSelect={(range) => {
           setSelectedRange(range);
-          setIsRequestSent(false);
+          setIsNoticeShown(false);
         }}
         disabled={[{ before: today }, ...unavailableDateRanges]}
         excludeDisabled
@@ -83,12 +85,12 @@ export function DateRangePicker({ pricePerDay, unavailableRanges = [] }: DateRan
 
       <Button
         disabled={!pickupDate || !returnDate || totalDays === 0}
-        onClick={() => setIsRequestSent(true)}
+        onClick={() => setIsNoticeShown(true)}
       >
         Anfrage senden
       </Button>
 
-      {isRequestSent && <p role="status">Deine Anfrage wurde gesendet.</p>}
+      {isNoticeShown && <p role="status">Diese Vorschau speichert noch keine Buchungsanfragen.</p>}
     </section>
   );
 }

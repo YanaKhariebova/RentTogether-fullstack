@@ -17,12 +17,13 @@ function toQueryString(query: ItemsQuery) {
   return params.toString();
 }
 
-export function useCatalogItemsQuery(query: ItemsQuery) {
+export function useCatalogItemsQuery(query: ItemsQuery, enabled = true) {
   const queryString = toQueryString(query);
   const path = queryString ? `/items?${queryString}` : '/items';
 
   return useQuery({
     queryKey: apiKeys.itemList(query),
+    enabled,
     queryFn: ({ signal }) => publicApi<ItemsResponse>(path, { signal }),
   });
 }

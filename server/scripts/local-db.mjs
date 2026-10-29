@@ -101,6 +101,7 @@ try {
       '--import',
       'tsx',
       '--test',
+      '--test-concurrency=1',
       'tests/database.integration.ts',
       'tests/items.database.integration.ts',
     ]);

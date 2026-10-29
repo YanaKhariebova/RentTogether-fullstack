@@ -16,7 +16,7 @@ export function EditItemRoutePage() {
   if (store.status === 'error' || store.categoriesStatus === 'error')
     return (
       <div role="alert">
-        <p>Deine Anzeige konnte nicht geladen werden.</p>
+        <p>{store.loadError || 'Deine Anzeige konnte nicht geladen werden.'}</p>
         <Button
           onClick={() => {
             store.retry();

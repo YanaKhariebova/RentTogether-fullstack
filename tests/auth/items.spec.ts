@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
 import { clerk, clerkSetup } from '@clerk/testing/playwright';
 import { createPrisma } from '../../server/src/lib/prisma';
-import { createLocalImageStorage } from '../../server/src/modules/items/storage/localImageStorage';
+import { configureImageStorage } from '../../server/src/modules/items/storage/configureImageStorage';
 import { flushImageCleanup } from '../../server/src/modules/items/imageCleanup';
 
 const runId = randomUUID();
@@ -49,9 +49,7 @@ test.afterAll(async () => {
   const prisma = createPrisma();
   const failures: unknown[] = [];
   try {
-    const storage = createLocalImageStorage({
-      publicBaseUrl: process.env.IMAGE_PUBLIC_BASE_URL ?? 'http://localhost:3000/uploads/',
-    });
+    const { imageStorage: storage } = configureImageStorage(process.env);
     // Только объекты пользователей, созданных именно этим тестом.
     const cleanupKeys: string[] = [];
     await prisma.$transaction(async (tx) => {
@@ -71,6 +69,7 @@ test.afterAll(async () => {
       await tx.user.deleteMany({ where: { clerkUserId: { in: createdUsers } } });
     });
     for (const key of cleanupKeys) await flushImageCleanup(prisma, storage, key);
+    expect(await prisma.imageCleanup.count({ where: { storageKey: { in: cleanupKeys } } })).toBe(0);
   } catch (error) {
     failures.push(error);
   } finally {
@@ -140,6 +139,13 @@ test('real owner creates, reloads, publishes and edits photos; another account c
   expect(first.pricePerDay).toBe('15.50');
   expect(first.images).toHaveLength(2);
   expect(first.isPublished).toBe(false);
+  if (process.env.IMAGE_STORAGE === 'cloudinary') {
+    expect(
+      first.images.every((image: { url: string }) =>
+        image.url.startsWith('https://res.cloudinary.com/'),
+      ),
+    ).toBe(true);
+  }
   await page.reload();
   await expect(
     page.getByRole('heading', { name: `Test Beamer ${runId}`, exact: true }),
@@ -151,6 +157,20 @@ test('real owner creates, reloads, publishes and edits photos; another account c
   await expect(
     page.getByText('Deine Anzeige wurde veröffentlicht.', { exact: true }),
   ).toBeVisible();
+  await page.goto('/catalog');
+  await page.getByRole('searchbox', { name: 'Wonach suchst du?' }).fill(runId);
+  await expect(
+    page.getByRole('heading', { name: `Test Beamer ${runId}`, exact: true }),
+  ).toBeVisible();
+  await page
+    .getByRole('link')
+    .filter({ has: page.getByRole('heading', { name: `Test Beamer ${runId}`, exact: true }) })
+    .click();
+  await expect(
+    page.getByRole('heading', { name: `Test Beamer ${runId}`, exact: true }),
+  ).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Foto 2 anzeigen', exact: true })).toBeVisible();
+  await page.goto('/account/items');
   await page.getByRole('button', { name: `Test Beamer ${runId} bearbeiten`, exact: true }).click();
   await page.getByLabel('Preis pro Tag', { exact: false }).fill('20,00');
   await page.getByRole('button', { name: 'Foto 2 nach vorne verschieben', exact: true }).click();
@@ -165,10 +185,31 @@ test('real owner creates, reloads, publishes and edits photos; another account c
   await page.reload();
   await page.getByRole('button', { name: `Test Beamer ${runId} bearbeiten`, exact: true }).click();
   await page.getByRole('button', { name: 'Foto 2 entfernen', exact: true }).click();
+  await page.getByLabel('Fotos auswählen', { exact: true }).setInputFiles({
+    name: 'broken.png',
+    mimeType: 'image/png',
+    buffer: Buffer.from('broken image'),
+  });
+  await page.getByRole('button', { name: 'Vorschau anzeigen', exact: true }).click();
+  await page.getByRole('button', { name: 'Änderungen speichern', exact: true }).click();
+  await expect(page.getByRole('alert')).toContainText('gültiges Foto');
+  expect((await apiRequest(page, '/my/items')).body.items[0].isPublished).toBe(false);
+  await page.getByRole('button', { name: 'Foto 2 entfernen', exact: true }).click();
   await savePreview(page);
   saved = (await apiRequest(page, '/my/items')).body.items[0];
   expect(saved.images).toHaveLength(1);
-  expect((await page.request.get(first.images[0].url)).status()).toBe(404);
+  const verification = createPrisma();
+  try {
+    expect(
+      await verification.itemImage.findUnique({ where: { id: first.images[0].id } }),
+    ).toBeNull();
+  } finally {
+    await verification.$disconnect();
+  }
+  // Cloudinary CDN может некоторое время отдавать уже удалённый файл из кеша.
+  if (new URL(first.images[0].url).hostname !== 'res.cloudinary.com') {
+    expect((await page.request.get(first.images[0].url)).status()).toBe(404);
+  }
 
   await clerk.signOut({ page });
   await clerk.signIn({ page, emailAddress: emails[1] });
@@ -203,6 +244,9 @@ test('real owner creates, reloads, publishes and edits photos; another account c
       true,
     );
   }
+  await page.goto('/catalog');
+  await page.getByRole('searchbox', { name: 'Wonach suchst du?' }).fill(runId);
+  await expect(page.getByText('Keine passenden Anzeigen gefunden.')).toBeVisible();
   await clerk.signOut({ page });
   await page.goto('/account/items');
   await expect(page.getByRole('heading', { name: 'Bitte melde dich an' })).toBeVisible();
