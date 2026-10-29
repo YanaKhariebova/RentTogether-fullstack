@@ -44,7 +44,13 @@ npm --prefix server run dev
 npm run dev
 ```
 
-Frontend: `http://localhost:5173`, API: `http://localhost:3000/api`.
+`npm run dev` использует host/port из `CLIENT_URL` в `server/.env`.
+Например, при `CLIENT_URL=http://localhost:5174` открывать нужно именно 5174.
+Без настройки — localhost:5173. Порт фиксирован: при занятом адресе Vite завершится
+с ошибкой, а не запустит вторую копию на другом порту. Достаточно одной копии Vite.
+После изменения CLIENT_URL перезапустите frontend и backend. Дополнительный
+`--port` обычно не нужен: он может переопределить согласованную настройку.
+API по умолчанию: `http://localhost:3000/api`.
 Health: `GET /api/health` → `{ "status": "ok" }`.
 
 Seed повторно запускается безопасно: создаёт категории, а при заданных
