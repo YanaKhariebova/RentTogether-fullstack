@@ -1,4 +1,5 @@
 // Изолированный стенд, не импортируется приложением. Не является обходом auth в production.
+import { useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import {
   createRootRoute,
@@ -12,7 +13,29 @@ import {
 import '@fontsource-variable/inter';
 import '../../src/index.css';
 import styles from './owner-items.module.css';
-import { OwnerItemsProvider } from '../../src/features/items/components/OwnerItemsProvider';
+import { OwnerItemsContext } from '../../src/features/items/model/OwnerItemsContext';
+import { useMockOwnerItems } from '../../src/features/items/hooks/useMockOwnerItems';
+import { mockCategories } from '../../src/features/items/mocks/items';
+function MockOwnerItemsProvider({ children }: { children: React.ReactNode }) {
+  const store = useMockOwnerItems();
+  const [notice, setNotice] = useState('');
+  return (
+    <OwnerItemsContext.Provider
+      value={{
+        ...store,
+        notice,
+        setNotice,
+        categories: mockCategories,
+        categoriesStatus: 'ready',
+        defaultCity: '',
+        busy: false,
+        retryCategories() {},
+      }}
+    >
+      {children}
+    </OwnerItemsContext.Provider>
+  );
+}
 import { OwnerItemsWorkspace } from '../../src/pages/items/OwnerItemsWorkspace';
 import { NewItemRoutePage } from '../../src/pages/items/NewItemRoutePage';
 import { EditItemRoutePage } from '../../src/pages/items/EditItemRoutePage';
@@ -21,9 +44,9 @@ export function TestRoot() {
   return (
     <main className={styles.main}>
       <output aria-label="Aktuelle Route">{location.pathname}</output>
-      <OwnerItemsProvider>
+      <MockOwnerItemsProvider>
         <Outlet />
-      </OwnerItemsProvider>
+      </MockOwnerItemsProvider>
     </main>
   );
 }

@@ -5,10 +5,18 @@ import styles from './UnpublishItemDialog.module.css';
 interface UnpublishItemDialogProps {
   item: { id: string; title: string } | null;
   onCancel: () => void;
-  onConfirm: (id: string) => void;
+  onConfirm: (id: string) => void | Promise<void>;
+  busy?: boolean;
+  error?: string | null;
 }
 
-export function UnpublishItemDialog({ item, onCancel, onConfirm }: UnpublishItemDialogProps) {
+export function UnpublishItemDialog({
+  item,
+  onCancel,
+  onConfirm,
+  busy = false,
+  error,
+}: UnpublishItemDialogProps) {
   const dialog = useRef<HTMLDialogElement>(null);
   const id = useId();
   useEffect(() => {
@@ -24,7 +32,7 @@ export function UnpublishItemDialog({ item, onCancel, onConfirm }: UnpublishItem
       aria-describedby={`${id}-description`}
       onCancel={(event) => {
         event.preventDefault();
-        onCancel();
+        if (!busy) onCancel();
       }}
     >
       <h2 id={`${id}-title`}>Anzeige ausblenden?</h2>
@@ -32,15 +40,17 @@ export function UnpublishItemDialog({ item, onCancel, onConfirm }: UnpublishItem
         „{item?.title}“ wird nicht mehr im Katalog angezeigt. Deine Anzeige bleibt in „Meine
         Anzeigen“ erhalten.
       </p>
+      {error && <p role="alert">{error}</p>}
       <div className={styles.actions}>
-        <Button type="button" autoFocus onClick={onCancel}>
+        <Button type="button" disabled={busy} autoFocus onClick={onCancel}>
           Abbrechen
         </Button>
         <Button
           type="button"
           className={styles.confirm}
+          loading={busy}
           onClick={() => {
-            if (item) onConfirm(item.id);
+            if (item) void onConfirm(item.id);
           }}
         >
           Ausblenden

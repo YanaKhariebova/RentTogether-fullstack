@@ -56,3 +56,12 @@ export const publicItemsQuerySchema = z
 export type CreateItemData = z.infer<typeof createItemSchema>;
 export type UpdateItemData = z.infer<typeof updateItemSchema>;
 export type PublicItemsQuery = z.infer<typeof publicItemsQuerySchema>;
+
+// Полный список ID: пропущенные и чужие фото проверяются по БД в транзакции.
+export const reorderImagesSchema = z.strictObject({
+  imageIds: z
+    .array(z.uuid('Ungültige Foto-ID.'))
+    .min(1, 'Mindestens ein Foto ist erforderlich.')
+    .max(8, 'Höchstens 8 Fotos sind erlaubt.')
+    .refine((ids) => new Set(ids).size === ids.length, 'Jedes Foto darf nur einmal vorkommen.'),
+});
