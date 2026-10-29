@@ -36,23 +36,28 @@ export function createItemsRoutes(prisma: ItemsDatabase, authenticate: RequestHa
     res.json({ item });
   });
 
-  itemsRouter.post('/:id/images', authenticate, express.raw({ type: ['image/jpeg', 'image/png', 'image/webp'], limit: MAX_IMAGE_BYTES }), async (req, res) => {
-    const { id } = itemParamsSchema.parse(req.params);
-    const contentType = req.headers['content-type'];
-    const extension = imageExtension(Array.isArray(contentType) ? contentType[0] : contentType);
-    if (!extension || !Buffer.isBuffer(req.body) || req.body.length === 0)
-      throw new ApiError(400, 'INVALID_IMAGE', 'Bitte lade ein JPEG-, PNG- oder WebP-Bild hoch.');
-    const storageKey = `${randomUUID()}.${extension}`;
-    await storeImage(storageKey, req.body);
-    try {
-      const url = `${req.protocol}://${req.get('host')}/uploads/${storageKey}`;
-      const image = await service.addImage(res.locals.currentUser.id, id, { url, storageKey });
-      res.status(201).json({ image });
-    } catch (error) {
-      await removeStoredImage(storageKey);
-      throw error;
-    }
-  });
+  itemsRouter.post(
+    '/:id/images',
+    authenticate,
+    express.raw({ type: ['image/jpeg', 'image/png', 'image/webp'], limit: MAX_IMAGE_BYTES }),
+    async (req, res) => {
+      const { id } = itemParamsSchema.parse(req.params);
+      const contentType = req.headers['content-type'];
+      const extension = imageExtension(Array.isArray(contentType) ? contentType[0] : contentType);
+      if (!extension || !Buffer.isBuffer(req.body) || req.body.length === 0)
+        throw new ApiError(400, 'INVALID_IMAGE', 'Bitte lade ein JPEG-, PNG- oder WebP-Bild hoch.');
+      const storageKey = `${randomUUID()}.${extension}`;
+      await storeImage(storageKey, req.body);
+      try {
+        const url = `${req.protocol}://${req.get('host')}/uploads/${storageKey}`;
+        const image = await service.addImage(res.locals.currentUser.id, id, { url, storageKey });
+        res.status(201).json({ image });
+      } catch (error) {
+        await removeStoredImage(storageKey);
+        throw error;
+      }
+    },
+  );
 
   itemsRouter.delete('/:id/images/:imageId', authenticate, async (req, res) => {
     const { id } = itemParamsSchema.parse(req.params);

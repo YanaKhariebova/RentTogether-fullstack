@@ -92,7 +92,11 @@ export function ItemEditor({ item, onSave, onCancel }: ItemEditorProps) {
             <dt>Ort</dt>
             <dd>{payload.city}</dd>
             <dt>Kategorie</dt>
-            <dd>{categoriesQuery.data?.categories.find((category) => category.id === payload.categoryId)?.name ?? '–'}</dd>
+            <dd>
+              {categoriesQuery.data?.categories.find(
+                (category) => category.id === payload.categoryId,
+              )?.name ?? '–'}
+            </dd>
             <dt>Preis pro Tag</dt>
             <dd>{payload.pricePerDay.replace('.', ',')} €</dd>
             <dt>Fotos</dt>
