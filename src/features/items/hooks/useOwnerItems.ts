@@ -1,82 +1,109 @@
-import { useCallback, useEffect, useState } from 'react';
+// Основа последовательности запросов — прототип Яны (6b13365).
+// Query-кеш изолирован по Clerk userId; сохранение фото вынесено в тестируемую сессию.
+import { useRef } from 'react';
+import { useAuth } from '@clerk/react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useApi } from '@/features/auth/api/useApi';
-import type { OwnerItemsResponse, OwnerItem, OwnerItemResponse } from '../types/item';
-import { toCreateItemInput } from '../model/itemFormAdapters';
+import { useCurrentUser } from '@/features/profile/api/useCurrentUser';
+import { useCategoriesQuery } from '../api/useCategoriesQuery';
+import { apiKeys } from '@/shared/api/keys';
+import { ApiError } from '@/shared/api/client';
+import { itemErrorMessage } from '../model/itemErrorMessage';
+import { createOwnerItemSaveSession } from '../model/saveOwnerItem';
+import type { OwnerItemsResponse, OwnerItemResponse } from '../types/item';
 import type { ValidatedItemForm } from '../model/itemFormSchema';
 
-type Status = 'loading' | 'ready' | 'error';
-
 export function useOwnerItems() {
+  const { userId, isLoaded, isSignedIn } = useAuth();
   const api = useApi();
-  const [items, setItems] = useState<OwnerItem[]>([]);
-  const [status, setStatus] = useState<Status>('loading');
-
-  const reload = useCallback(async () => {
-    setStatus('loading');
-    try {
-      const response = await api<OwnerItemsResponse>('/my/items');
-      setItems(response.items);
-      setStatus('ready');
-    } catch {
-      setStatus('error');
-    }
-  }, [api]);
-
-  useEffect(() => {
-    const timer = window.setTimeout(() => {
-      void reload();
-    }, 0);
-    return () => window.clearTimeout(timer);
-  }, [reload]);
-
-  const saveItem = useCallback(
-    async (form: ValidatedItemForm, id?: string) => {
-      const input = toCreateItemInput(form);
-      const response = id
-        ? await api<OwnerItemResponse>(`/items/${id}`, {
-            method: 'PATCH',
-            body: JSON.stringify(input),
-          })
-        : await api<OwnerItemResponse>('/items', { method: 'POST', body: JSON.stringify(input) });
-      const itemId = response.item.id;
-      const previous = id ? items.find((item) => item.id === id) : undefined;
-      const wantedStoredIds = new Set(
-        form.images.filter((image) => image.kind === 'stored').map((image) => image.id),
-      );
-      await Promise.all(
-        (previous?.images ?? [])
-          .filter((image) => !wantedStoredIds.has(image.id))
-          .map((image) => api<void>(`/items/${itemId}/images/${image.id}`, { method: 'DELETE' })),
-      );
-      const uploaded = new Map<string, string>();
-      for (const image of form.images) {
-        if (image.kind !== 'local') continue;
-        const result = await api<{ image: { id: string } }>(`/items/${itemId}/images`, {
-          method: 'POST',
-          body: image.file,
-          headers: { 'Content-Type': image.file.type },
-        });
-        uploaded.set(image.id, result.image.id);
+  const client = useQueryClient();
+  const sessions = useRef(new Map<string, ReturnType<typeof createOwnerItemSaveSession>>());
+  const categories = useCategoriesQuery();
+  const profile = useCurrentUser();
+  const query = useQuery({
+    queryKey: apiKeys.myItems(userId ?? ''),
+    queryFn: ({ signal }) => api<OwnerItemsResponse>('/my/items', { signal }),
+    enabled: isLoaded && !!isSignedIn,
+    retry: (count, error) =>
+      !(error instanceof ApiError && [401, 403].includes(error.status)) && count < 1,
+  });
+  async function refresh() {
+    await Promise.all([
+      client.invalidateQueries({ queryKey: apiKeys.myItems(userId ?? '') }),
+      client.invalidateQueries({ queryKey: apiKeys.items }),
+    ]);
+  }
+  const save = useMutation({
+    mutationFn: async ({
+      form,
+      id,
+      sessionKey,
+    }: {
+      form: ValidatedItemForm;
+      id?: string;
+      sessionKey: string;
+    }) => {
+      let session = sessions.current.get(sessionKey);
+      if (!session) {
+        session = createOwnerItemSaveSession(api, id);
+        sessions.current.set(sessionKey, session);
       }
-      const imageIds = form.images.map((image) =>
-        image.kind === 'stored' ? image.id : uploaded.get(image.id)!,
-      );
-      await api<void>(`/items/${itemId}/images/order`, {
-        method: 'PUT',
-        body: JSON.stringify({ imageIds }),
-      });
-      await reload();
+      try {
+        const item = await session.save(form);
+        sessions.current.delete(sessionKey);
+        return item;
+      } catch (error) {
+        if (session.itemId) {
+          const message = itemErrorMessage(error);
+          throw new Error(
+            `${message} Bereits gespeicherte Angaben und Fotos findest du unter „Meine Anzeigen“. Du kannst hier erneut speichern.`,
+            { cause: error },
+          );
+        }
+        throw error;
+      }
     },
-    [api, items, reload],
-  );
-
-  const unpublish = useCallback(
-    async (id: string) => {
-      await api<OwnerItemResponse>(`/items/${id}`, { method: 'DELETE' });
-      await reload();
+    retry: false,
+    onSettled: refresh,
+  });
+  const publication = useMutation({
+    mutationFn: ({ id, published }: { id: string; published: boolean }) =>
+      api<OwnerItemResponse>(`/items/${id}`, {
+        method: published ? 'PATCH' : 'DELETE',
+        ...(published ? { body: JSON.stringify({ isPublished: true }) } : {}),
+      }),
+    retry: false,
+    onSettled: refresh,
+  });
+  return {
+    items: query.data?.items ?? [],
+    status: query.isPending
+      ? ('loading' as const)
+      : query.isError
+        ? ('error' as const)
+        : ('ready' as const),
+    categories: categories.data?.categories ?? [],
+    categoriesStatus: categories.isPending
+      ? ('loading' as const)
+      : categories.isError
+        ? ('error' as const)
+        : ('ready' as const),
+    defaultCity: profile.data?.user.city ?? '',
+    busy: save.isPending || publication.isPending,
+    retry() {
+      void query.refetch();
     },
-    [api, reload],
-  );
-
-  return { items, status, saveItem, unpublish, retry: reload };
+    retryCategories() {
+      void categories.refetch();
+    },
+    async saveItem(form: ValidatedItemForm, id: string | undefined, sessionKey: string) {
+      await save.mutateAsync({ form, id, sessionKey });
+    },
+    async unpublish(id: string) {
+      await publication.mutateAsync({ id, published: false });
+    },
+    async publish(id: string) {
+      await publication.mutateAsync({ id, published: true });
+    },
+  };
 }

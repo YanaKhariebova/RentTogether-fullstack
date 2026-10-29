@@ -56,3 +56,9 @@ model ItemImage {
 
   @@unique([itemId, order])
 }
+
+// Удаление файла повторяется после сбоя хранилища, даже если фото уже убрано из item.
+model ImageCleanup {
+  storageKey String   @id
+  createdAt  DateTime @default(now())
+}
