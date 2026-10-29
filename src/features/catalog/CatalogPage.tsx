@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react';
 import { Button } from '@/shared/ui/atoms';
+import { useCategoriesQuery } from '../items/api/useCategoriesQuery';
 import { ItemGrid } from './components/ItemGrid/ItemGrid';
-import { mockItems } from './mocks/items.mock';
+import { useCatalogItemsQuery } from './api/useCatalogItemsQuery';
 import styles from './CatalogPage.module.css';
 
 const pageSize = 9;
@@ -14,46 +15,44 @@ export function CatalogPage() {
   const [maxPrice, setMaxPrice] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [areFiltersOpen, setAreFiltersOpen] = useState(false);
+  const { data: categoriesData } = useCategoriesQuery();
+  const catalogQuery = useMemo(
+    () => ({
+      q: search.trim() || undefined,
+      city: cities[0] || undefined,
+      categoryId: category || undefined,
+      minPrice: minPrice || undefined,
+      maxPrice: maxPrice || undefined,
+      page: currentPage,
+      limit: pageSize,
+    }),
+    [category, cities, currentPage, maxPrice, minPrice, search],
+  );
+  const { data: catalogData, isPending, isError } = useCatalogItemsQuery(catalogQuery);
 
   const cityOptions = useMemo(
     () => [
       { value: '', label: 'Alle Städte' },
-      ...Array.from(new Set(mockItems.map((item) => item.city))).map((itemCity) => ({
-        value: itemCity,
-        label: itemCity,
-      })),
+      ...Array.from(new Set((catalogData?.items ?? []).map((item) => item.city))).map(
+        (itemCity) => ({
+          value: itemCity,
+          label: itemCity,
+        }),
+      ),
     ],
-    [],
+    [catalogData],
   );
 
   const categoryOptions = useMemo(
     () => [
       { value: '', label: 'Alle Kategorien' },
-      ...Array.from(
-        new Map(mockItems.map((item) => [item.category.id, item.category.name])).entries(),
-      ).map(([id, name]) => ({ value: id, label: name })),
+      ...(categoriesData?.categories ?? []).map((categoryItem) => ({
+        value: categoryItem.id,
+        label: categoryItem.name,
+      })),
     ],
-    [],
+    [categoriesData],
   );
-
-  const filteredItems = useMemo(() => {
-    const normalizedSearch = search.trim().toLocaleLowerCase('de-DE');
-
-    return mockItems.filter((item) => {
-      const matchesSearch =
-        !normalizedSearch ||
-        `${item.title} ${item.description} ${item.city} ${item.category.name}`
-          .toLocaleLowerCase('de-DE')
-          .includes(normalizedSearch);
-      const matchesCity = cities.length === 0 || cities.includes(item.city);
-      const matchesCategory = !category || item.category.id === category;
-      const price = Number(item.pricePerDay);
-      const matchesMinPrice = !minPrice || price >= Number(minPrice);
-      const matchesMaxPrice = !maxPrice || price <= Number(maxPrice);
-
-      return matchesSearch && matchesCity && matchesCategory && matchesMinPrice && matchesMaxPrice;
-    });
-  }, [category, cities, maxPrice, minPrice, search]);
 
   function toggleCity(selectedCity: string) {
     setCities((currentCities) =>
@@ -63,9 +62,9 @@ export function CatalogPage() {
     );
   }
 
-  const totalPages = Math.max(1, Math.ceil(filteredItems.length / pageSize));
-  const activePage = Math.min(currentPage, totalPages);
-  const paginatedItems = filteredItems.slice((activePage - 1) * pageSize, activePage * pageSize);
+  const items = catalogData?.items ?? [];
+  const totalPages = catalogData?.pagination.totalPages ?? 0;
+  const activePage = catalogData?.pagination.page ?? currentPage;
 
   return (
     <main className={styles.page}>
@@ -171,7 +170,8 @@ export function CatalogPage() {
         </div>
 
         <p className={styles.resultCount} aria-live="polite">
-          {filteredItems.length} {filteredItems.length === 1 ? 'Anzeige' : 'Anzeigen'} gefunden
+          {catalogData?.pagination.total ?? 0}{' '}
+          {catalogData?.pagination.total === 1 ? 'Anzeige' : 'Anzeigen'} gefunden
         </p>
 
         <div className={styles.catalogLayout}>
@@ -259,9 +259,13 @@ export function CatalogPage() {
           </aside>
 
           <div>
-            {filteredItems.length > 0 ? (
+            {isPending ? (
+              <p className={styles.empty}>Anzeigen werden geladen…</p>
+            ) : isError ? (
+              <p className={styles.empty}>Anzeigen konnten nicht geladen werden.</p>
+            ) : items.length > 0 ? (
               <>
-                <ItemGrid items={paginatedItems} />
+                <ItemGrid items={items} />
 
                 {totalPages > 1 && (
                   <nav className={styles.pagination} aria-label="Seitennavigation">

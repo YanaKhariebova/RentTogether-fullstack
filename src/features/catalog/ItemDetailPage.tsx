@@ -2,15 +2,25 @@ import { Link, useParams } from '@tanstack/react-router';
 import { useState } from 'react';
 import { DateRangePicker } from '../bookings/components/DateRangePicker/DateRangePicker';
 import { mockBookings } from '../bookings/mocks/bookings.mock';
-import { mockItems } from './mocks/items.mock';
+import { useItemDetailQuery } from './api/useItemDetailQuery';
 import styles from './ItemDetailPage.module.css';
 
 export function ItemDetailPage() {
   const { itemId } = useParams({ from: '/items/$itemId' });
-  const item = mockItems.find((mockItem) => mockItem.id === itemId);
+  const { data, isPending, isError } = useItemDetailQuery(itemId);
   const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
 
-  if (!item) {
+  if (isPending) {
+    return (
+      <main className={styles.page}>
+        <section className={styles.empty}>
+          <p>Anzeige wird geladen…</p>
+        </section>
+      </main>
+    );
+  }
+
+  if (isError || !data) {
     return (
       <main className={styles.page}>
         <section className={styles.empty}>
@@ -21,6 +31,7 @@ export function ItemDetailPage() {
     );
   }
 
+  const item = data.item;
   const images = [...item.images].sort(
     (firstImage, secondImage) => firstImage.order - secondImage.order,
   );
