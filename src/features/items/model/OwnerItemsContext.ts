@@ -4,6 +4,7 @@ import type { ValidatedItemForm } from './itemFormSchema';
 import type { ItemCategory, OwnerItem } from '../types/item';
 export interface OwnerItemsStore {
   items: OwnerItem[];
+  loadError?: string | null;
   status: 'loading' | 'ready' | 'error';
   categories: ItemCategory[];
   categoriesStatus: 'loading' | 'ready' | 'error';

@@ -151,6 +151,20 @@ test('real owner creates, reloads, publishes and edits photos; another account c
   await expect(
     page.getByText('Deine Anzeige wurde veröffentlicht.', { exact: true }),
   ).toBeVisible();
+  await page.goto('/catalog');
+  await page.getByRole('searchbox', { name: 'Wonach suchst du?' }).fill(runId);
+  await expect(
+    page.getByRole('heading', { name: `Test Beamer ${runId}`, exact: true }),
+  ).toBeVisible();
+  await page
+    .getByRole('link')
+    .filter({ has: page.getByRole('heading', { name: `Test Beamer ${runId}`, exact: true }) })
+    .click();
+  await expect(
+    page.getByRole('heading', { name: `Test Beamer ${runId}`, exact: true }),
+  ).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Foto 2 anzeigen', exact: true })).toBeVisible();
+  await page.goto('/account/items');
   await page.getByRole('button', { name: `Test Beamer ${runId} bearbeiten`, exact: true }).click();
   await page.getByLabel('Preis pro Tag', { exact: false }).fill('20,00');
   await page.getByRole('button', { name: 'Foto 2 nach vorne verschieben', exact: true }).click();
@@ -164,6 +178,16 @@ test('real owner creates, reloads, publishes and edits photos; another account c
   expect(saved.isPublished).toBe(true);
   await page.reload();
   await page.getByRole('button', { name: `Test Beamer ${runId} bearbeiten`, exact: true }).click();
+  await page.getByRole('button', { name: 'Foto 2 entfernen', exact: true }).click();
+  await page.getByLabel('Fotos auswählen', { exact: true }).setInputFiles({
+    name: 'broken.png',
+    mimeType: 'image/png',
+    buffer: Buffer.from('broken image'),
+  });
+  await page.getByRole('button', { name: 'Vorschau anzeigen', exact: true }).click();
+  await page.getByRole('button', { name: 'Änderungen speichern', exact: true }).click();
+  await expect(page.getByRole('alert')).toContainText('gültiges Foto');
+  expect((await apiRequest(page, '/my/items')).body.items[0].isPublished).toBe(false);
   await page.getByRole('button', { name: 'Foto 2 entfernen', exact: true }).click();
   await savePreview(page);
   saved = (await apiRequest(page, '/my/items')).body.items[0];
@@ -203,6 +227,9 @@ test('real owner creates, reloads, publishes and edits photos; another account c
       true,
     );
   }
+  await page.goto('/catalog');
+  await page.getByRole('searchbox', { name: 'Wonach suchst du?' }).fill(runId);
+  await expect(page.getByText('Keine passenden Anzeigen gefunden.')).toBeVisible();
   await clerk.signOut({ page });
   await page.goto('/account/items');
   await expect(page.getByRole('heading', { name: 'Bitte melde dich an' })).toBeVisible();

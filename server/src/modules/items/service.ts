@@ -87,6 +87,16 @@ function rethrowWriteError(error: unknown): never {
 
 export function createItemsService(prisma: ItemsDatabase, storage?: ImageStorage) {
   return {
+    async listPublishedCities() {
+      const rows = await prisma.item.findMany({
+        where: { isPublished: true },
+        distinct: ['city'],
+        select: { city: true },
+        orderBy: { city: 'asc' },
+      });
+      return rows.map((row) => row.city);
+    },
+
     async listPublished(query: PublicItemsQuery) {
       const where: Prisma.ItemWhereInput = { isPublished: true };
       if (query.q) {

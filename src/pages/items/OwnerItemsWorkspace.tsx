@@ -17,6 +17,7 @@ export function OwnerItemsWorkspace() {
       <MyItemsPage
         items={store.items}
         status={store.status}
+        error={store.loadError}
         onCreate={() => {
           store.setNotice('');
           void navigate({ to: '/account/items/new' });

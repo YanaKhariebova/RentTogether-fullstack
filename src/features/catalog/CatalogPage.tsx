@@ -3,44 +3,56 @@ import { Button } from '@/shared/ui/atoms';
 import { useCategoriesQuery } from '../items/api/useCategoriesQuery';
 import { ItemGrid } from './components/ItemGrid/ItemGrid';
 import { useCatalogItemsQuery } from './api/useCatalogItemsQuery';
+import { useCatalogCitiesQuery } from './api/useCatalogCitiesQuery';
+import { catalogPrice } from './model/catalogPrice';
 import styles from './CatalogPage.module.css';
 
 const pageSize = 9;
 
 export function CatalogPage() {
   const [search, setSearch] = useState('');
-  const [cities, setCities] = useState<string[]>([]);
+  const [city, setCity] = useState('');
   const [category, setCategory] = useState('');
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [areFiltersOpen, setAreFiltersOpen] = useState(false);
   const { data: categoriesData } = useCategoriesQuery();
+  const { data: citiesData } = useCatalogCitiesQuery();
+  const normalizedMin = catalogPrice(minPrice);
+  const normalizedMax = catalogPrice(maxPrice);
+  const priceError =
+    normalizedMin === null || normalizedMax === null
+      ? 'Bitte gib einen gültigen Preis mit höchstens zwei Nachkommastellen ein.'
+      : normalizedMin && normalizedMax && Number(normalizedMin) > Number(normalizedMax)
+        ? 'Der Mindestpreis darf nicht höher als der Höchstpreis sein.'
+        : null;
   const catalogQuery = useMemo(
     () => ({
       q: search.trim() || undefined,
-      city: cities[0] || undefined,
+      city: city || undefined,
       categoryId: category || undefined,
-      minPrice: minPrice || undefined,
-      maxPrice: maxPrice || undefined,
+      minPrice: normalizedMin ?? undefined,
+      maxPrice: normalizedMax ?? undefined,
       page: currentPage,
       limit: pageSize,
     }),
-    [category, cities, currentPage, maxPrice, minPrice, search],
+    [category, city, currentPage, normalizedMax, normalizedMin, search],
   );
-  const { data: catalogData, isPending, isError } = useCatalogItemsQuery(catalogQuery);
+  const {
+    data: catalogData,
+    isPending,
+    isError,
+    error,
+    refetch,
+  } = useCatalogItemsQuery(catalogQuery, !priceError);
 
   const cityOptions = useMemo(
     () => [
       { value: '', label: 'Alle Städte' },
-      ...Array.from(new Set((catalogData?.items ?? []).map((item) => item.city))).map(
-        (itemCity) => ({
-          value: itemCity,
-          label: itemCity,
-        }),
-      ),
+      ...(citiesData?.cities ?? []).map((itemCity) => ({ value: itemCity, label: itemCity })),
     ],
-    [catalogData],
+    [citiesData],
   );
 
   const categoryOptions = useMemo(
@@ -54,12 +66,9 @@ export function CatalogPage() {
     [categoriesData],
   );
 
-  function toggleCity(selectedCity: string) {
-    setCities((currentCities) =>
-      currentCities.includes(selectedCity)
-        ? currentCities.filter((city) => city !== selectedCity)
-        : [...currentCities, selectedCity],
-    );
+  function changeFilter(setter: (value: string) => void, value: string) {
+    setter(value);
+    setCurrentPage(1);
   }
 
   const items = catalogData?.items ?? [];
@@ -67,7 +76,7 @@ export function CatalogPage() {
   const activePage = catalogData?.pagination.page ?? currentPage;
 
   return (
-    <main className={styles.page}>
+    <section className={styles.page}>
       <section className={styles.section} aria-labelledby="catalog-title">
         <h1 id="catalog-title" className={styles.title}>
           Entdecken
@@ -84,7 +93,7 @@ export function CatalogPage() {
               aria-label="Wonach suchst du?"
               placeholder="Wonach suchst du?"
               value={search}
-              onChange={(event) => setSearch(event.target.value)}
+              onChange={(event) => changeFilter(setSearch, event.target.value)}
             />
           </label>
 
@@ -106,7 +115,10 @@ export function CatalogPage() {
           <div className={`${styles.filterControls} ${areFiltersOpen ? styles.filtersOpen : ''}`}>
             <label className={styles.selectField}>
               <span className={styles.srOnly}>Kategorie</span>
-              <select value={category} onChange={(event) => setCategory(event.target.value)}>
+              <select
+                value={category}
+                onChange={(event) => changeFilter(setCategory, event.target.value)}
+              >
                 {categoryOptions.map((option) => (
                   <option key={option.value} value={option.value}>
                     {option.label}
@@ -120,10 +132,7 @@ export function CatalogPage() {
 
             <label className={styles.selectField}>
               <span className={styles.srOnly}>Stadt</span>
-              <select
-                value={cities.length === 1 ? cities[0] : ''}
-                onChange={(event) => setCities(event.target.value ? [event.target.value] : [])}
-              >
+              <select value={city} onChange={(event) => changeFilter(setCity, event.target.value)}>
                 {cityOptions.map((option) => (
                   <option key={option.value} value={option.value}>
                     {option.label}
@@ -142,9 +151,10 @@ export function CatalogPage() {
                   type="number"
                   inputMode="decimal"
                   min="0"
+                  step="0.01"
                   placeholder="0"
                   value={minPrice}
-                  onChange={(event) => setMinPrice(event.target.value)}
+                  onChange={(event) => changeFilter(setMinPrice, event.target.value)}
                 />
               </label>
               <label>
@@ -153,15 +163,24 @@ export function CatalogPage() {
                   type="number"
                   inputMode="decimal"
                   min="0"
+                  step="0.01"
                   placeholder="Beliebig"
                   value={maxPrice}
-                  onChange={(event) => setMaxPrice(event.target.value)}
+                  onChange={(event) => changeFilter(setMaxPrice, event.target.value)}
                 />
               </label>
             </div>
           </div>
 
-          <button type="button" className={styles.searchButton} aria-label="Suche ausführen">
+          <button
+            type="button"
+            className={styles.searchButton}
+            aria-label="Suche ausführen"
+            onClick={() => {
+              setCurrentPage(1);
+              if (!priceError) void refetch();
+            }}
+          >
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <circle cx="11" cy="11" r="6.5" />
               <path d="m16 16 4 4" />
@@ -183,7 +202,7 @@ export function CatalogPage() {
                   type="button"
                   className={!category ? styles.isSelected : ''}
                   aria-pressed={!category}
-                  onClick={() => setCategory('')}
+                  onClick={() => changeFilter(setCategory, '')}
                 >
                   Alle Kategorien
                 </button>
@@ -194,9 +213,7 @@ export function CatalogPage() {
                     className={category === option.value ? styles.isSelected : ''}
                     aria-pressed={category === option.value}
                     onClick={() =>
-                      setCategory((currentCategory) =>
-                        currentCategory === option.value ? '' : option.value,
-                      )
+                      changeFilter(setCategory, category === option.value ? '' : option.value)
                     }
                   >
                     {option.label}
@@ -210,18 +227,19 @@ export function CatalogPage() {
               <div className={styles.cityList}>
                 <button
                   type="button"
-                  className={!cities.length ? styles.isSelected : ''}
-                  aria-pressed={!cities.length}
-                  onClick={() => setCities([])}
+                  className={!city ? styles.isSelected : ''}
+                  aria-pressed={!city}
+                  onClick={() => changeFilter(setCity, '')}
                 >
                   Alle Städte
                 </button>
                 {cityOptions.slice(1).map((option) => (
                   <label key={option.value}>
                     <input
-                      type="checkbox"
-                      checked={cities.includes(option.value)}
-                      onChange={() => toggleCity(option.value)}
+                      type="radio"
+                      name="catalog-city"
+                      checked={city === option.value}
+                      onChange={() => changeFilter(setCity, option.value)}
                     />
                     <span>{option.label}</span>
                   </label>
@@ -238,9 +256,10 @@ export function CatalogPage() {
                     type="number"
                     inputMode="decimal"
                     min="0"
+                    step="0.01"
                     placeholder="0"
                     value={minPrice}
-                    onChange={(event) => setMinPrice(event.target.value)}
+                    onChange={(event) => changeFilter(setMinPrice, event.target.value)}
                   />
                 </label>
                 <label>
@@ -249,9 +268,10 @@ export function CatalogPage() {
                     type="number"
                     inputMode="decimal"
                     min="0"
+                    step="0.01"
                     placeholder="Beliebig"
                     value={maxPrice}
-                    onChange={(event) => setMaxPrice(event.target.value)}
+                    onChange={(event) => changeFilter(setMaxPrice, event.target.value)}
                   />
                 </label>
               </div>
@@ -259,10 +279,21 @@ export function CatalogPage() {
           </aside>
 
           <div>
-            {isPending ? (
+            {priceError ? (
+              <p className={styles.empty} role="alert">
+                {priceError}
+              </p>
+            ) : isPending ? (
               <p className={styles.empty}>Anzeigen werden geladen…</p>
             ) : isError ? (
-              <p className={styles.empty}>Anzeigen konnten nicht geladen werden.</p>
+              <div className={styles.empty} role="alert">
+                <p>
+                  {error instanceof Error
+                    ? error.message
+                    : 'Anzeigen konnten nicht geladen werden.'}
+                </p>
+                <Button onClick={() => void refetch()}>Erneut versuchen</Button>
+              </div>
             ) : items.length > 0 ? (
               <>
                 <ItemGrid items={items} />
@@ -306,6 +337,6 @@ export function CatalogPage() {
           </div>
         </div>
       </section>
-    </main>
+    </section>
   );
 }

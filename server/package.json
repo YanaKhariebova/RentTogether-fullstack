@@ -4,7 +4,7 @@
   "description": "",
   "type": "module",
   "scripts": {
-    "dev": "tsx watch src/index.ts",
+    "dev": "tsx watch --include \"src/**/*.ts\" --include .env --exclude \"src/generated/**\" --clear-screen=false src/index.ts",
     "start": "tsx src/index.ts",
     "build": "prisma generate && tsc --noEmit",
     "lint": "eslint . --config ../eslint.config.js",
@@ -16,7 +16,7 @@
     "db:seed": "prisma db seed",
     "db:local": "node scripts/local-db.mjs",
     "db:check": "prisma generate && node scripts/local-db.mjs --check",
-    "test:db": "tsx --test tests/database.integration.ts tests/items.database.integration.ts"
+    "test:db": "tsx --test --test-concurrency=1 tests/database.integration.ts tests/items.database.integration.ts"
   },
   "keywords": [],
   "author": "",
