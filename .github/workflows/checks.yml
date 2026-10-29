@@ -39,6 +39,7 @@ jobs:
         working-directory: server
       - run: npm run build
         working-directory: server
+      - run: npx tsc --project tsconfig.auth.json
       - run: npm run lint
         working-directory: server
       - run: npm test
