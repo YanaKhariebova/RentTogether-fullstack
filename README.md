@@ -27,14 +27,14 @@ nach `.env.local` und `server/.env.example` nach `server/.env` und konfiguriere
 Clerk und PostgreSQL gemäß [Setup](docs/foundation-setup.md). Ohne Clerk Publishable Key
 zeigt das Frontend einen Einrichtungshinweis.
 
-Der Besitzerbereich unter `/account/items` verwendet weiterhin Mock-Daten.
-Änderungen gehen beim Neuladen oder Verlassen des Bereichs verloren. Item-Modelle
-und Owner-API sind implementiert; die Verbindung zum Frontend und echte Bild-Uploads
-sind der nächste Schritt.
+Der Besitzerbereich unter `/account/items` ist mit der API verbunden. Anzeigen
+und Fotos bleiben nach dem Neuladen erhalten. Cloudinary ist als Bildspeicher
+integriert; Einrichtung: [Cloudinary](docs/cloudinary-setup.md).
 
-Vite verwendet standardmäßig Port 5173. Bei Port 5174 muss CLIENT_URL im Backend
-auch `http://localhost:5174` sein. Details zum Items-Seed und zu den erledigten
-Aufgaben stehen im [Etappenbericht 27–30 Oktober](docs/items-milestone-27-30.md).
+`npm run dev` übernimmt Host und Port aus `CLIENT_URL` in `server/.env`, passend
+zu CORS und Clerk im Backend. Ohne Konfiguration gilt `http://localhost:5173`.
+Bei belegtem Port stoppt Vite, statt auf einen anderen Port auszuweichen.
+Öffnet die im Terminal angezeigte Adresse. Weitere Details: [Lokales Setup](docs/foundation-setup.md).
 
 ## Prüfungen
 
