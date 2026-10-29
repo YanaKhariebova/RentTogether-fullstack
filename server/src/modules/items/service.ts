@@ -2,7 +2,7 @@ import { Prisma } from '../../generated/prisma/client.js';
 import type { PrismaClient } from '../../generated/prisma/client.js';
 import { ApiError } from '../../lib/errors.js';
 import { requireOwner } from '../../middleware/requireAuth.js';
-import type { CreateItemData, UpdateItemData } from './schemas.js';
+import type { CreateItemData, PublicItemsQuery, UpdateItemData } from './schemas.js';
 
 export type ItemsDatabase = Pick<PrismaClient, 'item' | 'category' | '$transaction'>;
 
@@ -28,6 +28,20 @@ function toOwnerItem(item: SelectedItem) {
     pricePerDay: item.pricePerDay.toFixed(2),
     createdAt: item.createdAt.toISOString(),
     updatedAt: item.updatedAt.toISOString(),
+  };
+}
+
+function toPublicItem(item: SelectedItem) {
+  return {
+    id: item.id,
+    title: item.title,
+    description: item.description,
+    city: item.city,
+    pricePerDay: item.pricePerDay.toFixed(2),
+    isPublished: item.isPublished,
+    category: item.category,
+    owner: item.owner,
+    images: item.images,
   };
 }
 
@@ -67,6 +81,50 @@ function rethrowWriteError(error: unknown): never {
 
 export function createItemsService(prisma: ItemsDatabase) {
   return {
+    async listPublished(query: PublicItemsQuery) {
+      const where: Prisma.ItemWhereInput = { isPublished: true };
+      if (query.q) {
+        where.OR = [
+          { title: { contains: query.q, mode: 'insensitive' } },
+          { description: { contains: query.q, mode: 'insensitive' } },
+        ];
+      }
+      if (query.city) where.city = { equals: query.city, mode: 'insensitive' };
+      if (query.categoryId) where.categoryId = query.categoryId;
+      if (query.minPrice || query.maxPrice) {
+        where.pricePerDay = { gte: query.minPrice, lte: query.maxPrice };
+      }
+
+      const [items, total] = await Promise.all([
+        prisma.item.findMany({
+          where,
+          select: ownerItemSelect,
+          orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+          skip: (query.page - 1) * query.limit,
+          take: query.limit,
+        }),
+        prisma.item.count({ where }),
+      ]);
+      return {
+        items: items.map(toPublicItem),
+        pagination: {
+          page: query.page,
+          limit: query.limit,
+          total,
+          totalPages: total === 0 ? 0 : Math.ceil(total / query.limit),
+        },
+      };
+    },
+
+    async getPublished(id: string) {
+      const item = await prisma.item.findFirst({
+        where: { id, isPublished: true },
+        select: ownerItemSelect,
+      });
+      if (!item) throw new ApiError(404, 'ITEM_NOT_FOUND', 'Die Anzeige wurde nicht gefunden.');
+      return toPublicItem(item);
+    },
+
     async listMine(ownerId: string) {
       const items = await prisma.item.findMany({
         where: { ownerId },

@@ -3,6 +3,7 @@ import { test } from 'node:test';
 import {
   createItemSchema,
   itemParamsSchema,
+  publicItemsQuerySchema,
   updateItemSchema,
 } from '../src/modules/items/schemas.js';
 
@@ -45,4 +46,29 @@ test('item patch needs an allowed change; real API IDs must be UUIDs', () => {
     false,
   );
   assert.equal(itemParamsSchema.safeParse({ id: 'mock-projector' }).success, false);
+});
+
+test('public catalog query validates filters and supplies pagination defaults', () => {
+  assert.deepEqual(publicItemsQuerySchema.parse({}), { page: 1, limit: 12 });
+  assert.deepEqual(
+    publicItemsQuerySchema.parse({
+      q: '  Beamer ',
+      city: ' Berlin ',
+      minPrice: '10.00',
+      maxPrice: '20.00',
+      page: '2',
+      limit: '9',
+    }),
+    { q: 'Beamer', city: 'Berlin', minPrice: '10.00', maxPrice: '20.00', page: 2, limit: 9 },
+  );
+  for (const query of [
+    { page: '0' },
+    { limit: '51' },
+    { minPrice: '20.00', maxPrice: '10.00' },
+    { minPrice: '10' },
+    { categoryId: 'not-a-uuid' },
+    { unexpected: 'value' },
+  ]) {
+    assert.equal(publicItemsQuerySchema.safeParse(query).success, false);
+  }
 });
