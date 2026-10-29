@@ -4,6 +4,7 @@ import { ApiError } from '../../lib/errors.js';
 import { requireOwner } from '../../middleware/requireAuth.js';
 import type { CreateItemData, PublicItemsQuery, UpdateItemData } from './schemas.js';
 import type { ImageStorage } from './storage/ImageStorage.js';
+import { ImageUploadError } from './storage/ImageUploadError.js';
 import { MAX_ITEM_IMAGES } from './imageValidation.js';
 import { flushImageCleanup } from './imageCleanup.js';
 
@@ -199,6 +200,7 @@ export function createItemsService(prisma: ItemsDatabase, storage?: ImageStorage
           { timeout: 20_000 },
         );
       } catch (error) {
+        if (error instanceof ImageUploadError) uploadedKey = error.cleanupKey;
         if (uploadedKey) {
           try {
             await storage.delete(uploadedKey);

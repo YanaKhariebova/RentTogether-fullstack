@@ -7,6 +7,7 @@ import sharp from 'sharp';
 import { createLocalImageStorage } from '../src/modules/items/storage/localImageStorage.js';
 import type { ImageStorage } from '../src/modules/items/storage/ImageStorage.js';
 import { createItemsService } from '../src/modules/items/service.js';
+import { ImageUploadError } from '../src/modules/items/storage/ImageUploadError.js';
 import { flushImageCleanup } from '../src/modules/items/imageCleanup.js';
 import { after, before, test } from 'node:test';
 import type { Server } from 'node:http';
@@ -836,4 +837,40 @@ test('public city choices include all published cities independently of paginati
   assert.ok(cities.includes('Celle'));
   assert.ok(!cities.includes('Hidden City'));
   assert.equal(cities.length, new Set(cities).size);
+});
+
+test('ambiguous provider upload failure queues its known object key and retries cleanup', async () => {
+  const own = await photoDraft();
+  const key = `cloudinary:test-cloud:1:png:renttogether/items/${randomUUID()}`;
+  const objects = new Set<string>();
+  let unavailable = true;
+  const provider: ImageStorage = {
+    async upload() {
+      objects.add(key);
+      throw new ImageUploadError(key, new Error('Network timeout'));
+    },
+    async delete(id) {
+      if (unavailable) throw new Error('Still unavailable');
+      objects.delete(id);
+    },
+    getPublicUrl() {
+      throw new Error('Unexpected URL request');
+    },
+  };
+  await assert.rejects(
+    createItemsService(prisma, provider).uploadImage(own.ownerId, own.id, {
+      content: png,
+      contentType: 'image/png',
+    }),
+    {
+      status: 503,
+      code: 'IMAGE_STORAGE_UNAVAILABLE',
+    },
+  );
+  assert.equal(await prisma.itemImage.count({ where: { itemId: own.id } }), 0);
+  assert.ok(await prisma.imageCleanup.findUnique({ where: { storageKey: key } }));
+  unavailable = false;
+  await flushImageCleanup(prisma, provider, key);
+  assert.equal(objects.size, 0);
+  assert.equal(await prisma.imageCleanup.count({ where: { storageKey: key } }), 0);
 });

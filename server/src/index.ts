@@ -4,10 +4,7 @@ import { createApp } from './app.js';
 import { createPrisma } from './lib/prisma.js';
 import { createRequireAuth } from './middleware/requireAuth.js';
 import { syncUser } from './modules/users/syncUser.js';
-import {
-  createLocalImageStorage,
-  defaultUploadsDirectory,
-} from './modules/items/storage/localImageStorage.js';
+import { configureImageStorage } from './modules/items/storage/configureImageStorage.js';
 import { flushImageCleanup } from './modules/items/imageCleanup.js';
 
 for (const key of ['DATABASE_URL', 'CLERK_SECRET_KEY', 'CLERK_PUBLISHABLE_KEY']) {
@@ -29,14 +26,8 @@ const authenticate = createRequireAuth({
   },
   syncUser: (identity) => syncUser(prisma, identity),
 });
-// Локальное хранилище — временный development adapter, не production-провайдер.
-if ((process.env.IMAGE_STORAGE ?? 'local') !== 'local' || process.env.NODE_ENV === 'production') {
-  throw new Error('Configure an approved image storage adapter before production.');
-}
 const port = Number(process.env.PORT ?? 3000);
-const imageStorage = createLocalImageStorage({
-  publicBaseUrl: process.env.IMAGE_PUBLIC_BASE_URL ?? `http://localhost:${port}/uploads/`,
-});
+const { provider, imageStorage, localUploadsDirectory } = configureImageStorage(process.env);
 let cleanupRunning = false;
 async function runImageCleanup() {
   if (cleanupRunning) return;
@@ -56,7 +47,7 @@ const cleanupTimer = setInterval(() => {
 cleanupTimer.unref();
 const app = createApp({
   imageStorage,
-  localUploadsDirectory: defaultUploadsDirectory,
+  localUploadsDirectory,
   prisma,
   authenticate,
   authMiddleware: clerkMiddleware({
@@ -65,7 +56,7 @@ const app = createApp({
   clientUrl: process.env.CLIENT_URL,
 });
 const server = app.listen(port, () =>
-  console.log(`RentTogether API runs at http://localhost:${port}`),
+  console.log(`RentTogether API runs at http://localhost:${port} (image storage: ${provider})`),
 );
 for (const signal of ['SIGINT', 'SIGTERM'] as const) {
   process.on(signal, () => {
