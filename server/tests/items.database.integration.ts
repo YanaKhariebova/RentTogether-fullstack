@@ -393,6 +393,63 @@ test('HTTP publishing a draft without images fails and leaves it unpublished', a
   );
 });
 
+test('HTTP photo order can be reversed repeatedly without unique position conflicts', async () => {
+  const own = await createItemFixture();
+  const original = own.images.map((image) => image.id);
+  for (const imageIds of [[...original].reverse(), original]) {
+    const response = await fetch(`${base}/api/items/${own.id}/images/order`, {
+      method: 'PUT',
+      headers: headersFor(own),
+      body: JSON.stringify({ imageIds }),
+    });
+    assert.equal(response.status, 204);
+    const images = await prisma.itemImage.findMany({
+      where: { itemId: own.id },
+      orderBy: { order: 'asc' },
+    });
+    assert.deepEqual(
+      images.map((image) => image.id),
+      imageIds,
+    );
+    assert.deepEqual(
+      images.map((image) => image.order),
+      [0, 1],
+    );
+    for (const image of images) {
+      assert.equal(image.url, own.images.find((entry) => entry.id === image.id)!.url);
+    }
+  }
+});
+
+test('HTTP photo order rejects missing, duplicate and foreign IDs without changes', async () => {
+  const own = await createItemFixture();
+  const other = await createItemFixture();
+  const original = own.images.map((image) => image.id);
+  for (const imageIds of [[], [original[0], original[0]], [original[0], other.images[0].id]]) {
+    const response = await fetch(`${base}/api/items/${own.id}/images/order`, {
+      method: 'PUT',
+      headers: headersFor(own),
+      body: JSON.stringify({ imageIds }),
+    });
+    assert.equal(response.status, 400);
+    assert.equal((await response.json()).error.code, 'INVALID_IMAGE_ORDER');
+  }
+  const forbidden = await fetch(`${base}/api/items/${own.id}/images/order`, {
+    method: 'PUT',
+    headers: headersFor(other),
+    body: JSON.stringify({ imageIds: [...original].reverse() }),
+  });
+  assert.equal(forbidden.status, 403);
+  const images = await prisma.itemImage.findMany({
+    where: { itemId: own.id },
+    orderBy: { order: 'asc' },
+  });
+  assert.deepEqual(
+    images.map((image) => image.id),
+    original,
+  );
+});
+
 test('demo item seed creates a draft and repeated seed preserves edits', async () => {
   const own = await createItemFixture();
   const id = randomUUID();

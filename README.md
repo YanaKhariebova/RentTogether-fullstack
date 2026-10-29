@@ -27,10 +27,12 @@ nach `.env.local` und `server/.env.example` nach `server/.env` und konfiguriere
 Clerk und PostgreSQL gemäß [Setup](docs/foundation-setup.md). Ohne Clerk Publishable Key
 zeigt das Frontend einen Einrichtungshinweis.
 
-Der Besitzerbereich unter `/account/items` verwendet weiterhin Mock-Daten.
-Änderungen gehen beim Neuladen oder Verlassen des Bereichs verloren. Item-Modelle
-und Owner-API sind implementiert; die Verbindung zum Frontend und echte Bild-Uploads
-sind der nächste Schritt.
+Der Besitzerbereich unter `/account/items` verwendet die Owner-API. Bilder werden
+lokal unter `server/uploads` gespeichert und über `/uploads` ausgeliefert, wenn
+das Backend wie oben aus `server/` gestartet wird. Beim Deployment benötigt dieses
+Verzeichnis einen persistenten Datenträger; ein Cloud-Anbieter ist noch nicht ausgewählt.
+Die öffentlichen Item-Endpunkte sind implementiert. Katalog und Buchungen verwenden
+im Frontend weiterhin Mock-Daten. Aktueller Integrationsstand: [Integration](docs/integration.md).
 
 Vite verwendet standardmäßig Port 5173. Bei Port 5174 muss CLIENT_URL im Backend
 auch `http://localhost:5174` sein. Details zum Items-Seed und zu den erledigten

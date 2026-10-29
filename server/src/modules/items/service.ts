@@ -211,16 +211,25 @@ export function createItemsService(prisma: ItemsDatabase) {
     async reorderImages(ownerId: string, itemId: string, imageIds: string[]) {
       return prisma.$transaction(async (tx) => {
         await lockOwnedItem(tx, itemId, ownerId);
-        const images = await tx.itemImage.findMany({ where: { itemId }, select: { id: true } });
+        const images = await tx.itemImage.findMany({
+          where: { itemId },
+          select: { id: true, order: true },
+        });
         if (
           images.length !== imageIds.length ||
           new Set(imageIds).size !== imageIds.length ||
           images.some((image) => !imageIds.includes(image.id))
         )
           throw new ApiError(400, 'INVALID_IMAGE_ORDER', 'Die Reihenfolge der Fotos ist ungültig.');
-        await Promise.all(
-          imageIds.map((id, order) => tx.itemImage.update({ where: { id }, data: { order } })),
-        );
+        // Освобождаем текущие позиции: уникальный индекс проверяется при каждом UPDATE.
+        // Item lock сохраняется до конца обеих фаз и исключает параллельные изменения фото.
+        const temporaryStart = Math.max(-1, ...images.map((image) => image.order)) + 1;
+        for (const [index, id] of imageIds.entries()) {
+          await tx.itemImage.update({ where: { id }, data: { order: temporaryStart + index } });
+        }
+        for (const [order, id] of imageIds.entries()) {
+          await tx.itemImage.update({ where: { id }, data: { order } });
+        }
       });
     },
   };
