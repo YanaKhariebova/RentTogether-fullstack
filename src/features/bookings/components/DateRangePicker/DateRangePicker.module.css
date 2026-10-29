@@ -16,14 +16,14 @@
 
 .calendar {
   --rdp-accent-color: var(--color-primary);
-  --rdp-accent-background-color: #e7f1e9;
+  --rdp-accent-background-color: var(--color-primary-soft);
   --rdp-day_button-border-radius: var(--radius-sm);
   --rdp-day_button-height: 38px;
   --rdp-day_button-width: 38px;
   --rdp-day-height: 40px;
   --rdp-day-width: 40px;
   --rdp-disabled-opacity: 0.35;
-  --rdp-range_middle-background-color: #e7f1e9;
+  --rdp-range_middle-background-color: var(--color-primary-soft);
   --rdp-range_start-date-background-color: var(--color-primary);
   --rdp-range_end-date-background-color: var(--color-primary);
   width: 100%;
