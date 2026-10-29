@@ -6,6 +6,7 @@ import styles from './MyItemsPage.module.css';
 interface MyItemsPageProps {
   items: OwnerItem[];
   status: 'loading' | 'ready' | 'error';
+  error?: string | null;
   onCreate: () => void;
   onEdit: (id: string) => void;
   onUnpublish: (id: string) => void;
@@ -17,6 +18,7 @@ interface MyItemsPageProps {
 export function MyItemsPage({
   items,
   status,
+  error,
   onCreate,
   onEdit,
   onUnpublish,
@@ -47,7 +49,7 @@ export function MyItemsPage({
       {status === 'error' && (
         <div className={styles.state} role="alert">
           <h3>Das hat leider nicht geklappt.</h3>
-          <p>Deine Anzeigen konnten nicht geladen werden.</p>
+          <p>{error || 'Deine Anzeigen konnten nicht geladen werden.'}</p>
           <Button type="button" onClick={onRetry}>
             Erneut versuchen
           </Button>

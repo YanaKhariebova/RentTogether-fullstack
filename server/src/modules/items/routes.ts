@@ -25,6 +25,10 @@ export function createItemsRoutes(
   itemsRouter.get('/', async (req, res) => {
     res.json(await service.listPublished(publicItemsQuerySchema.parse(req.query)));
   });
+  itemsRouter.get('/cities', async (_req, res) => {
+    res.json({ cities: await service.listPublishedCities() });
+  });
+
   itemsRouter.get('/:id', async (req, res) => {
     const { id } = itemParamsSchema.parse(req.params);
     res.json({ item: await service.getPublished(id) });

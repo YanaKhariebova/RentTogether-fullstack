@@ -821,3 +821,19 @@ test('concurrent publishing and last-photo deletion cannot publish a photo-less 
   });
   assert.ok(!saved.isPublished || saved.images.length > 0);
 });
+
+test('public city choices include all published cities independently of pagination and filters', async () => {
+  const published = await createItemFixture();
+  const draft = await createItemFixture();
+  await prisma.item.update({
+    where: { id: published.id },
+    data: { city: 'Celle', isPublished: true },
+  });
+  await prisma.item.update({ where: { id: draft.id }, data: { city: 'Hidden City' } });
+  const response = await fetch(`${base}/api/items/cities`);
+  assert.equal(response.status, 200);
+  const { cities } = await response.json();
+  assert.ok(cities.includes('Celle'));
+  assert.ok(!cities.includes('Hidden City'));
+  assert.equal(cities.length, new Set(cities).size);
+});

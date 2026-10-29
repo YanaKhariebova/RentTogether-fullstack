@@ -77,6 +77,7 @@ export function useOwnerItems() {
   });
   return {
     items: query.data?.items ?? [],
+    loadError: query.error ? itemErrorMessage(query.error) : null,
     status: query.isPending
       ? ('loading' as const)
       : query.isError

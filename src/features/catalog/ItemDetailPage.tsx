@@ -1,3 +1,5 @@
+import { ApiError } from '@/shared/api/client';
+import { Button } from '@/shared/ui/atoms';
 import { Link, useParams } from '@tanstack/react-router';
 import { useState } from 'react';
 import { DateRangePicker } from '../bookings/components/DateRangePicker/DateRangePicker';
@@ -7,27 +9,37 @@ import styles from './ItemDetailPage.module.css';
 
 export function ItemDetailPage() {
   const { itemId } = useParams({ from: '/items/$itemId' });
-  const { data, isPending, isError } = useItemDetailQuery(itemId);
+  const { data, isPending, isError, error, refetch } = useItemDetailQuery(itemId);
   const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
 
   if (isPending) {
     return (
-      <main className={styles.page}>
+      <section className={styles.page}>
         <section className={styles.empty}>
           <p>Anzeige wird geladen…</p>
         </section>
-      </main>
+      </section>
     );
   }
 
+  if (isError && !(error instanceof ApiError && [400, 404].includes(error.status)))
+    return (
+      <section className={styles.page}>
+        <div className={styles.empty} role="alert">
+          <h1>Anzeige konnte nicht geladen werden</h1>
+          <p>{error.message}</p>
+          <Button onClick={() => void refetch()}>Erneut versuchen</Button>
+        </div>
+      </section>
+    );
   if (isError || !data) {
     return (
-      <main className={styles.page}>
+      <section className={styles.page}>
         <section className={styles.empty}>
           <h1>Anzeige nicht gefunden</h1>
           <Link to="/catalog">Zurück zum Katalog</Link>
         </section>
-      </main>
+      </section>
     );
   }
 
@@ -50,7 +62,7 @@ export function ItemDetailPage() {
     .map(({ pickupDate, returnDate }) => ({ pickupDate, returnDate }));
 
   return (
-    <main className={styles.page}>
+    <section className={styles.page}>
       <section className={styles.content} aria-labelledby="item-title">
         <Link className={styles.backLink} to="/catalog">
           ← Zurück zu Entdecken
@@ -90,6 +102,6 @@ export function ItemDetailPage() {
           </div>
         </div>
       </section>
-    </main>
+    </section>
   );
 }
