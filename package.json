@@ -12,7 +12,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test:ui": "playwright test",
-    "test:auth": "npm --prefix server run db:generate && tsc --project tsconfig.auth.json && playwright test --config playwright.auth.config.ts"
+    "test:auth": "npm --prefix server run db:generate && tsc --project tsconfig.auth.json && playwright test --config playwright.auth.config.ts",
+    "test:items": "node --test src/features/items/model/*.test.mjs"
   },
   "dependencies": {
     "@clerk/localizations": "^4.24.3",
@@ -21,6 +22,7 @@
     "@tanstack/react-query": "^5.105.0",
     "@tanstack/react-router": "^1.170.46",
     "react": "^19.3.1",
+    "react-day-picker": "^10.0.2",
     "react-dom": "^19.3.1",
     "zod": "^4.6.7"
   },

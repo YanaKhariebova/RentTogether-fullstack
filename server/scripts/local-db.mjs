@@ -1,12 +1,18 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { randomBytes } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
+import { createServer } from 'node:net';
+import { tmpdir } from 'node:os';
 import EmbeddedPostgres from 'embedded-postgres';
 
 const serverDir = fileURLToPath(new URL('../', import.meta.url));
-const stateDir = path.join(serverDir, '.local-postgres');
+const check = process.argv.includes('--check');
+// Test runs must never reuse the running development cluster or its data directory.
+const stateDir = check
+  ? mkdtempSync(path.join(tmpdir(), 'renttogether-db-check-'))
+  : path.join(serverDir, '.local-postgres');
 mkdirSync(stateDir, { recursive: true });
 const credentialsPath = path.join(stateDir, 'credentials.json');
 if (!existsSync(credentialsPath)) {
@@ -15,7 +21,7 @@ if (!existsSync(credentialsPath)) {
   });
 }
 const { password } = JSON.parse(readFileSync(credentialsPath, 'utf8'));
-const port = 55432;
+const port = check ? await findFreePort() : 55432;
 const user = 'rent_together';
 const databaseDir = path.join(stateDir, 'data');
 const cluster = new EmbeddedPostgres({
@@ -29,9 +35,23 @@ const cluster = new EmbeddedPostgres({
   postgresFlags: ['-h', '127.0.0.1'],
   onLog: () => {},
 });
-const check = process.argv.includes('--check');
 const database = check ? `foundation_check_${Date.now()}` : 'rent_together';
 const databaseUrl = `postgresql://${user}:${password}@127.0.0.1:${port}/${database}?schema=public`;
+
+async function findFreePort() {
+  return new Promise((resolve, reject) => {
+    const listener = createServer();
+    listener.once('error', reject);
+    listener.listen(0, '127.0.0.1', () => {
+      const address = listener.address();
+      if (!address || typeof address === 'string') {
+        listener.close(() => reject(new Error('Could not select a test database port.')));
+        return;
+      }
+      listener.close((error) => (error ? reject(error) : resolve(address.port)));
+    });
+  });
+}
 
 async function run(args, extraEnv = {}) {
   await new Promise((resolve, reject) => {
@@ -72,11 +92,18 @@ try {
     for (let attempt = 0; attempt < 2; attempt++) {
       await run(['node_modules/prisma/build/index.js', 'migrate', 'deploy']);
       await run(['node_modules/prisma/build/index.js', 'db', 'seed'], {
-        SEED_OWNER_CLERK_ID: '',
-        SEED_RENTER_CLERK_ID: '',
+        // Explicit fixtures belong only to this temporary test database.
+        SEED_OWNER_CLERK_ID: 'test_seed_owner',
+        SEED_RENTER_CLERK_ID: 'test_seed_renter',
       });
     }
-    await run(['--import', 'tsx', '--test', 'tests/database.integration.ts']);
+    await run([
+      '--import',
+      'tsx',
+      '--test',
+      'tests/database.integration.ts',
+      'tests/items.database.integration.ts',
+    ]);
     console.log('Clean PostgreSQL migration, repeated seed and profile persistence checks passed.');
   } else {
     const envPath = path.join(serverDir, '.env');
@@ -105,4 +132,5 @@ try {
   }
 } finally {
   await stop();
+  if (check) rmSync(stateDir, { recursive: true, force: true });
 }

@@ -1,0 +1,140 @@
+.link {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  color: inherit;
+  text-decoration: none;
+}
+
+.link:focus-visible {
+  display: block;
+  outline: 3px solid var(--color-primary);
+  outline-offset: 3px;
+  border-radius: 16px;
+}
+
+.card {
+  position: relative;
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 4px 12px rgb(15 45 34 / 8%);
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.link:hover .card {
+  transform: translateY(-6px);
+  box-shadow: 0 14px 24px rgb(15 45 34 / 18%);
+}
+
+.image {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
+
+.content {
+  display: flex;
+  height: 100%;
+  flex: 1;
+  flex-direction: column;
+  padding: 16px;
+}
+
+.title {
+  margin: 0;
+  color: #17382d;
+  font-size: 1rem;
+  line-height: 1.35;
+}
+
+.city {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 8px 0 14px;
+  color: #64748b;
+  font-size: 0.875rem;
+}
+
+.city svg {
+  width: 17px;
+  height: 17px;
+  flex: 0 0 auto;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
+.favorite {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: white;
+  cursor: pointer;
+  filter: drop-shadow(0 1px 2px rgb(0 0 0 / 55%));
+}
+
+.favorite svg {
+  width: 24px;
+  height: 24px;
+  fill: transparent;
+  stroke: currentColor;
+  stroke-linejoin: round;
+  stroke-width: 2;
+}
+
+.favorite[aria-pressed='true'] {
+  color: #c63c4a;
+}
+
+.favorite[aria-pressed='true'] svg {
+  fill: currentColor;
+}
+
+.favorite:hover {
+  color: #c63c4a;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: auto;
+}
+
+.category {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: #e7f1e9;
+  color: #245b3e;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.price {
+  color: #146c43;
+  font-size: 0.875rem;
+  white-space: nowrap;
+}
