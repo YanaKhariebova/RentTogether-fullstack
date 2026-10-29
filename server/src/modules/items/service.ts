@@ -116,5 +116,38 @@ export function createItemsService(prisma: ItemsDatabase) {
         rethrowWriteError(error);
       }
     },
+
+    async addImage(ownerId: string, id: string, image: { url: string; storageKey: string }) {
+      return prisma.$transaction(async (tx) => {
+        await lockOwnedItem(tx, id, ownerId);
+        const { _max } = await tx.itemImage.aggregate({ where: { itemId: id }, _max: { order: true } });
+        return tx.itemImage.create({
+          data: { itemId: id, ...image, order: (_max.order ?? -1) + 1 },
+          select: { id: true, url: true, order: true },
+        });
+      });
+    },
+
+    async deleteImage(ownerId: string, itemId: string, imageId: string) {
+      return prisma.$transaction(async (tx) => {
+        await lockOwnedItem(tx, itemId, ownerId);
+        const image = await tx.itemImage.findFirst({ where: { id: imageId, itemId } });
+        if (!image) throw new ApiError(404, 'IMAGE_NOT_FOUND', 'Das Foto wurde nicht gefunden.');
+        await tx.itemImage.delete({ where: { id: imageId } });
+        const remaining = await tx.itemImage.findMany({ where: { itemId }, orderBy: { order: 'asc' } });
+        await Promise.all(remaining.map((entry, order) => tx.itemImage.update({ where: { id: entry.id }, data: { order } })));
+        return image.storageKey;
+      });
+    },
+
+    async reorderImages(ownerId: string, itemId: string, imageIds: string[]) {
+      return prisma.$transaction(async (tx) => {
+        await lockOwnedItem(tx, itemId, ownerId);
+        const images = await tx.itemImage.findMany({ where: { itemId }, select: { id: true } });
+        if (images.length !== imageIds.length || new Set(imageIds).size !== imageIds.length || images.some((image) => !imageIds.includes(image.id)))
+          throw new ApiError(400, 'INVALID_IMAGE_ORDER', 'Die Reihenfolge der Fotos ist ungültig.');
+        await Promise.all(imageIds.map((id, order) => tx.itemImage.update({ where: { id }, data: { order } })));
+      });
+    },
   };
 }

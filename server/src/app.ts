@@ -1,5 +1,6 @@
 import cors from 'cors';
 import express from 'express';
+import { uploadsDirectory } from './modules/items/imageStorage.js';
 import type { RequestHandler } from 'express';
 import type { PrismaClient } from './generated/prisma/client.js';
 import { ApiError, errorHandler } from './lib/errors.js';
@@ -16,6 +17,7 @@ export function createApp(deps: {
   app.disable('x-powered-by');
   app.use(cors({ origin: deps.clientUrl ?? 'http://localhost:5173' }));
   app.use(express.json({ limit: '32kb' }));
+  app.use('/uploads', express.static(uploadsDirectory()));
   app.get('/api/health', (_req, res) => {
     res.json({ status: 'ok' });
   });

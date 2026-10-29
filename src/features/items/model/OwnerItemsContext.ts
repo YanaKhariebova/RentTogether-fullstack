@@ -1,7 +1,7 @@
 import { createContext } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
-import type { useMockOwnerItems } from '../hooks/useMockOwnerItems';
-export type OwnerItemsStore = ReturnType<typeof useMockOwnerItems> & {
+import type { useOwnerItems } from '../hooks/useOwnerItems';
+export type OwnerItemsStore = ReturnType<typeof useOwnerItems> & {
   notice: string;
   setNotice: Dispatch<SetStateAction<string>>;
 };

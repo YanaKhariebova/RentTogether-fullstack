@@ -28,5 +28,6 @@ server/src/generated/
 playwright-report/
 test-results/
 server/.local-postgres/
+server/uploads/
 .local-tools/
 .tanstack/
