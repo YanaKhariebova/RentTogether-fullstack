@@ -30,3 +30,4 @@ test-results/
 server/.local-postgres/
 .local-tools/
 .tanstack/
+server/uploads/

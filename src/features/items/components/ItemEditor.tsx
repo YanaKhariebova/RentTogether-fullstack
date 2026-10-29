@@ -1,21 +1,32 @@
 import { Button } from '@/shared/ui/atoms';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useItemForm } from '../hooks/useItemForm';
-import { mockCategories } from '../mocks/items';
+import { initialItemFormValues } from '../model/itemFormSchema';
+import { itemErrorMessage } from '../model/itemErrorMessage';
 import { toCreateItemInput, toItemFormValues } from '../model/itemFormAdapters';
 import { ACCEPTED_IMAGE_TYPES, MAX_ITEM_IMAGES } from '../model/itemFormSchema';
 import type { ValidatedItemForm } from '../model/itemFormSchema';
-import type { OwnerItem } from '../types/item';
+import type { ItemCategory, OwnerItem } from '../types/item';
 import { ItemForm } from '../../../shared/ui/organisms/ItemForm/ItemForm';
 import styles from './ItemEditor.module.css';
 
 interface ItemEditorProps {
   item?: OwnerItem;
-  onSave: (values: ValidatedItemForm) => void;
+  categories: ItemCategory[];
+  defaultCity?: string;
+  onSave: (values: ValidatedItemForm) => void | Promise<void>;
   onCancel: () => void;
 }
 
-export function ItemEditor({ item, onSave, onCancel }: ItemEditorProps) {
+export function ItemEditor({
+  item,
+  categories,
+  defaultCity = '',
+  onSave,
+  onCancel,
+}: ItemEditorProps) {
+  const saving = useRef(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [preview, setPreview] = useState<ValidatedItemForm | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
   const form = useItemForm(
@@ -23,7 +34,7 @@ export function ItemEditor({ item, onSave, onCancel }: ItemEditorProps) {
       setPreview(values);
       setSaveError(null);
     },
-    item ? toItemFormValues(item) : undefined,
+    item ? toItemFormValues(item) : { ...initialItemFormValues, city: defaultCity },
   );
   const payload = preview ? toCreateItemInput(preview) : null;
 
@@ -35,7 +46,7 @@ export function ItemEditor({ item, onSave, onCancel }: ItemEditorProps) {
   return (
     <section className={styles.page} aria-labelledby="item-editor-title">
       <header>
-        <Button className={styles.back} type="button" onClick={onCancel}>
+        <Button className={styles.back} type="button" disabled={isSaving} onClick={onCancel}>
           ← Meine Anzeigen
         </Button>
         <h1 id="item-editor-title" className={styles.title}>
@@ -45,19 +56,20 @@ export function ItemEditor({ item, onSave, onCancel }: ItemEditorProps) {
           {item ? 'Passe die Angaben und Fotos deiner Anzeige an.' : 'Was möchtest du verleihen?'}
         </p>
         <p className={styles.notice}>
-          Die Vorschau prüft deine Angaben. Danach kannst du sie für diese Demo lokal speichern.
+          Prüfe deine Vorschau und speichere danach deine Anzeige. Neue Anzeigen werden als Entwurf
+          gespeichert.
         </p>
       </header>
       <ItemForm
         values={form.values}
         errors={form.errors}
-        categories={mockCategories}
+        categories={categories}
         images={form.images}
         imageErrors={form.imageErrors}
         imageAccept={ACCEPTED_IMAGE_TYPES.join(',')}
         maxImages={MAX_ITEM_IMAGES}
         submitAttempts={form.submitAttempts}
-        isSubmitting={form.isSubmitting}
+        isSubmitting={form.isSubmitting || isSaving}
         submitError={form.submitError}
         submitLabel="Vorschau anzeigen"
         onFieldChange={(field, value) => {
@@ -90,7 +102,7 @@ export function ItemEditor({ item, onSave, onCancel }: ItemEditorProps) {
             <dt>Ort</dt>
             <dd>{payload.city}</dd>
             <dt>Kategorie</dt>
-            <dd>{mockCategories.find((category) => category.id === payload.categoryId)?.name}</dd>
+            <dd>{categories.find((category) => category.id === payload.categoryId)?.name}</dd>
             <dt>Preis pro Tag</dt>
             <dd>{payload.pricePerDay.replace('.', ',')} €</dd>
             <dt>Fotos</dt>
@@ -100,15 +112,23 @@ export function ItemEditor({ item, onSave, onCancel }: ItemEditorProps) {
           <Button
             className={styles.save}
             type="button"
-            onClick={() => {
+            loading={isSaving}
+            onClick={async () => {
+              if (saving.current) return;
+              saving.current = true;
+              setIsSaving(true);
+              setSaveError(null);
               try {
-                onSave(preview);
-              } catch {
-                setSaveError('Speichern fehlgeschlagen. Bitte versuche es erneut.');
+                await onSave(preview);
+              } catch (error) {
+                setSaveError(itemErrorMessage(error));
+              } finally {
+                saving.current = false;
+                setIsSaving(false);
               }
             }}
           >
-            {item ? 'Änderungen lokal speichern' : 'Anzeige lokal speichern'}
+            {item ? 'Änderungen speichern' : 'Anzeige speichern'}
           </Button>
         </section>
       )}

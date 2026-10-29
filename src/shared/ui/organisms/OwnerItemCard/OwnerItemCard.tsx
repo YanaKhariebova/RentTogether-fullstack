@@ -13,9 +13,17 @@ interface OwnerItemCardProps {
   };
   onEdit: (id: string) => void;
   onUnpublish: (id: string) => void;
+  onPublish?: (id: string) => void;
+  busy?: boolean;
 }
 
-export function OwnerItemCard({ item, onEdit, onUnpublish }: OwnerItemCardProps) {
+export function OwnerItemCard({
+  item,
+  onEdit,
+  onUnpublish,
+  onPublish,
+  busy = false,
+}: OwnerItemCardProps) {
   const cover = [...item.images].sort((a, b) => a.order - b.order)[0];
   return (
     <article className={styles.card}>
@@ -39,14 +47,26 @@ export function OwnerItemCard({ item, onEdit, onUnpublish }: OwnerItemCardProps)
         <div className={styles.actions}>
           <Button
             type="button"
+            disabled={busy}
             onClick={() => onEdit(item.id)}
             aria-label={`${item.title} bearbeiten`}
           >
             Bearbeiten
           </Button>
+          {!item.isPublished && onPublish && (
+            <Button
+              type="button"
+              disabled={busy || item.images.length === 0}
+              onClick={() => onPublish(item.id)}
+              aria-label={`${item.title} veröffentlichen`}
+            >
+              Veröffentlichen
+            </Button>
+          )}
           {item.isPublished && (
             <Button
               type="button"
+              disabled={busy}
               onClick={() => onUnpublish(item.id)}
               aria-label={`${item.title} ausblenden`}
             >

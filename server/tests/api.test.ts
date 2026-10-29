@@ -27,7 +27,7 @@ const prisma = {
       return { ...user, ...data };
     },
   },
-} as unknown as Pick<PrismaClient, 'user' | 'category' | 'item' | '$transaction'>;
+} as unknown as Pick<PrismaClient, 'user' | 'category' | 'item' | '$transaction' | 'imageCleanup'>;
 let server: Server;
 let base: string;
 before(async () => {
@@ -88,6 +88,10 @@ test('all owner item endpoints require authentication', async () => {
     ['PATCH', `/api/items/${user.id}`],
     ['DELETE', `/api/items/${user.id}`],
     ['GET', '/api/my/items'],
+    ['PATCH', `/api/items/${user.id}/images/order`],
+    ['PUT', `/api/items/${user.id}/images/order`],
+    ['POST', `/api/items/${user.id}/images`],
+    ['DELETE', `/api/items/${user.id}/images/${user.id}`],
   ]) {
     const response = await fetch(`${base}${path}`, { method });
     assert.equal(response.status, 401);

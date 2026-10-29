@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import type { ReactNode } from 'react';
-import { useMockOwnerItems } from '../hooks/useMockOwnerItems';
+import { useOwnerItems } from '../hooks/useOwnerItems';
 import { OwnerItemsContext } from '../model/OwnerItemsContext';
-// Состояние и blob URL живут выше route-страниц и очищаются при выходе из раздела.
+// Provider перемонтируется при смене Clerk-пользователя; формы и notices изолированы.
 export function OwnerItemsProvider({ children }: { children: ReactNode }) {
-  const store = useMockOwnerItems();
+  const store = useOwnerItems();
   const [notice, setNotice] = useState('');
   return (
     <OwnerItemsContext.Provider value={{ ...store, notice, setNotice }}>

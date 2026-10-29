@@ -3,8 +3,14 @@ import type { PrismaClient } from '../../generated/prisma/client.js';
 import { ApiError } from '../../lib/errors.js';
 import { requireOwner } from '../../middleware/requireAuth.js';
 import type { CreateItemData, UpdateItemData } from './schemas.js';
+import type { ImageStorage } from './storage/ImageStorage.js';
+import { MAX_ITEM_IMAGES } from './imageValidation.js';
+import { flushImageCleanup } from './imageCleanup.js';
 
-export type ItemsDatabase = Pick<PrismaClient, 'item' | 'category' | '$transaction'>;
+export type ItemsDatabase = Pick<
+  PrismaClient,
+  'item' | 'category' | '$transaction' | 'imageCleanup'
+>;
 
 const ownerItemSelect = {
   id: true,
@@ -65,7 +71,7 @@ function rethrowWriteError(error: unknown): never {
   throw error;
 }
 
-export function createItemsService(prisma: ItemsDatabase) {
+export function createItemsService(prisma: ItemsDatabase, storage?: ImageStorage) {
   return {
     async listMine(ownerId: string) {
       const items = await prisma.item.findMany({
@@ -74,6 +80,179 @@ export function createItemsService(prisma: ItemsDatabase) {
         orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       });
       return items.map(toOwnerItem);
+    },
+
+    async assertOwner(ownerId: string, id: string) {
+      const item = await prisma.item.findUnique({ where: { id }, select: { ownerId: true } });
+      if (!item) throw new ApiError(404, 'ITEM_NOT_FOUND', 'Die Anzeige wurde nicht gefunden.');
+      requireOwner(item.ownerId, ownerId);
+    },
+
+    async uploadImage(ownerId: string, id: string, image: Parameters<ImageStorage['upload']>[0]) {
+      if (!storage)
+        throw new ApiError(
+          503,
+          'IMAGE_STORAGE_NOT_CONFIGURED',
+          'Fotos können derzeit nicht hochgeladen werden.',
+        );
+      // Сетевой upload вне транзакции: не держим блокировку БД во время работы провайдера.
+      const owned = await prisma.item.findUnique({ where: { id }, select: { ownerId: true } });
+      if (!owned) throw new ApiError(404, 'ITEM_NOT_FOUND', 'Die Anzeige wurde nicht gefunden.');
+      requireOwner(owned.ownerId, ownerId);
+      let uploadedKey: string | undefined;
+      try {
+        const uploaded = await storage.upload(image);
+        uploadedKey = uploaded.key;
+        const url = storage.getPublicUrl(uploaded.key);
+        return await prisma.$transaction(
+          async (tx) => {
+            await lockOwnedItem(tx, id, ownerId);
+            if ((await tx.itemImage.count({ where: { itemId: id } })) >= MAX_ITEM_IMAGES) {
+              throw new ApiError(
+                409,
+                'ITEM_IMAGES_LIMIT',
+                'Du kannst höchstens 8 Fotos hinzufügen.',
+                {
+                  images: ['Du kannst höchstens 8 Fotos hinzufügen.'],
+                },
+              );
+            }
+            const { _max } = await tx.itemImage.aggregate({
+              where: { itemId: id },
+              _max: { order: true },
+            });
+            const saved = await tx.itemImage.create({
+              data: { itemId: id, url, storageKey: uploaded.key, order: (_max.order ?? -1) + 1 },
+              select: { id: true, url: true, order: true },
+            });
+            await tx.item.update({ where: { id }, data: { updatedAt: new Date() } });
+            return saved;
+          },
+          { timeout: 20_000 },
+        );
+      } catch (error) {
+        if (uploadedKey) {
+          try {
+            await storage.delete(uploadedKey);
+          } catch {
+            // Если провайдер недоступен, сохраняем задание для фонового повтора.
+            try {
+              await prisma.imageCleanup.upsert({
+                where: { storageKey: uploadedKey },
+                create: { storageKey: uploadedKey },
+                update: {},
+              });
+            } catch {
+              // При одновременном отказе БД и провайдера нужна сверка объектов.
+              console.error('Image cleanup requires reconciliation.', { storageKey: uploadedKey });
+            }
+          }
+        }
+        rethrowWriteError(error);
+      }
+    },
+
+    async deleteImage(ownerId: string, id: string, imageId: string) {
+      if (!storage)
+        throw new ApiError(
+          503,
+          'IMAGE_STORAGE_NOT_CONFIGURED',
+          'Fotos können derzeit nicht entfernt werden.',
+        );
+      try {
+        const storageKey = await prisma.$transaction(async (tx) => {
+          await lockOwnedItem(tx, id, ownerId);
+          const image = await tx.itemImage.findFirst({ where: { id: imageId, itemId: id } });
+          if (!image) throw new ApiError(404, 'IMAGE_NOT_FOUND', 'Das Foto wurde nicht gefunden.');
+          const item = await tx.item.findUniqueOrThrow({
+            where: { id },
+            select: { isPublished: true },
+          });
+          if (item.isPublished && (await tx.itemImage.count({ where: { itemId: id } })) === 1) {
+            throw new ApiError(
+              409,
+              'ITEM_IMAGES_REQUIRED',
+              'Bitte blende die Anzeige aus, bevor du das letzte Foto entfernst.',
+            );
+          }
+          if (image.storageKey) {
+            await tx.imageCleanup.upsert({
+              where: { storageKey: image.storageKey },
+              create: { storageKey: image.storageKey },
+              update: {},
+            });
+          }
+          await tx.itemImage.delete({ where: { id: imageId, itemId: id } });
+          const remaining = await tx.itemImage.findMany({
+            where: { itemId: id },
+            orderBy: { order: 'asc' },
+            select: { id: true },
+          });
+          // После удаления сдвигаем вниз по одному: целевые позиции уже свободны.
+          for (const [order, entry] of remaining.entries()) {
+            await tx.itemImage.update({ where: { id: entry.id }, data: { order } });
+          }
+          await tx.item.update({ where: { id }, data: { updatedAt: new Date() } });
+          return image.storageKey;
+        });
+        if (storageKey) {
+          try {
+            await flushImageCleanup(prisma, storage, storageKey);
+          } catch {
+            console.warn('Image cleanup will be retried after database recovery.');
+          }
+        }
+      } catch (error) {
+        rethrowWriteError(error);
+      }
+    },
+
+    async reorderImages(ownerId: string, id: string, imageIds: string[]) {
+      try {
+        const item = await prisma.$transaction(async (tx) => {
+          await lockOwnedItem(tx, id, ownerId);
+          const images = await tx.itemImage.findMany({
+            where: { itemId: id },
+            select: { id: true, order: true },
+          });
+          const currentIds = new Set(images.map((image) => image.id));
+          if (
+            imageIds.length !== images.length ||
+            new Set(imageIds).size !== imageIds.length ||
+            imageIds.some((imageId) => !currentIds.has(imageId))
+          ) {
+            throw new ApiError(
+              409,
+              'ITEM_IMAGES_CHANGED',
+              'Die Fotos haben sich geändert. Bitte lade die Anzeige neu.',
+              { images: ['Bitte lade die aktuellen Fotos neu.'] },
+            );
+          }
+          // Сначала свободные позиции выше максимума: прямой обмен 0 ↔ 1
+          // нарушил бы UNIQUE(itemId, order). Все записи меняются атомарно.
+          const temporaryStart = Math.max(-1, ...images.map((image) => image.order)) + 1;
+          for (const [index, imageId] of imageIds.entries()) {
+            await tx.itemImage.update({
+              where: { id: imageId, itemId: id },
+              data: { order: temporaryStart + index },
+            });
+          }
+          for (const [order, imageId] of imageIds.entries()) {
+            await tx.itemImage.update({
+              where: { id: imageId, itemId: id },
+              data: { order },
+            });
+          }
+          return tx.item.update({
+            where: { id, ownerId },
+            data: { updatedAt: new Date() },
+            select: ownerItemSelect,
+          });
+        });
+        return toOwnerItem(item);
+      } catch (error) {
+        rethrowWriteError(error);
+      }
     },
 
     async create(ownerId: string, data: CreateItemData) {

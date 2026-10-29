@@ -9,6 +9,8 @@ interface MyItemsPageProps {
   onCreate: () => void;
   onEdit: (id: string) => void;
   onUnpublish: (id: string) => void;
+  onPublish?: (id: string) => void;
+  busy?: boolean;
   onRetry: () => void;
 }
 
@@ -19,6 +21,8 @@ export function MyItemsPage({
   onEdit,
   onUnpublish,
   onRetry,
+  onPublish,
+  busy = false,
 }: MyItemsPageProps) {
   const published = items.filter((item) => item.isPublished).length;
   return (
@@ -71,6 +75,8 @@ export function MyItemsPage({
                   item={item}
                   onEdit={onEdit}
                   onUnpublish={onUnpublish}
+                  onPublish={onPublish}
+                  busy={busy}
                 />
               ))}
             </div>

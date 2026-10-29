@@ -4,6 +4,7 @@ import {
   createItemSchema,
   itemParamsSchema,
   updateItemSchema,
+  reorderImagesSchema,
 } from '../src/modules/items/schemas.js';
 
 const valid = {
@@ -45,4 +46,23 @@ test('item patch needs an allowed change; real API IDs must be UUIDs', () => {
     false,
   );
   assert.equal(itemParamsSchema.safeParse({ id: 'mock-projector' }).success, false);
+});
+
+test('photo order accepts only a complete nonempty list of unique UUIDs', () => {
+  const id = valid.categoryId;
+  assert.deepEqual(reorderImagesSchema.parse({ imageIds: [id] }), { imageIds: [id] });
+  for (const imageIds of [[], [id, id], ['mock-photo'], Array(9).fill(id)]) {
+    assert.equal(reorderImagesSchema.safeParse({ imageIds }).success, false);
+  }
+});
+
+test('photo order rejects extra fields and wrong payload types', () => {
+  for (const body of [
+    {},
+    { imageIds: null },
+    { imageIds: 'photo' },
+    { imageIds: [valid.categoryId], ownerId: valid.categoryId },
+  ]) {
+    assert.equal(reorderImagesSchema.safeParse(body).success, false);
+  }
 });
