@@ -23,8 +23,34 @@ export const updateItemSchema = z
   .refine((value) => Object.keys(value).length > 0, 'Bitte ändere mindestens ein Feld.');
 export const itemParamsSchema = z.object({ id: z.uuid('Ungültige Anzeigen-ID.') });
 
-export type CreateItemData = z.infer<typeof createItemSchema>;
-export type UpdateItemData = z.infer<typeof updateItemSchema>;
+const optionalQueryText = (maxLength: number) =>
+  z
+    .string()
+    .trim()
+    .max(maxLength, `Höchstens ${maxLength} Zeichen.`)
+    .optional()
+    .transform((value) => value || undefined);
+
+const queryPrice = z
+  .string()
+  .regex(/^\d{1,6}\.\d{2}$/, 'Bitte gib den Preis in Euro an, zum Beispiel 15.50.')
+  .refine((value) => Number(value) >= 0, 'Der Preis darf nicht negativ sein.');
+
+export const publicItemsQuerySchema = z
+  .object({
+    q: optionalQueryText(100),
+    city: optionalQueryText(100),
+    categoryId: z.uuid('Bitte wähle eine gültige Kategorie aus.').optional(),
+    minPrice: queryPrice.optional(),
+    maxPrice: queryPrice.optional(),
+    page: z.coerce.number().int().min(1).default(1),
+    limit: z.coerce.number().int().min(1).max(50).default(12),
+  })
+  .strict()
+  .refine(
+    (query) => !query.minPrice || !query.maxPrice || Number(query.minPrice) <= Number(query.maxPrice),
+    { message: 'Der Mindestpreis darf nicht höher als der Höchstpreis sein.', path: ['minPrice'] },
+  );
 
 // Полный список ID: пропущенные и чужие фото проверяются по БД в транзакции.
 export const reorderImagesSchema = z.strictObject({
@@ -34,3 +60,7 @@ export const reorderImagesSchema = z.strictObject({
     .max(8, 'Höchstens 8 Fotos sind erlaubt.')
     .refine((ids) => new Set(ids).size === ids.length, 'Jedes Foto darf nur einmal vorkommen.'),
 });
+
+export type CreateItemData = z.infer<typeof createItemSchema>;
+export type UpdateItemData = z.infer<typeof updateItemSchema>;
+export type PublicItemsQuery = z.infer<typeof publicItemsQuerySchema>;

@@ -250,6 +250,60 @@ test('HTTP create and my items use the authenticated owner and safe DTOs', async
   );
 });
 
+test('public catalog only exposes published items and filters with pagination', async () => {
+  const published = await createItemFixture();
+  const draft = await createItemFixture();
+  await prisma.item.update({ where: { id: published.id }, data: { isPublished: true } });
+
+  const list = await fetch(
+    `${base}/api/items?q=HDMI&city=berlin&categoryId=${published.categoryId}&minPrice=15.00&maxPrice=16.00&page=1&limit=1`,
+  );
+  assert.equal(list.status, 200);
+  const response = await list.json();
+  assert.deepEqual(response.pagination, { page: 1, limit: 1, total: 1, totalPages: 1 });
+  assert.equal(response.items.length, 1);
+  assert.equal(response.items[0].id, published.id);
+  assert.equal(response.items[0].pricePerDay, '15.50');
+  assert.deepEqual(Object.keys(response.items[0].owner).sort(), ['city', 'id', 'name']);
+  assert.equal('createdAt' in response.items[0], false);
+  assert.equal(
+    response.items.some((item: { id: string }) => item.id === draft.id),
+    false,
+  );
+
+  const empty = await fetch(`${base}/api/items?q=nicht-vorhanden`);
+  assert.equal(empty.status, 200);
+  assert.deepEqual((await empty.json()).pagination, {
+    page: 1,
+    limit: 12,
+    total: 0,
+    totalPages: 0,
+  });
+
+  const invalid = await fetch(`${base}/api/items?minPrice=20.00&maxPrice=10.00`);
+  assert.equal(invalid.status, 400);
+  assert.equal((await invalid.json()).error.code, 'VALIDATION_ERROR');
+});
+
+test('public item detail is available without auth only after publication', async () => {
+  const published = await createItemFixture();
+  const draft = await createItemFixture();
+  await prisma.item.update({ where: { id: published.id }, data: { isPublished: true } });
+
+  const detail = await fetch(`${base}/api/items/${published.id}`);
+  assert.equal(detail.status, 200);
+  const { item } = await detail.json();
+  assert.equal(item.id, published.id);
+  assert.equal(item.images[0].order, 0);
+  assert.equal('email' in item.owner, false);
+
+  for (const id of [draft.id, randomUUID()]) {
+    const missing = await fetch(`${base}/api/items/${id}`);
+    assert.equal(missing.status, 404);
+    assert.equal((await missing.json()).error.code, 'ITEM_NOT_FOUND');
+  }
+});
+
 test('HTTP validation and missing categories do not create items', async () => {
   const own = await createItemFixture();
   const body = {
