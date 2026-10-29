@@ -5,6 +5,7 @@ import type { RequestHandler } from 'express';
 import {
   createItemSchema,
   itemParamsSchema,
+  publicItemsQuerySchema,
   updateItemSchema,
   reorderImagesSchema,
 } from './schemas.js';
@@ -19,6 +20,15 @@ export function createItemsRoutes(
   const service = createItemsService(prisma, storage);
   const itemsRouter = Router();
   const myRouter = Router();
+
+  // Публичные GET Яны: только опубликованные объявления.
+  itemsRouter.get('/', async (req, res) => {
+    res.json(await service.listPublished(publicItemsQuerySchema.parse(req.query)));
+  });
+  itemsRouter.get('/:id', async (req, res) => {
+    const { id } = itemParamsSchema.parse(req.params);
+    res.json({ item: await service.getPublished(id) });
+  });
 
   // Auth на отдельных методах: публичные GET Яны в /api/items остаются независимыми.
   itemsRouter.post('/', authenticate, async (req, res) => {
