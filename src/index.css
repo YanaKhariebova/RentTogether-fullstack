@@ -1,4 +1,4 @@
-﻿:root {
+:root {
   font-family:
     'Inter Variable',
     ui-sans-serif,
@@ -7,16 +7,20 @@
     BlinkMacSystemFont,
     'Segoe UI',
     sans-serif;
-  color: #1d3027;
-  background: #eef1eb;
+  color: var(--color-text);
+  background: var(--color-background);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
-  --color-text: #1d3027;
+  --color-text: #20352d;
   --color-muted: #53665a;
   --color-primary: #245c3c;
+  --color-primary-hover: #1c4b32;
+  --color-accent: #f2c66d;
+  --color-background: #f5f8f4;
+  --color-primary-soft: #e8f2ee;
   --color-danger: #b42318;
-  --color-surface: #fff;
-  --color-border: #cbd5cb;
+  --color-surface: #ffffff;
+  --color-border: #d5dfd9;
   --radius-sm: 8px;
   --radius-lg: 20px;
   --space-1: 4px;
@@ -25,7 +29,7 @@
   --space-4: 16px;
   --space-6: 24px;
   --space-8: 32px;
-  --shadow-card: 0 4px 20px #1d302710;
+  --shadow-card: 0 4px 20px #20352d10;
 }
 * {
   box-sizing: border-box;
@@ -44,7 +48,7 @@ a {
   color: var(--color-primary);
 }
 :focus-visible {
-  outline: 3px solid #a8550c;
+  outline: 3px solid var(--color-primary);
   outline-offset: 3px;
 }
 img {

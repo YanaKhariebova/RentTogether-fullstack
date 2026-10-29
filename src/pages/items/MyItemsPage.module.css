@@ -12,7 +12,7 @@
 }
 .eyebrow {
   margin: 0;
-  color: #596c56;
+  color: var(--color-muted);
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 2px;
@@ -39,14 +39,14 @@
   border: 1px solid var(--color-primary);
   border-radius: 10px;
   background: var(--color-primary);
-  color: #fff;
+  color: var(--color-surface);
   font-weight: 700;
   cursor: pointer;
 }
 .state {
   padding: 32px 20px;
   text-align: center;
-  border: 1px dashed #cbd5c5;
+  border: 1px dashed var(--color-border);
   border-radius: 16px;
   background: var(--color-surface);
 }

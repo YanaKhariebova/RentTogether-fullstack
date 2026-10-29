@@ -6,6 +6,6 @@
 
 .title {
   margin: 0 0 16px;
-  color: #166534;
+  color: var(--color-primary);
   font-size: 36px;
 }

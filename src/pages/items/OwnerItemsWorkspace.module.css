@@ -1,23 +1,23 @@
 .workspace {
   min-height: 65vh;
   padding: 20px 0 48px;
-  color: #203829;
+  color: var(--color-text);
   outline: none;
 }
 .demo {
   margin: 0;
   padding: 14px 18px;
-  border: 1px solid #dce3d5;
+  border: 1px solid var(--color-border);
   border-radius: 12px;
-  background: #edf3e7;
-  color: #40533c;
+  background: var(--color-primary-soft);
+  color: var(--color-text);
   font-size: 14px;
   line-height: 1.6;
 }
 .feedback {
   min-height: 24px;
   margin: 16px 0;
-  color: #214d35;
+  color: var(--color-primary);
   line-height: 1.6;
 }
 @media (min-width: 768px) {
