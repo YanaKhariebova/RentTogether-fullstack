@@ -30,9 +30,9 @@ export function EditItemRoutePage() {
     <EditItemPage
       item={item}
       onCancel={back}
-      onSave={(values) => {
-        store.saveItem(values, item.id);
-        store.setNotice('Deine Änderungen wurden lokal gespeichert.');
+      onSave={async (values) => {
+        await store.saveItem(values, item.id);
+        store.setNotice('Deine Änderungen wurden gespeichert.');
         back();
       }}
     />

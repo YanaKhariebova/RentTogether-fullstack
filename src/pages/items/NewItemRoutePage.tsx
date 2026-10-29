@@ -10,9 +10,9 @@ export function NewItemRoutePage() {
   return (
     <NewItemPage
       onCancel={back}
-      onSave={(values) => {
-        store.saveItem(values);
-        store.setNotice('Deine Anzeige wurde lokal gespeichert.');
+      onSave={async (values) => {
+        await store.saveItem(values);
+        store.setNotice('Deine Anzeige wurde gespeichert.');
         back();
       }}
     />

@@ -4,7 +4,7 @@ import type { OwnerItem } from '../../features/items/types/item';
 
 interface EditItemPageProps {
   item: OwnerItem;
-  onSave: (values: ValidatedItemForm) => void;
+  onSave: (values: ValidatedItemForm) => Promise<void>;
   onCancel: () => void;
 }
 

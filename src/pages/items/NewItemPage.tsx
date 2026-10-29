@@ -2,7 +2,7 @@ import { ItemEditor } from '../../features/items/components/ItemEditor';
 import type { ValidatedItemForm } from '../../features/items/model/itemFormSchema';
 
 interface NewItemPageProps {
-  onSave: (values: ValidatedItemForm) => void;
+  onSave: (values: ValidatedItemForm) => Promise<void>;
   onCancel: () => void;
 }
 

@@ -27,10 +27,14 @@ export function OwnerItemsWorkspace() {
       <UnpublishItemDialog
         item={item}
         onCancel={() => setConfirmId(null)}
-        onConfirm={(id) => {
-          store.unpublish(id);
-          setConfirmId(null);
-          store.setNotice('Deine Anzeige wurde ausgeblendet.');
+        onConfirm={async (id) => {
+          try {
+            await store.unpublish(id);
+            setConfirmId(null);
+            store.setNotice('Deine Anzeige wurde ausgeblendet.');
+          } catch {
+            store.setNotice('Die Anzeige konnte nicht ausgeblendet werden.');
+          }
         }}
       />
     </>

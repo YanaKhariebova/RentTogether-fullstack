@@ -1,7 +1,7 @@
 import { Button } from '@/shared/ui/atoms';
 import { useState } from 'react';
 import { useItemForm } from '../hooks/useItemForm';
-import { mockCategories } from '../mocks/items';
+import { useCategoriesQuery } from '../api/useCategoriesQuery';
 import { toCreateItemInput, toItemFormValues } from '../model/itemFormAdapters';
 import { ACCEPTED_IMAGE_TYPES, MAX_ITEM_IMAGES } from '../model/itemFormSchema';
 import type { ValidatedItemForm } from '../model/itemFormSchema';
@@ -11,13 +11,15 @@ import styles from './ItemEditor.module.css';
 
 interface ItemEditorProps {
   item?: OwnerItem;
-  onSave: (values: ValidatedItemForm) => void;
+  onSave: (values: ValidatedItemForm) => Promise<void>;
   onCancel: () => void;
 }
 
 export function ItemEditor({ item, onSave, onCancel }: ItemEditorProps) {
   const [preview, setPreview] = useState<ValidatedItemForm | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const categoriesQuery = useCategoriesQuery();
   const form = useItemForm(
     (values) => {
       setPreview(values);
@@ -45,13 +47,13 @@ export function ItemEditor({ item, onSave, onCancel }: ItemEditorProps) {
           {item ? 'Passe die Angaben und Fotos deiner Anzeige an.' : 'Was möchtest du verleihen?'}
         </p>
         <p className={styles.notice}>
-          Die Vorschau prüft deine Angaben. Danach kannst du sie für diese Demo lokal speichern.
+          Prüfe deine Angaben und speichere die Anzeige anschließend dauerhaft.
         </p>
       </header>
       <ItemForm
         values={form.values}
         errors={form.errors}
-        categories={mockCategories}
+        categories={categoriesQuery.data?.categories ?? []}
         images={form.images}
         imageErrors={form.imageErrors}
         imageAccept={ACCEPTED_IMAGE_TYPES.join(',')}
@@ -90,7 +92,11 @@ export function ItemEditor({ item, onSave, onCancel }: ItemEditorProps) {
             <dt>Ort</dt>
             <dd>{payload.city}</dd>
             <dt>Kategorie</dt>
-            <dd>{mockCategories.find((category) => category.id === payload.categoryId)?.name}</dd>
+            <dd>
+              {categoriesQuery.data?.categories.find(
+                (category) => category.id === payload.categoryId,
+              )?.name ?? '–'}
+            </dd>
             <dt>Preis pro Tag</dt>
             <dd>{payload.pricePerDay.replace('.', ',')} €</dd>
             <dt>Fotos</dt>
@@ -100,15 +106,19 @@ export function ItemEditor({ item, onSave, onCancel }: ItemEditorProps) {
           <Button
             className={styles.save}
             type="button"
-            onClick={() => {
+            disabled={isSaving}
+            onClick={async () => {
               try {
-                onSave(preview);
+                setIsSaving(true);
+                await onSave(preview);
               } catch {
                 setSaveError('Speichern fehlgeschlagen. Bitte versuche es erneut.');
+              } finally {
+                setIsSaving(false);
               }
             }}
           >
-            {item ? 'Änderungen lokal speichern' : 'Anzeige lokal speichern'}
+            {isSaving ? 'Wird gespeichert …' : item ? 'Änderungen speichern' : 'Anzeige speichern'}
           </Button>
         </section>
       )}

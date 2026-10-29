@@ -15,10 +15,6 @@ function ItemsContent() {
   const { notice } = useOwnerItemsStore();
   return (
     <section className={styles.workspace} aria-label="Deine Anzeigen verwalten">
-      <p className={styles.demo}>
-        Demo · Änderungen gelten nur bis zum Neuladen oder Verlassen dieses Bereichs. Es werden
-        keine Anzeigen online veröffentlicht.
-      </p>
       <p className={styles.feedback} role="status">
         {notice}
       </p>
