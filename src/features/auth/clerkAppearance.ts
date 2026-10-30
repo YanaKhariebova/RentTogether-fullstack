@@ -1,0 +1,48 @@
+import type { ComponentProps } from 'react';
+import type { ClerkProvider } from '@clerk/react';
+import styles from './clerkAppearance.module.css';
+
+// Keep hosted auth components, including portalled account dialogs, on the site's tokens.
+export const clerkAppearance = {
+  variables: {
+    colorPrimary: 'var(--color-primary)',
+    colorForeground: 'var(--color-text)',
+    colorMutedForeground: 'var(--color-muted)',
+    colorPrimaryForeground: 'var(--color-surface)',
+    colorMuted: 'var(--color-background)',
+    colorNeutral: 'var(--color-text)',
+    colorBackground: 'var(--color-surface)',
+    colorInput: 'var(--color-surface)',
+    colorInputForeground: 'var(--color-text)',
+    colorBorder: 'var(--color-border)',
+    colorRing: 'var(--color-primary)',
+    colorDanger: 'var(--color-danger)',
+    colorSuccess: 'var(--color-primary)',
+    colorWarning: 'var(--color-accent)',
+    fontFamily: "'Inter Variable', ui-sans-serif, system-ui, sans-serif",
+    borderRadius: 'var(--radius-sm)',
+  },
+  elements: {
+    rootBox: styles.root,
+    cardBox: styles.cardBox,
+    card: styles.card,
+    headerTitle: styles.title,
+    headerSubtitle: styles.muted,
+    formButtonPrimary: styles.primaryButton,
+    socialButtonsBlockButton: styles.secondaryButton,
+    formFieldInput: styles.input,
+    formFieldLabel: styles.label,
+    footer: styles.footer,
+    footerActionLink: styles.link,
+    formResendCodeLink: styles.link,
+    identityPreviewEditButton: styles.link,
+    dividerLine: styles.divider,
+    userButtonPopoverCard: styles.cardBox,
+    userButtonPopoverActionButton: styles.menuButton,
+    userButtonTrigger: styles.avatarButton,
+    userButtonAvatarBox: styles.avatar,
+    navbar: styles.navbar,
+    navbarButton: styles.menuButton,
+    profileSectionPrimaryButton: styles.link,
+  },
+} satisfies NonNullable<ComponentProps<typeof ClerkProvider>['appearance']>;
