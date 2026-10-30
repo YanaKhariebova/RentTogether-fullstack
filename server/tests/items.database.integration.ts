@@ -936,3 +936,118 @@ test('permanent deletion preserves items and photos with existing bookings of an
     await prisma.booking.delete({ where: { id: booking.id } });
   }
 });
+
+test('booking HTTP integration snapshots price and preserves rentals after owner edits and unpublishes item', async () => {
+  const item = await createItemFixture();
+  const renter = await createItemFixture();
+  const outsider = await createItemFixture();
+  const service = createItemsService(prisma, storage);
+  const requestBooking = () =>
+    fetch(`${base}/api/bookings`, {
+      method: 'POST',
+      headers: headersFor(renter),
+      body: JSON.stringify({
+        itemId: item.id,
+        pickupDate: '2027-01-10',
+        returnDate: '2027-01-13',
+      }),
+    });
+  const bookingIds: string[] = [];
+  try {
+    await service.update(item.ownerId, item.id, { isPublished: true });
+    const created = await requestBooking();
+    assert.equal(created.status, 201);
+    const { booking } = await created.json();
+    bookingIds.push(booking.id);
+    assert.equal(booking.status, 'PENDING');
+    assert.equal(booking.pricePerDaySnapshot, '15.50');
+    assert.equal(booking.totalPrice, '46.50');
+    const stored = await prisma.booking.findUniqueOrThrow({ where: { id: booking.id } });
+    assert.equal(stored.renterId, renter.ownerId);
+    await service.update(item.ownerId, item.id, { pricePerDay: '20.00' });
+    const next = await requestBooking();
+    assert.equal(next.status, 201);
+    const second = (await next.json()).booking;
+    bookingIds.push(second.id);
+    assert.equal(second.pricePerDaySnapshot, '20.00');
+    assert.equal(second.totalPrice, '60.00');
+    const hidden = await fetch(`${base}/api/items/${item.id}`, {
+      method: 'DELETE',
+      headers: headersFor(item),
+    });
+    assert.equal(hidden.status, 200);
+    assert.equal((await requestBooking()).status, 404);
+    const preserved = await prisma.booking.findUniqueOrThrow({ where: { id: booking.id } });
+    assert.equal(preserved.pricePerDaySnapshot.toFixed(2), '15.50');
+    assert.equal(preserved.totalPrice.toFixed(2), '46.50');
+    for (const [path, identity] of [
+      ['/my-rentals', renter],
+      ['/incoming', item],
+    ] as const) {
+      const response = await fetch(`${base}/api/bookings${path}`, {
+        headers: headersFor(identity),
+      });
+      assert.equal(response.status, 200);
+      const rows = (await response.json()).bookings;
+      assert.equal(rows.length, 2);
+      assert.equal(rows.find((row: { id: string }) => row.id === booking.id).totalPrice, '46.50');
+    }
+    for (const path of ['/my-rentals', '/incoming']) {
+      const response = await fetch(`${base}/api/bookings${path}`, {
+        headers: headersFor(outsider),
+      });
+      assert.deepEqual((await response.json()).bookings, []);
+    }
+  } finally {
+    await prisma.booking.deleteMany({ where: { id: { in: bookingIds } } });
+  }
+});
+
+test('booking HTTP integration protects ownership, applies lifecycle and rejects sequential overlaps while allowing adjacent dates', async () => {
+  const item = await createItemFixture();
+  const renter = await createItemFixture();
+  const service = createItemsService(prisma, storage);
+  const bookingIds: string[] = [];
+  const change = (id: string, status: string, identity = item) =>
+    fetch(`${base}/api/bookings/${id}/status`, {
+      method: 'PATCH',
+      headers: headersFor(identity),
+      body: JSON.stringify({ status }),
+    });
+  const body = { itemId: item.id, pickupDate: '2027-02-10', returnDate: '2027-02-13' };
+  try {
+    await service.update(item.ownerId, item.id, { isPublished: true });
+    const own = await fetch(`${base}/api/bookings`, {
+      method: 'POST',
+      headers: headersFor(item),
+      body: JSON.stringify(body),
+    });
+    assert.equal(own.status, 403);
+    for (const range of [
+      body,
+      body,
+      { ...body, pickupDate: '2027-02-13', returnDate: '2027-02-15' },
+    ]) {
+      const response = await fetch(`${base}/api/bookings`, {
+        method: 'POST',
+        headers: headersFor(renter),
+        body: JSON.stringify(range),
+      });
+      assert.equal(response.status, 201);
+      bookingIds.push((await response.json()).booking.id);
+    }
+    const [first, overlap, adjacent] = bookingIds;
+    assert.equal((await change(first, 'APPROVED', renter)).status, 403);
+    assert.equal((await change(first, 'COMPLETED')).status, 409);
+    assert.equal((await change(first, 'APPROVED')).status, 200);
+    const conflict = await change(overlap, 'APPROVED');
+    assert.equal(conflict.status, 409);
+    assert.equal((await conflict.json()).error.code, 'BOOKING_DATES_UNAVAILABLE');
+    assert.equal((await change(adjacent, 'APPROVED')).status, 200);
+    assert.equal((await change(first, 'ACTIVE')).status, 200);
+    assert.equal((await change(first, 'COMPLETED')).status, 200);
+    assert.equal((await change(first, 'REJECTED')).status, 409);
+  } finally {
+    await prisma.booking.deleteMany({ where: { id: { in: bookingIds } } });
+  }
+});
