@@ -1,12 +1,27 @@
+/* Only the local homepage preview escapes the shared content container. */
+:global(#main-content):has(> .hero) {
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  min-height: 0;
+}
 .hero {
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  background: var(--color-primary-soft);
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  color: white;
+  display: flex;
+  align-items: center;
+  min-height: calc(100svh - var(--hero-header-height, 77px));
+  width: 100%;
+  border: 0;
+  border-radius: 0;
+  background: #20352d;
   padding: 32px 20px;
 }
 .eyebrow {
-  color: var(--color-primary);
-  font-size: 0.7rem;
+  color: #f2c66d;
+  font-size: 1.05rem;
   letter-spacing: 0.08em;
   font-weight: 700;
 }
@@ -18,9 +33,10 @@
   margin: 28px 0 24px;
 }
 .hero p {
-  color: var(--color-muted);
+  font-size: 1.5rem;
+  color: #f1f5f2;
   line-height: 1.7;
-  max-width: 560px;
+  max-width: 720px;
 }
 .actions {
   display: flex;
@@ -42,19 +58,101 @@
   font-weight: 600;
 }
 .actions a + a {
-  background: transparent;
-  color: var(--color-primary);
-  border: 1px solid var(--color-primary);
+  background: rgb(255 255 255 / 10%);
+  color: white;
+  border: 1px solid rgb(255 255 255 / 70%);
 }
 .note {
-  border-top: 1px solid var(--color-border);
+  border-top: 1px solid rgb(255 255 255 / 30%);
   margin-top: 40px;
   padding-top: 20px;
-  font-size: 0.875rem;
-  color: var(--color-primary);
+  font-size: 1.3125rem;
+  color: #f1f5f2;
 }
 @media (min-width: 768px) {
   .hero {
-    padding: 56px;
+    padding: 32px;
+  }
+}
+
+.backdrop,
+.backdrop::after,
+.backdrop img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.backdrop {
+  z-index: -1;
+  pointer-events: none;
+}
+.backdrop img {
+  top: -16px;
+  height: calc(100% + 16px);
+  object-fit: cover;
+  object-position: center;
+  transform: scale(1.06);
+  transform-origin: center;
+}
+.backdrop::after {
+  content: '';
+  background: linear-gradient(
+    90deg,
+    rgb(16 34 27 / 24%),
+    rgb(16 34 27 / 12%) 60%,
+    rgb(16 34 27 / 4%)
+  );
+}
+.content {
+  position: relative;
+  width: 100%;
+  max-width: 960px;
+  margin-inline: auto;
+  padding: clamp(24px, 3vw, 40px);
+  border: 1px solid rgb(255 255 255 / 35%);
+  border-radius: 24px;
+  background: rgb(22 43 34 / 82%);
+  box-shadow: 0 16px 48px rgb(10 26 19 / 20%);
+}
+.note {
+  padding-bottom: 0;
+}
+.actions a:focus-visible {
+  outline: 3px solid var(--color-accent);
+  outline-offset: 3px;
+}
+@media (max-width: 767px) {
+  .backdrop::after {
+    background: rgb(16 34 27 / 12%);
+  }
+}
+
+@media (max-width: 1023px) {
+  .hero {
+    padding-bottom: calc(88px + env(safe-area-inset-bottom));
+  }
+}
+
+@supports ((backdrop-filter: blur(14px)) or (-webkit-backdrop-filter: blur(14px))) {
+  .content {
+    background: rgb(22 43 34 / 18%);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+  }
+}
+
+@media (max-width: 1023px) {
+  .hero {
+    padding-top: 32px;
+  }
+  .hero h1 {
+    margin: 20px 0;
+  }
+  .hero p {
+    line-height: 1.5;
+  }
+  .note {
+    margin-top: 24px;
   }
 }
