@@ -60,3 +60,24 @@ test('item detail distinguishes server errors from a missing item and offers ret
   await expect(page.getByRole('heading', { name: item.title })).toBeVisible();
   await expect(page.getByRole('main')).toHaveCount(1);
 });
+
+test('item detail shows the not-found state when the API returns 404', async ({ page }) => {
+  const missingId = '50000000-0000-4000-8000-000000000001';
+  await page.route(`**/api/items/${missingId}`, (route) =>
+    route.fulfill({
+      status: 404,
+      json: {
+        error: {
+          code: 'ITEM_NOT_FOUND',
+          message: 'Die Anzeige wurde nicht gefunden.',
+          fields: {},
+        },
+      },
+    }),
+  );
+
+  await page.goto(`/items/${missingId}`);
+
+  await expect(page.getByRole('heading', { name: 'Anzeige nicht gefunden' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Zurück zum Katalog' })).toBeVisible();
+});

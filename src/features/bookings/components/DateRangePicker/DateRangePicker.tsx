@@ -11,6 +11,10 @@ type DateRangePickerProps = {
     pickupDate: string;
     returnDate: string;
   }[];
+  onSubmit: (dates: { pickupDate: string; returnDate: string }) => Promise<void>;
+  isSubmitting?: boolean;
+  errorMessage?: string | null;
+  isSubmitted?: boolean;
 };
 
 function toLocalDate(date: string) {
@@ -25,9 +29,15 @@ function toDateString(date: Date) {
   return `${year}-${month}-${day}`;
 }
 
-export function DateRangePicker({ pricePerDay, unavailableRanges = [] }: DateRangePickerProps) {
+export function DateRangePicker({
+  pricePerDay,
+  unavailableRanges = [],
+  onSubmit,
+  isSubmitting = false,
+  errorMessage,
+  isSubmitted = false,
+}: DateRangePickerProps) {
   const [selectedRange, setSelectedRange] = useState<DateRange>();
-  const [isNoticeShown, setIsNoticeShown] = useState(false);
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const pickupDate = selectedRange?.from ? toDateString(selectedRange.from) : '';
@@ -61,7 +71,6 @@ export function DateRangePicker({ pricePerDay, unavailableRanges = [] }: DateRan
         selected={selectedRange}
         onSelect={(range) => {
           setSelectedRange(range);
-          setIsNoticeShown(false);
         }}
         disabled={[{ before: today }, ...unavailableDateRanges]}
         excludeDisabled
@@ -84,13 +93,14 @@ export function DateRangePicker({ pricePerDay, unavailableRanges = [] }: DateRan
       )}
 
       <Button
-        disabled={!pickupDate || !returnDate || totalDays === 0}
-        onClick={() => setIsNoticeShown(true)}
+        disabled={!pickupDate || !returnDate || totalDays === 0 || isSubmitting}
+        onClick={() => void onSubmit({ pickupDate, returnDate })}
       >
-        Anfrage senden
+        {isSubmitting ? 'Anfrage wird gesendet…' : 'Anfrage senden'}
       </Button>
 
-      {isNoticeShown && <p role="status">Diese Vorschau speichert noch keine Buchungsanfragen.</p>}
+      {isSubmitted && <p role="status">Deine Anfrage wurde gesendet.</p>}
+      {errorMessage && <p role="alert">{errorMessage}</p>}
     </section>
   );
 }

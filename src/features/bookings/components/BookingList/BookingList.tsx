@@ -1,6 +1,9 @@
 import { useMemo, useState } from 'react';
 import { Badge, Button } from '@/shared/ui/atoms';
 import { mockBookings } from '../../mocks/bookings.mock';
+import { useMyRentalsQuery } from '../../api/useMyRentalsQuery';
+import { useIncomingBookingsQuery } from '../../api/useIncomingBookingsQuery';
+import { useOwnerBookingStatusMutation } from '../../api/useOwnerBookingStatusMutation';
 import type { Booking, BookingStatus } from '../../types/booking';
 import styles from './BookingList.module.css';
 
@@ -45,14 +48,21 @@ function formatPrice(value: string) {
 }
 
 export function BookingList({ view }: BookingListProps) {
+  const isRentals = view === 'rentals';
+  const rentalsQuery = useMyRentalsQuery(isRentals);
+  const incomingQuery = useIncomingBookingsQuery(!isRentals);
+  const ownerStatus = useOwnerBookingStatusMutation();
   const [bookings, setBookings] = useState<Booking[]>(mockBookings);
+  const sourceBookings = isRentals
+    ? (rentalsQuery.data?.bookings ?? [])
+    : (incomingQuery.data?.bookings ?? bookings);
 
   const visibleBookings = useMemo(
     () =>
-      bookings.filter((booking) =>
+      sourceBookings.filter((booking) =>
         view === 'rentals' ? booking.renterName === 'Du' : booking.renterName !== 'Du',
       ),
-    [bookings, view],
+    [sourceBookings, view],
   );
 
   function updateStatus(bookingId: string, status: BookingStatus) {
@@ -63,8 +73,6 @@ export function BookingList({ view }: BookingListProps) {
     );
   }
 
-  const isRentals = view === 'rentals';
-
   return (
     <section className={styles.section} aria-labelledby={`${view}-title`}>
       <div className={styles.heading}>
@@ -72,7 +80,11 @@ export function BookingList({ view }: BookingListProps) {
         <h1 id={`${view}-title`}>{isRentals ? 'Meine Mieten' : 'Eingehende Anfragen'}</h1>
       </div>
 
-      {visibleBookings.length === 0 ? (
+      {(isRentals ? rentalsQuery.isPending : incomingQuery.isPending) ? (
+        <p className={styles.empty}>Buchungen werden geladen…</p>
+      ) : (isRentals ? rentalsQuery.isError : incomingQuery.isError) ? (
+        <p className={styles.empty}>Buchungen konnten nicht geladen werden.</p>
+      ) : visibleBookings.length === 0 ? (
         <p className={styles.empty}>Noch keine Buchungen vorhanden.</p>
       ) : (
         <ul className={styles.list}>
@@ -117,23 +129,39 @@ export function BookingList({ view }: BookingListProps) {
 
               {!isRentals && booking.status === 'PENDING' && (
                 <div className={styles.actions}>
-                  <Button variant="primary" onClick={() => updateStatus(booking.id, 'APPROVED')}>
+                  <Button
+                    variant="primary"
+                    disabled={ownerStatus.isPending}
+                    onClick={() => ownerStatus.mutate({ id: booking.id, status: 'APPROVED' })}
+                  >
                     Annehmen
                   </Button>
-                  <Button variant="secondary" onClick={() => updateStatus(booking.id, 'REJECTED')}>
+                  <Button
+                    variant="secondary"
+                    disabled={ownerStatus.isPending}
+                    onClick={() => ownerStatus.mutate({ id: booking.id, status: 'REJECTED' })}
+                  >
                     Ablehnen
                   </Button>
                 </div>
               )}
 
               {!isRentals && booking.status === 'APPROVED' && (
-                <Button variant="primary" onClick={() => updateStatus(booking.id, 'ACTIVE')}>
+                <Button
+                  variant="primary"
+                  disabled={ownerStatus.isPending}
+                  onClick={() => ownerStatus.mutate({ id: booking.id, status: 'ACTIVE' })}
+                >
                   Übergabe starten
                 </Button>
               )}
 
               {!isRentals && booking.status === 'ACTIVE' && (
-                <Button variant="primary" onClick={() => updateStatus(booking.id, 'COMPLETED')}>
+                <Button
+                  variant="primary"
+                  disabled={ownerStatus.isPending}
+                  onClick={() => ownerStatus.mutate({ id: booking.id, status: 'COMPLETED' })}
+                >
                   Abschließen
                 </Button>
               )}
