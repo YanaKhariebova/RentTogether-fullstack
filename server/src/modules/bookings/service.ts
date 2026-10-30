@@ -14,21 +14,51 @@ function toDate(value: string) {
 
 export function createBookingsService(prisma: BookingsDatabase) {
   return {
-    async updateOwnerStatus(ownerId: string, id: string, status: 'APPROVED' | 'REJECTED' | 'ACTIVE' | 'COMPLETED') {
+    async updateOwnerStatus(
+      ownerId: string,
+      id: string,
+      status: 'APPROVED' | 'REJECTED' | 'ACTIVE' | 'COMPLETED',
+    ) {
       return prisma.$transaction(async (tx) => {
         const booking = await tx.booking.findUnique({
           where: { id },
           include: { item: { select: { ownerId: true } } },
         });
-        if (!booking) throw new ApiError(404, 'BOOKING_NOT_FOUND', 'Die Anfrage wurde nicht gefunden.');
-        if (booking.item.ownerId !== ownerId) throw new ApiError(403, 'FORBIDDEN', 'Du darfst diese Anfrage nicht ändern.');
-        const allowed = (booking.status === 'PENDING' && ['APPROVED','REJECTED'].includes(status)) || (booking.status === 'APPROVED' && status === 'ACTIVE') || (booking.status === 'ACTIVE' && status === 'COMPLETED');
-        if (!allowed) throw new ApiError(409, 'BOOKING_STATUS_INVALID', 'Diese Anfrage kann nicht mehr geändert werden.');
+        if (!booking)
+          throw new ApiError(404, 'BOOKING_NOT_FOUND', 'Die Anfrage wurde nicht gefunden.');
+        if (booking.item.ownerId !== ownerId)
+          throw new ApiError(403, 'FORBIDDEN', 'Du darfst diese Anfrage nicht ändern.');
+        const allowed =
+          (booking.status === 'PENDING' && ['APPROVED', 'REJECTED'].includes(status)) ||
+          (booking.status === 'APPROVED' && status === 'ACTIVE') ||
+          (booking.status === 'ACTIVE' && status === 'COMPLETED');
+        if (!allowed)
+          throw new ApiError(
+            409,
+            'BOOKING_STATUS_INVALID',
+            'Diese Anfrage kann nicht mehr geändert werden.',
+          );
         if (status === 'APPROVED') {
-          const conflict = await tx.booking.findFirst({ where: { itemId: booking.itemId, status: { in: ['APPROVED', 'ACTIVE'] }, pickupDate: { lt: booking.returnDate }, returnDate: { gt: booking.pickupDate } } });
-          if (conflict) throw new ApiError(409, 'BOOKING_DATES_UNAVAILABLE', 'Dieser Zeitraum ist nicht mehr verfügbar.');
+          const conflict = await tx.booking.findFirst({
+            where: {
+              itemId: booking.itemId,
+              status: { in: ['APPROVED', 'ACTIVE'] },
+              pickupDate: { lt: booking.returnDate },
+              returnDate: { gt: booking.pickupDate },
+            },
+          });
+          if (conflict)
+            throw new ApiError(
+              409,
+              'BOOKING_DATES_UNAVAILABLE',
+              'Dieser Zeitraum ist nicht mehr verfügbar.',
+            );
         }
-        return tx.booking.update({ where: { id }, data: { status }, select: { id: true, status: true } });
+        return tx.booking.update({
+          where: { id },
+          data: { status },
+          select: { id: true, status: true },
+        });
       });
     },
     async listIncoming(ownerId: string) {
@@ -36,17 +66,27 @@ export function createBookingsService(prisma: BookingsDatabase) {
         where: { item: { ownerId } },
         orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
         select: {
-          id: true, itemId: true, pickupDate: true, returnDate: true, status: true,
-          pricePerDaySnapshot: true, totalPrice: true,
-          item: { select: { title: true } }, renter: { select: { name: true } },
+          id: true,
+          itemId: true,
+          pickupDate: true,
+          returnDate: true,
+          status: true,
+          pricePerDaySnapshot: true,
+          totalPrice: true,
+          item: { select: { title: true } },
+          renter: { select: { name: true } },
         },
       });
       return bookings.map((booking) => ({
-        id: booking.id, itemId: booking.itemId, itemTitle: booking.item.title,
+        id: booking.id,
+        itemId: booking.itemId,
+        itemTitle: booking.item.title,
         renterName: booking.renter.name,
         pickupDate: booking.pickupDate.toISOString().slice(0, 10),
-        returnDate: booking.returnDate.toISOString().slice(0, 10), status: booking.status,
-        pricePerDay: booking.pricePerDaySnapshot.toFixed(2), totalPrice: booking.totalPrice.toFixed(2),
+        returnDate: booking.returnDate.toISOString().slice(0, 10),
+        status: booking.status,
+        pricePerDay: booking.pricePerDaySnapshot.toFixed(2),
+        totalPrice: booking.totalPrice.toFixed(2),
       }));
     },
 

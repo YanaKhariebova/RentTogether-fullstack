@@ -46,7 +46,7 @@
 - [x] `npm run lint` и `npm run build` проходят.
 - [x] Playwright: 12 из 12 UI-тестов проходят.
 - [x] Проверено в браузере вторым аккаунтом: после выбора дат `POST /api/bookings`
-  создаёт заявку и показывает «Deine Anfrage wurde gesendet.»
+      создаёт заявку и показывает «Deine Anfrage wurde gesendet.»
 
 ### Что нужно проверить вручную
 

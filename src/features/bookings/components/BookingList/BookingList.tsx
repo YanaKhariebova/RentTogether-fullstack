@@ -129,23 +129,39 @@ export function BookingList({ view }: BookingListProps) {
 
               {!isRentals && booking.status === 'PENDING' && (
                 <div className={styles.actions}>
-                  <Button variant="primary" disabled={ownerStatus.isPending} onClick={() => ownerStatus.mutate({ id: booking.id, status: 'APPROVED' })}>
+                  <Button
+                    variant="primary"
+                    disabled={ownerStatus.isPending}
+                    onClick={() => ownerStatus.mutate({ id: booking.id, status: 'APPROVED' })}
+                  >
                     Annehmen
                   </Button>
-                  <Button variant="secondary" disabled={ownerStatus.isPending} onClick={() => ownerStatus.mutate({ id: booking.id, status: 'REJECTED' })}>
+                  <Button
+                    variant="secondary"
+                    disabled={ownerStatus.isPending}
+                    onClick={() => ownerStatus.mutate({ id: booking.id, status: 'REJECTED' })}
+                  >
                     Ablehnen
                   </Button>
                 </div>
               )}
 
               {!isRentals && booking.status === 'APPROVED' && (
-                <Button variant="primary" disabled={ownerStatus.isPending} onClick={() => ownerStatus.mutate({ id: booking.id, status: 'ACTIVE' })}>
+                <Button
+                  variant="primary"
+                  disabled={ownerStatus.isPending}
+                  onClick={() => ownerStatus.mutate({ id: booking.id, status: 'ACTIVE' })}
+                >
                   Übergabe starten
                 </Button>
               )}
 
               {!isRentals && booking.status === 'ACTIVE' && (
-                <Button variant="primary" disabled={ownerStatus.isPending} onClick={() => ownerStatus.mutate({ id: booking.id, status: 'COMPLETED' })}>
+                <Button
+                  variant="primary"
+                  disabled={ownerStatus.isPending}
+                  onClick={() => ownerStatus.mutate({ id: booking.id, status: 'COMPLETED' })}
+                >
                   Abschließen
                 </Button>
               )}

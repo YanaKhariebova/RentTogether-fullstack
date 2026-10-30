@@ -24,7 +24,13 @@ export function createBookingsRoutes(prisma: BookingsDatabase, authenticate: Req
   });
   router.patch('/:id/status', authenticate, async (req, res) => {
     const { id } = bookingParamsSchema.parse(req.params);
-    res.json({ booking: await service.updateOwnerStatus(res.locals.currentUser.id, id, ownerBookingStatusSchema.parse(req.body).status) });
+    res.json({
+      booking: await service.updateOwnerStatus(
+        res.locals.currentUser.id,
+        id,
+        ownerBookingStatusSchema.parse(req.body).status,
+      ),
+    });
   });
   return router;
 }
