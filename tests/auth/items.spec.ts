@@ -65,6 +65,14 @@ test.afterAll(async () => {
             update: {},
           });
         }
+      await tx.booking.deleteMany({
+        where: {
+          OR: [
+            { renter: { clerkUserId: { in: createdUsers } } },
+            { item: { owner: { clerkUserId: { in: createdUsers } } } },
+          ],
+        },
+      });
       await tx.item.deleteMany({ where: { owner: { clerkUserId: { in: createdUsers } } } });
       await tx.user.deleteMany({ where: { clerkUserId: { in: createdUsers } } });
     });
@@ -270,4 +278,87 @@ test('real owner creates, reloads, publishes and edits photos; another account c
   await clerk.signOut({ page });
   await page.goto('/account/items');
   await expect(page.getByRole('heading', { name: 'Bitte melde dich an' })).toBeVisible();
+});
+
+test('two real accounts book a published item, preserve snapshot after edit and hide, and complete the rental', async ({
+  page,
+}) => {
+  test.setTimeout(180_000);
+  const title = `Booking Beamer ${runId}`;
+  await page.goto('/');
+  await clerk.loaded({ page });
+  await clerk.signIn({ page, emailAddress: emails[0] });
+  await page.goto('/account/items/new');
+  await page.getByLabel('Titel *', { exact: true }).fill(title);
+  await page
+    .getByLabel('Beschreibung *', { exact: true })
+    .fill('Beamer für einen gemeinsamen Filmabend mit den Nachbarn.');
+  await page.getByLabel('Ort *', { exact: true }).fill('Berlin');
+  await page.getByLabel('Kategorie *', { exact: true }).selectOption({ label: 'Elektronik' });
+  await page.getByLabel('Preis pro Tag', { exact: false }).fill('15,50');
+  await page
+    .getByLabel('Fotos auswählen', { exact: true })
+    .setInputFiles({ name: 'booking.png', mimeType: 'image/png', buffer: png });
+  await savePreview(page, true);
+  const item = (await apiRequest(page, '/my/items')).body.items.find(
+    (entry: { title: string }) => entry.title === title,
+  );
+  await page.getByRole('button', { name: `${title} veröffentlichen`, exact: true }).click();
+  await expect(
+    page.getByText('Deine Anzeige wurde veröffentlicht.', { exact: true }),
+  ).toBeVisible();
+  await clerk.signOut({ page });
+  await clerk.signIn({ page, emailAddress: emails[1] });
+  await page.goto(`/items/${item.id}`);
+  await expect(page.getByRole('heading', { name: title, exact: true })).toBeVisible();
+  const nextMonth = new Date();
+  nextMonth.setMonth(nextMonth.getMonth() + 1, 10);
+  const month = `${nextMonth.getFullYear()}-${String(nextMonth.getMonth() + 1).padStart(2, '0')}`;
+  await page.getByRole('button', { name: 'Zum nächsten Monat', exact: true }).click();
+  await page.locator(`[data-day="${month}-10"]:not([data-outside]) button`).click();
+  await page.locator(`[data-day="${month}-13"]:not([data-outside]) button`).click();
+  await page.getByRole('button', { name: 'Anfrage senden', exact: true }).click();
+  await expect(page.getByText('Deine Anfrage wurde gesendet.', { exact: true })).toBeVisible();
+  await page.goto('/account/bookings/my-rentals');
+  await expect(page.getByRole('heading', { name: title, exact: true })).toBeVisible();
+  await expect(page.getByText('Ausstehend', { exact: true })).toBeVisible();
+  const booking = (await apiRequest(page, '/bookings/my-rentals')).body.bookings.find(
+    (entry: { itemId: string }) => entry.itemId === item.id,
+  );
+  expect(booking.totalPrice).toBe('46.50');
+  await clerk.signOut({ page });
+  await clerk.signIn({ page, emailAddress: emails[0] });
+  await page.goto(`/account/items/${item.id}/edit`);
+  await page.getByLabel('Preis pro Tag', { exact: false }).fill('20,00');
+  await savePreview(page);
+  await page.getByRole('button', { name: `${title} ausblenden`, exact: true }).click();
+  await page
+    .getByRole('dialog', { name: 'Anzeige ausblenden?' })
+    .getByRole('button', { name: 'Ausblenden', exact: true })
+    .click();
+  await expect(page.getByText('Deine Anzeige wurde ausgeblendet.', { exact: true })).toBeVisible();
+  await page.goto('/account/bookings/incoming');
+  const card = page
+    .locator('li')
+    .filter({ has: page.getByRole('heading', { name: title, exact: true }) });
+  await expect(card).toContainText('46,50');
+  await card.getByRole('button', { name: 'Annehmen', exact: true }).click();
+  await expect(card.getByText('Bestätigt', { exact: true })).toBeVisible();
+  await card.getByRole('button', { name: 'Übergabe starten', exact: true }).click();
+  await expect(card.getByText('Aktiv', { exact: true })).toBeVisible();
+  await card.getByRole('button', { name: 'Abschließen', exact: true }).click();
+  await expect(card.getByText('Abgeschlossen', { exact: true })).toBeVisible();
+  await page.reload();
+  await expect(card.getByText('Abgeschlossen', { exact: true })).toBeVisible();
+  await clerk.signOut({ page });
+  await clerk.signIn({ page, emailAddress: emails[1] });
+  await page.goto('/account/bookings/my-rentals');
+  await expect(page.getByRole('heading', { name: title, exact: true })).toBeVisible();
+  await expect(page.getByText('Abgeschlossen', { exact: true })).toBeVisible();
+  const preserved = (await apiRequest(page, '/bookings/my-rentals')).body.bookings.find(
+    (entry: { id: string }) => entry.id === booking.id,
+  );
+  expect(preserved.pricePerDay).toBe('15.50');
+  expect(preserved.totalPrice).toBe('46.50');
+  await clerk.signOut({ page });
 });
