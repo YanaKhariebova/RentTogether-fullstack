@@ -55,17 +55,14 @@ export function BookingList({ view }: BookingListProps) {
   const ownerStatus = useOwnerBookingStatusMutation();
   const cancelBooking = useCancelBookingMutation();
   const [bookings] = useState<Booking[]>(mockBookings);
-  const visibleBookings = useMemo(
-    () => {
-      const sourceBookings = isRentals
-        ? (rentalsQuery.data?.bookings ?? [])
-        : (incomingQuery.data?.bookings ?? bookings);
-      return sourceBookings.filter((booking) =>
-        view === 'rentals' ? booking.renterName === 'Du' : booking.renterName !== 'Du',
-      );
-    },
-    [bookings, incomingQuery.data?.bookings, isRentals, rentalsQuery.data?.bookings, view],
-  );
+  const visibleBookings = useMemo(() => {
+    const sourceBookings = isRentals
+      ? (rentalsQuery.data?.bookings ?? [])
+      : (incomingQuery.data?.bookings ?? bookings);
+    return sourceBookings.filter((booking) =>
+      view === 'rentals' ? booking.renterName === 'Du' : booking.renterName !== 'Du',
+    );
+  }, [bookings, incomingQuery.data?.bookings, isRentals, rentalsQuery.data?.bookings, view]);
 
   return (
     <section className={styles.section} aria-labelledby={`${view}-title`}>
@@ -116,7 +113,11 @@ export function BookingList({ view }: BookingListProps) {
               </dl>
 
               {isRentals && booking.status === 'PENDING' && (
-                <Button variant="secondary" disabled={cancelBooking.isPending} onClick={() => cancelBooking.mutate(booking.id)}>
+                <Button
+                  variant="secondary"
+                  disabled={cancelBooking.isPending}
+                  onClick={() => cancelBooking.mutate(booking.id)}
+                >
                   Anfrage stornieren
                 </Button>
               )}

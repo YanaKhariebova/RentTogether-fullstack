@@ -19,12 +19,21 @@ export function createBookingsService(prisma: BookingsDatabase) {
         where: { id },
         select: { renterId: true, status: true },
       });
-      if (!booking) throw new ApiError(404, 'BOOKING_NOT_FOUND', 'Die Anfrage wurde nicht gefunden.');
+      if (!booking)
+        throw new ApiError(404, 'BOOKING_NOT_FOUND', 'Die Anfrage wurde nicht gefunden.');
       if (booking.renterId !== renterId)
         throw new ApiError(403, 'FORBIDDEN', 'Du darfst diese Anfrage nicht stornieren.');
       if (booking.status !== 'PENDING')
-        throw new ApiError(409, 'BOOKING_STATUS_INVALID', 'Diese Anfrage kann nicht mehr storniert werden.');
-      return prisma.booking.update({ where: { id }, data: { status: 'CANCELLED' }, select: { id: true, status: true } });
+        throw new ApiError(
+          409,
+          'BOOKING_STATUS_INVALID',
+          'Diese Anfrage kann nicht mehr storniert werden.',
+        );
+      return prisma.booking.update({
+        where: { id },
+        data: { status: 'CANCELLED' },
+        select: { id: true, status: true },
+      });
     },
 
     async updateOwnerStatus(
