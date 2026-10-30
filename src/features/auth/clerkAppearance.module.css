@@ -125,6 +125,90 @@
   color: var(--color-text);
 }
 
+.userMenu {
+  width: 320px;
+  max-width: calc(100vw - 24px);
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  box-shadow: 0 8px 28px #20352d1f;
+}
+
+.userMenuMain {
+  padding: 16px 8px 8px;
+  background: var(--color-surface);
+}
+
+.userMenu:focus {
+  outline: none;
+}
+
+.userMenuMain :global(.cl-userPreview) {
+  gap: 12px;
+  padding: 0 8px 16px;
+}
+
+.userMenuMain :global(.cl-userPreviewTextContainer) {
+  min-width: 0;
+}
+
+.userMenuMain :global(.cl-userPreviewMainIdentifier),
+.userMenuMain :global(.cl-userPreviewSecondaryIdentifier) {
+  overflow-wrap: anywhere;
+}
+
+.userMenuMain :global(.cl-userPreviewMainIdentifier) {
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.userMenuMain :global(.cl-userPreviewSecondaryIdentifier) {
+  color: var(--color-muted);
+  font-size: 0.75rem;
+}
+
+.userMenuActions {
+  gap: 4px;
+  padding: 8px 0 0;
+  border-top: 1px solid var(--color-border);
+}
+
+.userMenuAction {
+  min-height: 44px;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  font-size: 0.875rem;
+  font-weight: 500;
+  box-shadow: none;
+}
+
+.userMenuAction:hover:not(:disabled),
+.userMenuAction:focus-visible {
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+.userMenuAction:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: -2px;
+}
+
+.userMenuIcon {
+  color: var(--color-primary);
+}
+
+.userMenuFooter {
+  padding: 10px 16px;
+  border-top: 1px solid var(--color-border);
+  background: var(--color-background);
+  background-image: none;
+}
+
 .avatarButton {
   min-width: 44px;
   min-height: 44px;
