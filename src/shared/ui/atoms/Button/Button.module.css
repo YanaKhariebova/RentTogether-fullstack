@@ -11,9 +11,9 @@
   background: var(--color-primary);
 }
 .secondary {
-  color: var(--color-text);
-  background: var(--color-surface);
-  border-color: var(--color-border);
+  color: var(--color-button-text);
+  background: var(--color-button-surface);
+  border-color: var(--color-button-border);
 }
 .danger {
   color: white;

@@ -1,6 +1,7 @@
 import { useAuth, UserButton } from '@clerk/react';
 import { Link } from '@tanstack/react-router';
 import type { ReactNode } from 'react';
+import { ThemeToggle } from '../../../../features/theme/ThemeToggle';
 import logo from '../../../assets/renttogether-icon.svg';
 import styles from './Header.module.css';
 
@@ -38,7 +39,10 @@ export function HeaderView({ auth }: { auth: ReactNode }) {
               </Link>
             ))}
           </nav>
-          <div className={styles.auth}>{auth}</div>
+          <div className={styles.auth}>
+            <ThemeToggle />
+            {auth}
+          </div>
         </div>
       </header>
       <nav aria-label="Mobile Navigation" className={styles.mobile}>

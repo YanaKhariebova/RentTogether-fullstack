@@ -16,7 +16,7 @@
   left: 16px;
   top: -100px;
   z-index: 20;
-  background: white;
+  background: var(--color-surface);
   padding: 12px;
 }
 .skip:focus {

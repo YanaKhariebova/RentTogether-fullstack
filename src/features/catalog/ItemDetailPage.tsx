@@ -4,7 +4,7 @@ import { Link, useParams } from '@tanstack/react-router';
 import { useState } from 'react';
 import { DateRangePicker } from '../bookings/components/DateRangePicker/DateRangePicker';
 import { useCreateBookingMutation } from '../bookings/api/useCreateBookingMutation';
-import { mockBookings } from '../bookings/mocks/bookings.mock';
+import { useUnavailableDatesQuery } from '../bookings/api/useUnavailableDatesQuery';
 import { useItemDetailQuery } from './api/useItemDetailQuery';
 import styles from './ItemDetailPage.module.css';
 
@@ -12,6 +12,7 @@ export function ItemDetailPage() {
   const { itemId } = useParams({ from: '/items/$itemId' });
   const { data, isPending, isError, error, refetch } = useItemDetailQuery(itemId);
   const createBooking = useCreateBookingMutation();
+  const unavailableDates = useUnavailableDatesQuery(itemId);
   const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
 
   if (isPending) {
@@ -55,13 +56,7 @@ export function ItemDetailPage() {
     style: 'currency',
     currency: 'EUR',
   }).format(Number(item.pricePerDay));
-  const unavailableRanges = mockBookings
-    .filter(
-      (booking) =>
-        booking.itemId === item.id &&
-        (booking.status === 'APPROVED' || booking.status === 'ACTIVE'),
-    )
-    .map(({ pickupDate, returnDate }) => ({ pickupDate, returnDate }));
+  const unavailableRanges = unavailableDates.data?.ranges ?? [];
 
   return (
     <section className={styles.page}>

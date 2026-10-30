@@ -39,7 +39,7 @@
   border: 1px solid var(--color-primary);
   border-radius: 10px;
   background: var(--color-primary);
-  color: var(--color-surface);
+  color: var(--color-on-primary);
   font-weight: 700;
   cursor: pointer;
 }
@@ -61,7 +61,7 @@
 }
 .header button:focus-visible,
 .state button:focus-visible {
-  outline: 3px solid var(--color-primary);
+  outline: 3px solid var(--color-emphasis);
   outline-offset: 3px;
 }
 @media (min-width: 768px) {

@@ -16,7 +16,7 @@
   border-color: var(--color-danger);
 }
 .error {
-  color: var(--color-danger);
+  color: var(--color-error-text);
   font-size: 0.875rem;
 }
 .hint {

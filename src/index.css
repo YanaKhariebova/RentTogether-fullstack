@@ -1,4 +1,5 @@
 :root {
+  color-scheme: light;
   font-family:
     'Inter Variable',
     ui-sans-serif,
@@ -20,7 +21,17 @@
   --color-primary-soft: #e8f2ee;
   --color-danger: #984b48;
   --color-surface: #ffffff;
+  --color-header: #ffffff;
   --color-border: #d5dfd9;
+  --color-emphasis: #245c3c;
+  --color-emphasis-hover: #1c4b32;
+  --color-on-primary: #ffffff;
+  --color-on-accent: #20352d;
+  --color-error-text: #984b48;
+  --color-button-surface: #ffffff;
+  --color-button-text: #20352d;
+  --color-button-border: #d5dfd9;
+  --color-button-hover: #e8f2ee;
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 20px;
@@ -31,6 +42,21 @@
   --space-6: 24px;
   --space-8: 32px;
   --shadow-card: 0 4px 20px #20352d10;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --color-text: #f3f4ef;
+  --color-muted: #aab4b4;
+  --color-background: #141719;
+  --color-surface: #22282b;
+  --color-header: #191d20;
+  --color-border: #343d40;
+  --color-primary-soft: #1c2423;
+  --color-emphasis: #79d3ab;
+  --color-emphasis-hover: #a0e5c6;
+  --color-error-text: #edaaa7;
+  --shadow-card: 0 4px 20px #00000030;
 }
 * {
   box-sizing: border-box;
@@ -46,10 +72,10 @@ textarea {
   font: inherit;
 }
 a {
-  color: var(--color-primary);
+  color: var(--color-emphasis);
 }
 :focus-visible {
-  outline: 3px solid var(--color-primary);
+  outline: 3px solid var(--color-emphasis);
   outline-offset: 3px;
 }
 img {

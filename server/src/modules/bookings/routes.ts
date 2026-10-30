@@ -8,6 +8,11 @@ export function createBookingsRoutes(prisma: BookingsDatabase, authenticate: Req
   const router = Router();
   const service = createBookingsService(prisma);
 
+  router.get('/items/:itemId/unavailable-dates', async (req, res) => {
+    const { id } = bookingParamsSchema.parse({ id: req.params.itemId });
+    res.json({ ranges: await service.listUnavailableDates(id) });
+  });
+
   router.get('/my-rentals', authenticate, async (_req, res) => {
     res.json({ bookings: await service.listRentals(res.locals.currentUser.id) });
   });

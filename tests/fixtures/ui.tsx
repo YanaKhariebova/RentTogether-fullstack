@@ -22,6 +22,12 @@ const root = createRootRoute({
           <Textarea label="Beschreibung" />
           <Select label="Kategorie" options={[{ value: '1', label: 'Elektronik' }]} />
           <Button type="submit">Speichern</Button>
+          <Button type="button" variant="secondary">
+            Abbrechen
+          </Button>
+          <Button type="button" variant="danger">
+            Löschen
+          </Button>
           <IconButton label="Foto entfernen">×</IconButton>
         </form>
       </main>
