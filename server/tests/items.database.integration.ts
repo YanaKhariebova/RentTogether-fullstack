@@ -1051,3 +1051,63 @@ test('booking HTTP integration protects ownership, applies lifecycle and rejects
     await prisma.booking.deleteMany({ where: { id: { in: bookingIds } } });
   }
 });
+
+test('renter cancellation persists in both booking lists and preserves item while rejecting other users', async () => {
+  const item = await createItemFixture();
+  const renter = await createItemFixture();
+  const service = createItemsService(prisma, storage);
+  let bookingId: string | undefined;
+  try {
+    await service.update(item.ownerId, item.id, { isPublished: true });
+    const created = await fetch(`${base}/api/bookings`, {
+      method: 'POST',
+      headers: headersFor(renter),
+      body: JSON.stringify({
+        itemId: item.id,
+        pickupDate: '2027-03-10',
+        returnDate: '2027-03-13',
+      }),
+    });
+    assert.equal(created.status, 201);
+    bookingId = (await created.json()).booking.id;
+    const cancel = (identity: typeof item) =>
+      fetch(`${base}/api/bookings/${bookingId}/cancel`, {
+        method: 'PATCH',
+        headers: headersFor(identity),
+      });
+    assert.equal(
+      (await fetch(`${base}/api/bookings/${bookingId}/cancel`, { method: 'PATCH' })).status,
+      401,
+    );
+    assert.equal((await cancel(item)).status, 403);
+    assert.equal((await cancel(renter)).status, 200);
+    assert.equal(
+      (await prisma.booking.findUniqueOrThrow({ where: { id: bookingId } })).status,
+      'CANCELLED',
+    );
+    for (const [path, identity] of [
+      ['/my-rentals', renter],
+      ['/incoming', item],
+    ] as const) {
+      const response = await fetch(`${base}/api/bookings${path}`, {
+        headers: headersFor(identity),
+      });
+      const rows = (await response.json()).bookings;
+      assert.equal(rows.find((row: { id: string }) => row.id === bookingId).status, 'CANCELLED');
+    }
+    assert.equal((await cancel(renter)).status, 409);
+    const approve = await fetch(`${base}/api/bookings/${bookingId}/status`, {
+      method: 'PATCH',
+      headers: headersFor(item),
+      body: JSON.stringify({ status: 'APPROVED' }),
+    });
+    assert.equal(approve.status, 409);
+    assert.equal(
+      (await prisma.item.findUniqueOrThrow({ where: { id: item.id } })).isPublished,
+      true,
+    );
+    assert.equal(await prisma.itemImage.count({ where: { itemId: item.id } }), 2);
+  } finally {
+    if (bookingId) await prisma.booking.deleteMany({ where: { id: bookingId } });
+  }
+});
