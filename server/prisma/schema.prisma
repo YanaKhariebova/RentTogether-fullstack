@@ -17,6 +17,7 @@ model User {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   items       Item[]
+  rentals     Booking[] @relation("RenterBookings")
 }
 
 model Category {
@@ -39,10 +40,38 @@ model Item {
   owner       User        @relation(fields: [ownerId], references: [id], onDelete: Restrict)
   category    Category    @relation(fields: [categoryId], references: [id], onDelete: Restrict)
   images      ItemImage[]
+  bookings    Booking[]
 
   @@index([ownerId, createdAt, id])
   @@index([isPublished, createdAt, id])
   @@index([categoryId])
+}
+
+enum BookingStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+  ACTIVE
+  COMPLETED
+}
+
+model Booking {
+  id                  String        @id @default(uuid()) @db.Uuid
+  itemId              String        @db.Uuid
+  renterId            String        @db.Uuid
+  pickupDate          DateTime      @db.Date
+  returnDate          DateTime      @db.Date
+  status              BookingStatus @default(PENDING)
+  pricePerDaySnapshot Decimal       @db.Decimal(8, 2)
+  totalPrice          Decimal       @db.Decimal(10, 2)
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+  item                Item          @relation(fields: [itemId], references: [id], onDelete: Restrict)
+  renter              User          @relation("RenterBookings", fields: [renterId], references: [id], onDelete: Restrict)
+
+  @@index([renterId, createdAt, id])
+  @@index([itemId, status, pickupDate, returnDate])
 }
 
 model ItemImage {
