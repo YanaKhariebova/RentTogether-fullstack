@@ -5,7 +5,9 @@ for (const width of [360, 390, 768, 1024, 1440]) {
     await page.setViewportSize({ width, height: 900 });
     await page.goto('/tests/fixtures/ui.html');
     await page.evaluate(() => document.fonts.ready);
-    await expect(page.getByRole('heading', { level: 1 })).toContainText('Für einen Moment');
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText(
+      'Leihen, was du brauchst. Teilen, was du hast.',
+    );
     const mobile = page.getByRole('navigation', { name: 'Mobile Navigation' });
     const desktop = page.getByRole('navigation', { name: 'Hauptnavigation' });
     await expect(width < 1024 ? mobile : desktop).toBeVisible();

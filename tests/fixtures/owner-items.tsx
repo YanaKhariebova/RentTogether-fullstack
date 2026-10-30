@@ -13,6 +13,7 @@ import {
 import '@fontsource-variable/inter';
 import '../../src/index.css';
 import styles from './owner-items.module.css';
+import workspaceStyles from '../../src/pages/items/OwnerItemsWorkspace.module.css';
 import { OwnerItemsContext } from '../../src/features/items/model/OwnerItemsContext';
 import { useMockOwnerItems } from '../../src/features/items/hooks/useMockOwnerItems';
 import { mockCategories, mockOwnerItems } from '../../src/features/items/mocks/items';
@@ -73,7 +74,9 @@ export function TestRoot() {
       <ThemeToggle />
       <output aria-label="Aktuelle Route">{location.pathname}</output>
       <MockOwnerItemsProvider>
-        <Outlet />
+        <section className={workspaceStyles.workspace}>
+          <Outlet />
+        </section>
       </MockOwnerItemsProvider>
     </main>
   );

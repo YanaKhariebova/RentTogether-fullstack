@@ -25,10 +25,10 @@
 }
 .tagline {
   display: block;
-  font-size: 0.7rem;
-  font-weight: 400;
+  font-size: 14px;
+  font-weight: 500;
   letter-spacing: 0;
-  color: var(--color-muted);
+  color: var(--color-text);
 }
 .desktop {
   display: none;
@@ -55,7 +55,7 @@
     height: 28px;
   }
   .tagline {
-    font-size: 0.6rem;
+    font-size: 14px;
   }
   .auth {
     gap: 6px;

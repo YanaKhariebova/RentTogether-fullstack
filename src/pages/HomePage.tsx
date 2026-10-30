@@ -23,12 +23,11 @@ export function HomePage() {
       <div className={styles.content}>
         <span className={styles.eyebrow}>DEINE NACHBARSCHAFT. DEINE MÖGLICHKEITEN.</span>
         <h1>
-          Für einen Moment gebraucht.
-          <span className={styles.promise}>Zusammen möglich.</span>
+          Leihen, was du brauchst. <span className={styles.promise}>Teilen, was du hast.</span>
         </h1>
         <p>
-          Der Beamer für den Filmabend. Das Werkzeug fürs Wochenende. Finde Dinge in deiner Nähe und
-          teile, was du hast.
+          Finde Dinge in deiner Nähe – vom Beamer bis zum Werkzeug. Oder vermiete unkompliziert, was
+          du gerade nicht brauchst.
         </p>
         <div className={styles.actions}>
           <Link to="/catalog">

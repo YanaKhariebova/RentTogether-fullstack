@@ -25,3 +25,38 @@
     padding-top: 28px;
   }
 }
+
+/* Motion stays inside the owner workspace, including its native dialogs. */
+.workspace button,
+.workspace input[type='file']::file-selector-button {
+  transition:
+    box-shadow 220ms ease,
+    transform 360ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  -webkit-tap-highlight-color: transparent;
+}
+@media (hover: hover) and (pointer: fine) {
+  .workspace button:enabled:hover,
+  .workspace input[type='file']:enabled:hover::file-selector-button {
+    box-shadow:
+      0 0 0 1px rgb(121 211 171 / 28%),
+      0 0 20px rgb(121 211 171 / 24%);
+    transform: translateY(-1px);
+  }
+}
+.workspace button:enabled:active,
+.workspace input[type='file']:enabled:active::file-selector-button {
+  transform: translateY(1px) scale(0.97);
+  transition-duration: 90ms;
+}
+@media (prefers-reduced-motion: reduce) {
+  .workspace button,
+  .workspace input[type='file']::file-selector-button {
+    transition: none;
+  }
+  .workspace button:enabled:hover,
+  .workspace button:enabled:active,
+  .workspace input[type='file']:enabled:hover::file-selector-button,
+  .workspace input[type='file']:enabled:active::file-selector-button {
+    transform: none;
+  }
+}
