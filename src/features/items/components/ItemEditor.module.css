@@ -61,13 +61,13 @@
   border: 0;
   border-radius: 9px;
   background: var(--color-primary);
-  color: var(--color-surface);
+  color: var(--color-on-primary);
   font-weight: 700;
   cursor: pointer;
 }
 .back:focus-visible,
 .save:focus-visible {
-  outline: 3px solid var(--color-primary);
+  outline: 3px solid var(--color-emphasis);
   outline-offset: 3px;
 }
 @media (min-width: 768px) {

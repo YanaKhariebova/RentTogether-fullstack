@@ -47,7 +47,7 @@
 }
 
 .unavailableDay {
-  color: #8b3a3a;
+  color: var(--color-error-text);
   text-decoration: line-through;
 }
 
@@ -67,6 +67,6 @@
 
 .total {
   margin: 0;
-  color: var(--color-primary);
+  color: var(--color-emphasis);
   font-weight: 700;
 }

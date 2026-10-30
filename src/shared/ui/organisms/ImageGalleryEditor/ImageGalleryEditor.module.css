@@ -39,7 +39,7 @@
   cursor: default;
 }
 .actions button:focus-visible {
-  outline: 3px solid var(--color-primary);
+  outline: 3px solid var(--color-emphasis);
   outline-offset: 3px;
 }
 @media (min-width: 768px) {

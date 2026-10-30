@@ -8,7 +8,7 @@
 
 .link:focus-visible {
   display: block;
-  outline: 3px solid var(--color-primary);
+  outline: 3px solid var(--color-emphasis);
   outline-offset: 3px;
   border-radius: 16px;
 }
@@ -127,14 +127,14 @@
   padding: 5px 10px;
   border-radius: 999px;
   background: var(--color-accent);
-  color: var(--color-text);
+  color: var(--color-on-accent);
   font-size: 0.75rem;
   font-weight: 600;
   text-align: center;
 }
 
 .price {
-  color: var(--color-primary);
+  color: var(--color-emphasis);
   font-size: 0.875rem;
   white-space: nowrap;
 }
