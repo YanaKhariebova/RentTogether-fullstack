@@ -90,6 +90,7 @@ test('all owner item endpoints require authentication', async () => {
     ['POST', '/api/items'],
     ['PATCH', `/api/items/${user.id}`],
     ['DELETE', `/api/items/${user.id}`],
+    ['DELETE', `/api/items/${user.id}/permanent`],
     ['GET', '/api/my/items'],
     ['PATCH', `/api/items/${user.id}/images/order`],
     ['PUT', `/api/items/${user.id}/images/order`],

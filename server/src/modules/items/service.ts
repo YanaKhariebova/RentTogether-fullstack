@@ -88,6 +88,45 @@ function rethrowWriteError(error: unknown): never {
 
 export function createItemsService(prisma: ItemsDatabase, storage?: ImageStorage) {
   return {
+    async deletePermanently(ownerId: string, id: string) {
+      try {
+        const keys = await prisma.$transaction(async (tx) => {
+          await lockOwnedItem(tx, id, ownerId);
+          if (await tx.booking.count({ where: { itemId: id } })) {
+            throw new ApiError(
+              409,
+              'ITEM_HAS_BOOKINGS',
+              'Für diese Anzeige gibt es Anfragen. Bitte blende sie aus, damit die Buchungshistorie erhalten bleibt.',
+            );
+          }
+          const images = await tx.itemImage.findMany({
+            where: { itemId: id },
+            select: { storageKey: true },
+          });
+          const keys = images.flatMap((image) => (image.storageKey ? [image.storageKey] : []));
+          for (const storageKey of keys) {
+            await tx.imageCleanup.upsert({
+              where: { storageKey },
+              create: { storageKey },
+              update: {},
+            });
+          }
+          await tx.item.delete({ where: { id } });
+          return keys;
+        });
+        if (storage) {
+          for (const key of keys) {
+            try {
+              await flushImageCleanup(prisma, storage, key);
+            } catch {
+              console.warn('Image cleanup will be retried after database recovery.');
+            }
+          }
+        }
+      } catch (error) {
+        rethrowWriteError(error);
+      }
+    },
     async listPublishedCities() {
       const rows = await prisma.item.findMany({
         where: { isPublished: true },

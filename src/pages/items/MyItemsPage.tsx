@@ -9,6 +9,7 @@ interface MyItemsPageProps {
   error?: string | null;
   onCreate: () => void;
   onEdit: (id: string) => void;
+  onDelete?: (id: string) => void;
   onUnpublish: (id: string) => void;
   onPublish?: (id: string) => void;
   busy?: boolean;
@@ -21,6 +22,7 @@ export function MyItemsPage({
   error,
   onCreate,
   onEdit,
+  onDelete,
   onUnpublish,
   onRetry,
   onPublish,
@@ -76,6 +78,7 @@ export function MyItemsPage({
                   key={item.id}
                   item={item}
                   onEdit={onEdit}
+                  onDelete={onDelete}
                   onUnpublish={onUnpublish}
                   onPublish={onPublish}
                   busy={busy}

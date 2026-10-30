@@ -90,6 +90,12 @@ export function createItemsRoutes(
     res.status(204).end();
   });
 
+  itemsRouter.delete('/:id/permanent', authenticate, async (req, res) => {
+    const { id } = itemParamsSchema.parse(req.params);
+    await service.deletePermanently(res.locals.currentUser.id, id);
+    res.status(204).end();
+  });
+
   // DELETE снимает с публикации: вещь, фото и будущие бронирования сохраняются.
   itemsRouter.delete('/:id', authenticate, async (req, res) => {
     const { id } = itemParamsSchema.parse(req.params);

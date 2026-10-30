@@ -874,3 +874,65 @@ test('ambiguous provider upload failure queues its known object key and retries 
   assert.equal(objects.size, 0);
   assert.equal(await prisma.imageCleanup.count({ where: { storageKey: key } }), 0);
 });
+
+test('permanent deletion requires owner, removes item and photo rows and durably queues failed file cleanup', async () => {
+  const item = await createItemFixture();
+  const other = await createItemFixture();
+  await prisma.itemImage.deleteMany({ where: { itemId: item.id } });
+  const service = createItemsService(prisma, storage);
+  await service.uploadImage(item.ownerId, item.id, { content: png, contentType: 'image/png' });
+  const image = await prisma.itemImage.findFirstOrThrow({ where: { itemId: item.id } });
+  const forbidden = await fetch(`${base}/api/items/${item.id}/permanent`, {
+    method: 'DELETE',
+    headers: headersFor(other),
+  });
+  assert.equal(forbidden.status, 403);
+  assert.ok(await prisma.item.findUnique({ where: { id: item.id } }));
+  failDeletion = true;
+  try {
+    const response = await fetch(`${base}/api/items/${item.id}/permanent`, {
+      method: 'DELETE',
+      headers: headersFor(item),
+    });
+    assert.equal(response.status, 204);
+    assert.equal(await prisma.item.findUnique({ where: { id: item.id } }), null);
+    assert.equal(await prisma.itemImage.count({ where: { itemId: item.id } }), 0);
+    assert.ok(await prisma.imageCleanup.findUnique({ where: { storageKey: image.storageKey! } }));
+  } finally {
+    failDeletion = false;
+  }
+  await flushImageCleanup(prisma, storage, image.storageKey!);
+  assert.equal(
+    await prisma.imageCleanup.findUnique({ where: { storageKey: image.storageKey! } }),
+    null,
+  );
+});
+
+test('permanent deletion preserves items and photos with existing bookings of any status', async () => {
+  const item = await createItemFixture();
+  const renter = await createItemFixture();
+  const booking = await prisma.booking.create({
+    data: {
+      itemId: item.id,
+      renterId: renter.ownerId,
+      pickupDate: new Date('2027-01-10T00:00:00Z'),
+      returnDate: new Date('2027-01-12T00:00:00Z'),
+      status: 'COMPLETED',
+      pricePerDaySnapshot: '15.50',
+      totalPrice: '31.00',
+    },
+  });
+  try {
+    const response = await fetch(`${base}/api/items/${item.id}/permanent`, {
+      method: 'DELETE',
+      headers: headersFor(item),
+    });
+    assert.equal(response.status, 409);
+    assert.equal((await response.json()).error.code, 'ITEM_HAS_BOOKINGS');
+    assert.ok(await prisma.item.findUnique({ where: { id: item.id } }));
+    assert.equal(await prisma.itemImage.count({ where: { itemId: item.id } }), 2);
+    assert.ok(await prisma.booking.findUnique({ where: { id: booking.id } }));
+  } finally {
+    await prisma.booking.delete({ where: { id: booking.id } });
+  }
+});

@@ -12,6 +12,7 @@ interface OwnerItemCardProps {
     images: { id: string; url: string; order: number }[];
   };
   onEdit: (id: string) => void;
+  onDelete?: (id: string) => void;
   onUnpublish: (id: string) => void;
   onPublish?: (id: string) => void;
   busy?: boolean;
@@ -20,6 +21,7 @@ interface OwnerItemCardProps {
 export function OwnerItemCard({
   item,
   onEdit,
+  onDelete,
   onUnpublish,
   onPublish,
   busy = false,
@@ -71,6 +73,18 @@ export function OwnerItemCard({
               aria-label={`${item.title} ausblenden`}
             >
               Ausblenden
+            </Button>
+          )}
+          {onDelete && (
+            <Button
+              type="button"
+              variant="danger"
+              className={styles.deleteButton}
+              disabled={busy}
+              onClick={() => onDelete(item.id)}
+              aria-label={`${item.title} löschen`}
+            >
+              Löschen
             </Button>
           )}
         </div>

@@ -42,6 +42,7 @@ export function ImageGalleryEditor({ images, onRemove, onMove }: ImageGalleryEdi
             <Button
               type="button"
               onClick={() => onRemove(image.id)}
+              variant="danger"
               aria-label={`Foto ${index + 1} entfernen`}
             >
               Entfernen

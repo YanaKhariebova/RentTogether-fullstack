@@ -91,3 +91,10 @@
   outline: 3px solid var(--color-primary);
   outline-offset: 2px;
 }
+
+.actions .deleteButton,
+.actions .deleteButton:hover {
+  background: var(--color-danger);
+  border-color: var(--color-danger);
+  color: white;
+}

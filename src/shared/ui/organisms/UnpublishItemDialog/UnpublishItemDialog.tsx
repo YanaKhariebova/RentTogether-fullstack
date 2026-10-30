@@ -3,6 +3,7 @@ import { useEffect, useId, useRef } from 'react';
 import styles from './UnpublishItemDialog.module.css';
 
 interface UnpublishItemDialogProps {
+  action?: 'unpublish' | 'delete';
   item: { id: string; title: string } | null;
   onCancel: () => void;
   onConfirm: (id: string) => void | Promise<void>;
@@ -11,6 +12,7 @@ interface UnpublishItemDialogProps {
 }
 
 export function UnpublishItemDialog({
+  action = 'unpublish',
   item,
   onCancel,
   onConfirm,
@@ -35,10 +37,13 @@ export function UnpublishItemDialog({
         if (!busy) onCancel();
       }}
     >
-      <h2 id={`${id}-title`}>Anzeige ausblenden?</h2>
+      <h2 id={`${id}-title`}>
+        {action === 'delete' ? 'Anzeige endgültig löschen?' : 'Anzeige ausblenden?'}
+      </h2>
       <p id={`${id}-description`}>
-        „{item?.title}“ wird nicht mehr im Katalog angezeigt. Deine Anzeige bleibt in „Meine
-        Anzeigen“ erhalten.
+        {action === 'delete'
+          ? `„${item?.title}“ und die Fotos werden endgültig gelöscht. Das kann nicht rückgängig gemacht werden. Anzeigen mit Anfragen bleiben zum Schutz der Buchungshistorie erhalten.`
+          : `„${item?.title}“ wird nicht mehr im Katalog angezeigt. Deine Anzeige bleibt in „Meine Anzeigen“ erhalten.`}
       </p>
       {error && <p role="alert">{error}</p>}
       <div className={styles.actions}>
@@ -47,13 +52,13 @@ export function UnpublishItemDialog({
         </Button>
         <Button
           type="button"
-          className={styles.confirm}
+          className={action === 'delete' ? styles.deleteConfirm : styles.confirm}
           loading={busy}
           onClick={() => {
             if (item) void onConfirm(item.id);
           }}
         >
-          Ausblenden
+          {action === 'delete' ? 'Endgültig löschen' : 'Ausblenden'}
         </Button>
       </div>
     </dialog>
