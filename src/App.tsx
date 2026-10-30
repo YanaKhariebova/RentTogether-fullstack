@@ -14,7 +14,14 @@ const localization = {
     ...deDE.signIn,
     start: {
       ...deDE.signIn?.start,
-      title: 'Herzlich willkommen bei RentTogether',
+      title: 'Willkommen bei RentTogether!',
+      subtitle: '',
+    },
+  },
+  signUp: {
+    ...deDE.signUp,
+    start: {
+      ...deDE.signUp?.start,
       subtitle: '',
     },
   },
