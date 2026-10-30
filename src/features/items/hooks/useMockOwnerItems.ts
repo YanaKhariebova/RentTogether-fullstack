@@ -7,7 +7,7 @@ import type { ItemImage, OwnerItem } from '../types/item';
 const mockOwner = { id: 'mock-olga', name: 'Olga', city: 'Berlin' };
 const loadMockItems = async (): Promise<OwnerItem[]> => structuredClone(mockOwnerItems);
 
-// Заменим этот hook API-запросами после подключения авторизации и БД.
+// Только изолированный UI-стенд; приложение использует useOwnerItems с настоящим API.
 export function useMockOwnerItems(loadItems = loadMockItems) {
   const [items, setItems] = useState<OwnerItem[]>([]);
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');

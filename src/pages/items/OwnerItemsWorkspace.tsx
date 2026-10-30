@@ -1,5 +1,5 @@
 import { itemErrorMessage } from '@/features/items/model/itemErrorMessage';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { MyItemsPage } from './MyItemsPage';
 import { UnpublishItemDialog } from '@/shared/ui/organisms/UnpublishItemDialog/UnpublishItemDialog';
@@ -7,6 +7,8 @@ import { useOwnerItemsStore } from '@/features/items/hooks/useOwnerItemsStore';
 export function OwnerItemsWorkspace() {
   const store = useOwnerItemsStore();
   const navigate = useNavigate();
+  const favoriteRequests = useRef(new Set<string>());
+  const [favoritePendingIds, setFavoritePendingIds] = useState<string[]>([]);
   const [actionError, setActionError] = useState<string | null>(null);
   const [confirmError, setConfirmError] = useState<string | null>(null);
   const [action, setAction] = useState<'unpublish' | 'delete'>('unpublish');
@@ -28,6 +30,24 @@ export function OwnerItemsWorkspace() {
           void navigate({ to: '/account/items/$itemId/edit', params: { itemId } });
         }}
         busy={store.busy}
+        favoritePendingIds={favoritePendingIds}
+        onFavoriteToggle={
+          store.setFavorite
+            ? (id, isFavorite) => {
+                if (favoriteRequests.current.has(id)) return;
+                favoriteRequests.current.add(id);
+                setFavoritePendingIds([...favoriteRequests.current]);
+                setActionError(null);
+                void Promise.resolve()
+                  .then(() => store.setFavorite!(id, isFavorite))
+                  .catch((error) => setActionError(itemErrorMessage(error)))
+                  .finally(() => {
+                    favoriteRequests.current.delete(id);
+                    setFavoritePendingIds([...favoriteRequests.current]);
+                  });
+              }
+            : undefined
+        }
         onPublish={
           store.publish
             ? (id) => {
