@@ -27,7 +27,10 @@ export function createBookingsService(prisma: BookingsDatabase) {
     },
     async cancel(renterId: string, id: string) {
       return prisma.$transaction(async (tx) => {
-        let booking = await tx.booking.findUnique({ where: { id }, select: { itemId: true } });
+        let booking = await tx.booking.findUnique({
+          where: { id },
+          select: { itemId: true, renterId: true, status: true },
+        });
         if (!booking)
           throw new ApiError(404, 'BOOKING_NOT_FOUND', 'Die Anfrage wurde nicht gefunden.');
         await tx.$queryRaw(
