@@ -265,10 +265,13 @@ test('real owner creates, reloads, publishes and edits photos; another account c
     exact: true,
   });
   await expect(deleteButton).toHaveCSS('background-color', 'rgb(152, 75, 72)');
-  await deleteButton.click();
+  await deleteButton.focus();
+  await deleteButton.press('Enter');
   const deleteDialog = page.getByRole('dialog', { name: 'Anzeige endgültig löschen?' });
-  await deleteDialog.getByRole('button', { name: 'Abbrechen', exact: true }).click();
-  await expect(deleteButton).toBeVisible();
+  await expect(deleteDialog.getByRole('button', { name: 'Abbrechen', exact: true })).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(deleteDialog).toBeHidden();
+  await expect(deleteButton).toBeFocused();
   await deleteButton.click();
   await deleteDialog.getByRole('button', { name: 'Endgültig löschen', exact: true }).click();
   await expect(deleteDialog).toBeHidden();

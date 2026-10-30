@@ -5,6 +5,8 @@ export type ItemCategory = Category;
 export type ItemImage = Item['images'][number];
 export type ItemOwner = Item['owner'];
 export interface OwnerItem extends PublicItem {
+  // Состояние только из общего Favorite API после его интеграции.
+  isFavorite?: boolean;
   createdAt: string;
   updatedAt: string;
 }

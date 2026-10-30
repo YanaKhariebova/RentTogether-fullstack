@@ -18,14 +18,13 @@ export function HomePage() {
   return (
     <section ref={hero} className={styles.hero}>
       <div className={styles.backdrop} aria-hidden="true">
-        <img src="/media/hero-neighbors.jpg" alt="" fetchPriority="high" />
+        <img src="/media/hero-brownstone.webp" alt="" fetchPriority="high" />
       </div>
       <div className={styles.content}>
         <span className={styles.eyebrow}>DEINE NACHBARSCHAFT. DEINE MÖGLICHKEITEN.</span>
         <h1>
           Für einen Moment gebraucht.
-          <br />
-          Zusammen möglich.
+          <span className={styles.promise}>Zusammen möglich.</span>
         </h1>
         <p>
           Der Beamer für den Filmabend. Das Werkzeug fürs Wochenende. Finde Dinge in deiner Nähe und
@@ -37,7 +36,6 @@ export function HomePage() {
           </Link>
           <Link to="/account/items/new">Etwas verleihen</Link>
         </div>
-        <div className={styles.note}>Lokal mieten. Ressourcen schonen.</div>
       </div>
     </section>
   );

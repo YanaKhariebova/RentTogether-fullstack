@@ -13,6 +13,8 @@ interface MyItemsPageProps {
   onUnpublish: (id: string) => void;
   onPublish?: (id: string) => void;
   busy?: boolean;
+  favoritePendingIds?: readonly string[];
+  onFavoriteToggle?: (id: string, isFavorite: boolean) => void;
   onRetry: () => void;
 }
 
@@ -27,6 +29,8 @@ export function MyItemsPage({
   onRetry,
   onPublish,
   busy = false,
+  favoritePendingIds = [],
+  onFavoriteToggle,
 }: MyItemsPageProps) {
   const published = items.filter((item) => item.isPublished).length;
   return (
@@ -82,6 +86,8 @@ export function MyItemsPage({
                   onUnpublish={onUnpublish}
                   onPublish={onPublish}
                   busy={busy}
+                  favoriteBusy={favoritePendingIds.includes(item.id)}
+                  onFavoriteToggle={onFavoriteToggle}
                 />
               ))}
             </div>
