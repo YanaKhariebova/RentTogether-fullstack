@@ -6,7 +6,10 @@ const api = createApiClient(async () => null);
 export function useUnavailableDatesQuery(itemId: string) {
   return useQuery({
     queryKey: ['bookings', 'unavailable-dates', itemId],
-    queryFn: () => api<{ ranges: { pickupDate: string; returnDate: string }[] }>(`/bookings/items/${itemId}/unavailable-dates`),
+    queryFn: () =>
+      api<{ ranges: { pickupDate: string; returnDate: string }[] }>(
+        `/bookings/items/${itemId}/unavailable-dates`,
+      ),
     enabled: Boolean(itemId),
   });
 }
