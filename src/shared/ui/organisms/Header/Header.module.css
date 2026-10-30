@@ -1,6 +1,6 @@
 .header {
   border-bottom: 1px solid var(--color-border);
-  background: var(--color-surface);
+  background: var(--color-header);
 }
 .inner {
   max-width: 1200px;
@@ -14,7 +14,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  color: var(--color-primary);
+  color: var(--color-emphasis);
   text-decoration: none;
   font-size: 1.25rem;
   font-weight: 800;
@@ -38,6 +38,28 @@
   min-height: 44px;
   display: flex;
   align-items: center;
+  gap: 12px;
+}
+
+@media (max-width: 479px) {
+  .inner {
+    gap: 8px;
+    padding-inline: 12px;
+  }
+  .brand {
+    gap: 6px;
+    font-size: 1rem;
+  }
+  .brand img {
+    width: 32px;
+    height: 28px;
+  }
+  .tagline {
+    font-size: 0.6rem;
+  }
+  .auth {
+    gap: 6px;
+  }
 }
 .auth a {
   display: inline-flex;
@@ -68,7 +90,7 @@
 }
 .mobile a[aria-current='page'],
 .desktop a[aria-current='page'] {
-  color: var(--color-primary);
+  color: var(--color-emphasis);
   font-weight: 700;
 }
 @media (min-width: 1024px) {

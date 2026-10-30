@@ -12,7 +12,7 @@
 .backLink {
   display: inline-block;
   margin-bottom: 20px;
-  color: var(--color-primary);
+  color: var(--color-emphasis);
   font-weight: 600;
 }
 
@@ -53,11 +53,11 @@
 
 .thumbnails button:hover,
 .thumbnails button:focus-visible {
-  border-color: var(--color-primary);
+  border-color: var(--color-emphasis);
 }
 
 .thumbnails .selectedThumbnail {
-  border-color: var(--color-primary);
+  border-color: var(--color-emphasis);
 }
 
 .thumbnails img {
@@ -83,7 +83,7 @@
   padding: 5px 10px;
   border-radius: 999px;
   background: var(--color-accent);
-  color: var(--color-text);
+  color: var(--color-on-accent);
   font-size: 0.875rem;
   font-weight: 600;
 }
@@ -94,7 +94,7 @@
 }
 
 .price {
-  color: var(--color-primary);
+  color: var(--color-emphasis);
   font-size: 1.25rem;
   font-weight: 700;
 }

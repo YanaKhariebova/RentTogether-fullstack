@@ -44,7 +44,7 @@
 .field input:focus-visible,
 .field textarea:focus-visible,
 .submit:focus-visible {
-  outline: 3px solid var(--color-primary);
+  outline: 3px solid var(--color-emphasis);
   outline-offset: 2px;
 }
 .field [aria-invalid='true'] {
@@ -52,7 +52,7 @@
 }
 .error {
   margin: 0;
-  color: var(--color-danger);
+  color: var(--color-error-text);
   font-size: 14px;
 }
 .row {
@@ -64,7 +64,7 @@
   padding: 12px 24px;
   border: 0;
   border-radius: 9px;
-  color: var(--color-surface);
+  color: var(--color-on-primary);
   background: var(--color-primary);
   font-weight: 700;
   cursor: pointer;
