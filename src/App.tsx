@@ -8,13 +8,24 @@ import { clerkAppearance } from './features/auth/clerkAppearance';
 
 const queryClient = new QueryClient({ defaultOptions: { queries: { staleTime: 30_000 } } });
 const publishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+const localization = {
+  ...deDE,
+  signIn: {
+    ...deDE.signIn,
+    start: {
+      ...deDE.signIn?.start,
+      title: 'Herzlich willkommen bei RentTogether',
+      subtitle: '',
+    },
+  },
+};
 
 export default function App() {
   if (!publishableKey) return <ConfigurationNotice />;
   return (
     <ClerkProvider
       publishableKey={publishableKey}
-      localization={deDE}
+      localization={localization}
       appearance={clerkAppearance}
       signInUrl="/sign-in"
       signUpUrl="/sign-up"
