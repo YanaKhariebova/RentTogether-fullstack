@@ -3,6 +3,7 @@ import { Button } from '@/shared/ui/atoms';
 import { Link, useParams } from '@tanstack/react-router';
 import { useState } from 'react';
 import { DateRangePicker } from '../bookings/components/DateRangePicker/DateRangePicker';
+import { useCreateBookingMutation } from '../bookings/api/useCreateBookingMutation';
 import { mockBookings } from '../bookings/mocks/bookings.mock';
 import { useItemDetailQuery } from './api/useItemDetailQuery';
 import styles from './ItemDetailPage.module.css';
@@ -10,6 +11,7 @@ import styles from './ItemDetailPage.module.css';
 export function ItemDetailPage() {
   const { itemId } = useParams({ from: '/items/$itemId' });
   const { data, isPending, isError, error, refetch } = useItemDetailQuery(itemId);
+  const createBooking = useCreateBookingMutation();
   const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
 
   if (isPending) {
@@ -98,7 +100,18 @@ export function ItemDetailPage() {
             <p className={styles.description}>{item.description}</p>
             <p className={styles.owner}>Angeboten von {item.owner.name}</p>
 
-            <DateRangePicker pricePerDay={item.pricePerDay} unavailableRanges={unavailableRanges} />
+            <DateRangePicker
+              pricePerDay={item.pricePerDay}
+              unavailableRanges={unavailableRanges}
+              isSubmitting={createBooking.isPending}
+              isSubmitted={createBooking.isSuccess}
+              errorMessage={
+                createBooking.error instanceof Error ? createBooking.error.message : null
+              }
+              onSubmit={async (dates) => {
+                await createBooking.mutateAsync({ itemId: item.id, ...dates });
+              }}
+            />
           </div>
         </div>
       </section>
