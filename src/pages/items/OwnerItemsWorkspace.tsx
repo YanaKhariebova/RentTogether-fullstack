@@ -9,6 +9,7 @@ export function OwnerItemsWorkspace() {
   const navigate = useNavigate();
   const [actionError, setActionError] = useState<string | null>(null);
   const [confirmError, setConfirmError] = useState<string | null>(null);
+  const [action, setAction] = useState<'unpublish' | 'delete'>('unpublish');
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const item = store.items.find((entry) => entry.id === confirmId) ?? null;
   return (
@@ -39,13 +40,24 @@ export function OwnerItemsWorkspace() {
               }
             : undefined
         }
+        onDelete={
+          store.deleteItem
+            ? (id) => {
+                setAction('delete');
+                setConfirmError(null);
+                setConfirmId(id);
+              }
+            : undefined
+        }
         onUnpublish={(id) => {
+          setAction('unpublish');
           setConfirmError(null);
           setConfirmId(id);
         }}
         onRetry={store.retry}
       />
       <UnpublishItemDialog
+        action={action}
         item={item}
         busy={store.busy}
         error={confirmError}
@@ -54,9 +66,14 @@ export function OwnerItemsWorkspace() {
           setConfirmError(null);
           store.setNotice('');
           try {
-            await store.unpublish(id);
+            if (action === 'delete') await store.deleteItem!(id);
+            else await store.unpublish(id);
             setConfirmId(null);
-            store.setNotice('Deine Anzeige wurde ausgeblendet.');
+            store.setNotice(
+              action === 'delete'
+                ? 'Deine Anzeige wurde gelöscht.'
+                : 'Deine Anzeige wurde ausgeblendet.',
+            );
           } catch (error) {
             setConfirmError(itemErrorMessage(error));
           }

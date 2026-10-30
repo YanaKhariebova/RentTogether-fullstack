@@ -184,6 +184,10 @@ test('real owner creates, reloads, publishes and edits photos; another account c
   expect(saved.isPublished).toBe(true);
   await page.reload();
   await page.getByRole('button', { name: `Test Beamer ${runId} bearbeiten`, exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Foto 2 entfernen', exact: true })).toHaveCSS(
+    'background-color',
+    'rgb(152, 75, 72)',
+  );
   await page.getByRole('button', { name: 'Foto 2 entfernen', exact: true }).click();
   await page.getByLabel('Fotos auswählen', { exact: true }).setInputFiles({
     name: 'broken.png',
@@ -247,6 +251,22 @@ test('real owner creates, reloads, publishes and edits photos; another account c
   await page.goto('/catalog');
   await page.getByRole('searchbox', { name: 'Wonach suchst du?' }).fill(runId);
   await expect(page.getByText('Keine passenden Anzeigen gefunden.')).toBeVisible();
+  await page.goto('/account/items');
+  const deleteButton = page.getByRole('button', {
+    name: `Test Beamer ${runId} löschen`,
+    exact: true,
+  });
+  await expect(deleteButton).toHaveCSS('background-color', 'rgb(152, 75, 72)');
+  await deleteButton.click();
+  const deleteDialog = page.getByRole('dialog', { name: 'Anzeige endgültig löschen?' });
+  await deleteDialog.getByRole('button', { name: 'Abbrechen', exact: true }).click();
+  await expect(deleteButton).toBeVisible();
+  await deleteButton.click();
+  await deleteDialog.getByRole('button', { name: 'Endgültig löschen', exact: true }).click();
+  await expect(deleteDialog).toBeHidden();
+  await expect(page.getByText('Hier ist Platz für deine erste Anzeige.')).toBeVisible();
+  await page.reload();
+  expect((await apiRequest(page, '/my/items')).body.items).toHaveLength(0);
   await clerk.signOut({ page });
   await page.goto('/account/items');
   await expect(page.getByRole('heading', { name: 'Bitte melde dich an' })).toBeVisible();

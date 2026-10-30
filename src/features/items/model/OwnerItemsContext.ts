@@ -15,6 +15,7 @@ export interface OwnerItemsStore {
     id: string | undefined,
     sessionKey: string,
   ) => void | Promise<void>;
+  deleteItem?: (id: string) => void | Promise<void>;
   unpublish: (id: string) => void | Promise<void>;
   publish?: (id: string) => void | Promise<void>;
   retry: () => void;

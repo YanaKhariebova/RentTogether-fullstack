@@ -75,7 +75,13 @@ export function useOwnerItems() {
     retry: false,
     onSettled: refresh,
   });
+  const deletion = useMutation({
+    mutationFn: (id: string) => api<void>(`/items/${id}/permanent`, { method: 'DELETE' }),
+    retry: false,
+    onSettled: refresh,
+  });
   return {
+    deleteItem: (id: string) => deletion.mutateAsync(id),
     items: query.data?.items ?? [],
     loadError: query.error ? itemErrorMessage(query.error) : null,
     status: query.isPending
@@ -90,7 +96,7 @@ export function useOwnerItems() {
         ? ('error' as const)
         : ('ready' as const),
     defaultCity: profile.data?.user.city ?? '',
-    busy: save.isPending || publication.isPending,
+    busy: save.isPending || publication.isPending || deletion.isPending,
     retry() {
       void query.refetch();
     },
