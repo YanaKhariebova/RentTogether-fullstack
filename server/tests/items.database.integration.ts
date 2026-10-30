@@ -117,6 +117,7 @@ after(async () => {
       where: { storageKey: { in: (await readdir(uploads)).filter((key) => key.endsWith('.png')) } },
     });
     await rm(uploads, { recursive: true, force: true });
+    await prisma.booking.deleteMany({ where: { item: { ownerId: { in: ownerIds } } } });
     await prisma.item.deleteMany({ where: { ownerId: { in: ownerIds } } });
     await prisma.user.deleteMany({ where: { id: { in: ownerIds } } });
   } finally {
@@ -935,4 +936,57 @@ test('permanent deletion preserves items and photos with existing bookings of an
   } finally {
     await prisma.booking.delete({ where: { id: booking.id } });
   }
+});
+
+test('concurrent approvals of overlapping bookings approve only one request', async () => {
+  const item = await createItemFixture();
+  await prisma.item.update({ where: { id: item.id }, data: { isPublished: true } });
+  const renter = await prisma.user.create({
+    data: {
+      clerkUserId: `booking_renter_${randomUUID()}`,
+      name: 'Renter',
+      city: 'Berlin',
+      email: '',
+    },
+  });
+  ownerIds.push(renter.id);
+  const dates = {
+    pickupDate: new Date('2026-12-10T00:00:00.000Z'),
+    returnDate: new Date('2026-12-13T00:00:00.000Z'),
+  };
+  const [first, second] = await Promise.all([
+    prisma.booking.create({
+      data: {
+        itemId: item.id,
+        renterId: renter.id,
+        ...dates,
+        pricePerDaySnapshot: '15.50',
+        totalPrice: '46.50',
+      },
+    }),
+    prisma.booking.create({
+      data: {
+        itemId: item.id,
+        renterId: renter.id,
+        pickupDate: new Date('2026-12-11T00:00:00.000Z'),
+        returnDate: new Date('2026-12-14T00:00:00.000Z'),
+        pricePerDaySnapshot: '15.50',
+        totalPrice: '46.50',
+      },
+    }),
+  ]);
+  const responses = await Promise.all(
+    [first, second].map((booking) =>
+      fetch(`${base}/api/bookings/${booking.id}/status`, {
+        method: 'PATCH',
+        headers: headersFor(item),
+        body: JSON.stringify({ status: 'APPROVED' }),
+      }),
+    ),
+  );
+  assert.deepEqual(responses.map((response) => response.status).sort(), [200, 409]);
+  const approved = await prisma.booking.count({
+    where: { id: { in: [first.id, second.id] }, status: 'APPROVED' },
+  });
+  assert.equal(approved, 1);
 });
