@@ -4,6 +4,7 @@ import { mockBookings } from '../../mocks/bookings.mock';
 import { useMyRentalsQuery } from '../../api/useMyRentalsQuery';
 import { useIncomingBookingsQuery } from '../../api/useIncomingBookingsQuery';
 import { useOwnerBookingStatusMutation } from '../../api/useOwnerBookingStatusMutation';
+import { useCancelBookingMutation } from '../../api/useCancelBookingMutation';
 import type { Booking, BookingStatus } from '../../types/booking';
 import styles from './BookingList.module.css';
 
@@ -52,26 +53,16 @@ export function BookingList({ view }: BookingListProps) {
   const rentalsQuery = useMyRentalsQuery(isRentals);
   const incomingQuery = useIncomingBookingsQuery(!isRentals);
   const ownerStatus = useOwnerBookingStatusMutation();
-  const [bookings, setBookings] = useState<Booking[]>(mockBookings);
-  const sourceBookings = isRentals
-    ? (rentalsQuery.data?.bookings ?? [])
-    : (incomingQuery.data?.bookings ?? bookings);
-
-  const visibleBookings = useMemo(
-    () =>
-      sourceBookings.filter((booking) =>
-        view === 'rentals' ? booking.renterName === 'Du' : booking.renterName !== 'Du',
-      ),
-    [sourceBookings, view],
-  );
-
-  function updateStatus(bookingId: string, status: BookingStatus) {
-    setBookings((currentBookings) =>
-      currentBookings.map((booking) =>
-        booking.id === bookingId ? { ...booking, status } : booking,
-      ),
+  const cancelBooking = useCancelBookingMutation();
+  const [bookings] = useState<Booking[]>(mockBookings);
+  const visibleBookings = useMemo(() => {
+    const sourceBookings = isRentals
+      ? (rentalsQuery.data?.bookings ?? [])
+      : (incomingQuery.data?.bookings ?? bookings);
+    return sourceBookings.filter((booking) =>
+      view === 'rentals' ? booking.renterName === 'Du' : booking.renterName !== 'Du',
     );
-  }
+  }, [bookings, incomingQuery.data?.bookings, isRentals, rentalsQuery.data?.bookings, view]);
 
   return (
     <section className={styles.section} aria-labelledby={`${view}-title`}>
@@ -122,7 +113,11 @@ export function BookingList({ view }: BookingListProps) {
               </dl>
 
               {isRentals && booking.status === 'PENDING' && (
-                <Button variant="secondary" onClick={() => updateStatus(booking.id, 'CANCELLED')}>
+                <Button
+                  variant="secondary"
+                  disabled={cancelBooking.isPending}
+                  onClick={() => cancelBooking.mutate(booking.id)}
+                >
                   Anfrage stornieren
                 </Button>
               )}

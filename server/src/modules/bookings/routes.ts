@@ -32,5 +32,9 @@ export function createBookingsRoutes(prisma: BookingsDatabase, authenticate: Req
       ),
     });
   });
+  router.patch('/:id/cancel', authenticate, async (req, res) => {
+    const { id } = bookingParamsSchema.parse(req.params);
+    res.json({ booking: await service.cancel(res.locals.currentUser.id, id) });
+  });
   return router;
 }
