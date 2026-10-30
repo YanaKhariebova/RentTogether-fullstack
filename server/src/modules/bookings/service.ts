@@ -1,3 +1,4 @@
+import { Prisma } from '../../generated/prisma/client.js';
 import type { PrismaClient } from '../../generated/prisma/client.js';
 import { ApiError } from '../../lib/errors.js';
 import type { CreateBookingData } from './schemas.js';
@@ -14,25 +15,46 @@ function toDate(value: string) {
 
 export function createBookingsService(prisma: BookingsDatabase) {
   return {
-    async cancel(renterId: string, id: string) {
-      const booking = await prisma.booking.findUnique({
-        where: { id },
-        select: { renterId: true, status: true },
+    async listUnavailableDates(itemId: string) {
+      const bookings = await prisma.booking.findMany({
+        where: { itemId, status: { in: ['APPROVED', 'ACTIVE'] } },
+        select: { pickupDate: true, returnDate: true },
       });
-      if (!booking)
-        throw new ApiError(404, 'BOOKING_NOT_FOUND', 'Die Anfrage wurde nicht gefunden.');
-      if (booking.renterId !== renterId)
-        throw new ApiError(403, 'FORBIDDEN', 'Du darfst diese Anfrage nicht stornieren.');
-      if (booking.status !== 'PENDING')
-        throw new ApiError(
-          409,
-          'BOOKING_STATUS_INVALID',
-          'Diese Anfrage kann nicht mehr storniert werden.',
+      return bookings.map((booking) => ({
+        pickupDate: booking.pickupDate.toISOString().slice(0, 10),
+        returnDate: booking.returnDate.toISOString().slice(0, 10),
+      }));
+    },
+    async cancel(renterId: string, id: string) {
+      return prisma.$transaction(async (tx) => {
+        let booking = await tx.booking.findUnique({
+          where: { id },
+          select: { itemId: true, renterId: true, status: true },
+        });
+        if (!booking)
+          throw new ApiError(404, 'BOOKING_NOT_FOUND', 'Die Anfrage wurde nicht gefunden.');
+        await tx.$queryRaw(
+          Prisma.sql`SELECT "id" FROM "Item" WHERE "id" = ${booking.itemId}::uuid FOR UPDATE`,
         );
-      return prisma.booking.update({
-        where: { id },
-        data: { status: 'CANCELLED' },
-        select: { id: true, status: true },
+        booking = await tx.booking.findUnique({
+          where: { id },
+          select: { renterId: true, status: true, itemId: true },
+        });
+        if (!booking)
+          throw new ApiError(404, 'BOOKING_NOT_FOUND', 'Die Anfrage wurde nicht gefunden.');
+        if (booking.renterId !== renterId)
+          throw new ApiError(403, 'FORBIDDEN', 'Du darfst diese Anfrage nicht stornieren.');
+        if (booking.status !== 'PENDING')
+          throw new ApiError(
+            409,
+            'BOOKING_STATUS_INVALID',
+            'Diese Anfrage kann nicht mehr storniert werden.',
+          );
+        return tx.booking.update({
+          where: { id },
+          data: { status: 'CANCELLED' },
+          select: { id: true, status: true },
+        });
       });
     },
 
@@ -42,7 +64,16 @@ export function createBookingsService(prisma: BookingsDatabase) {
       status: 'APPROVED' | 'REJECTED' | 'ACTIVE' | 'COMPLETED',
     ) {
       return prisma.$transaction(async (tx) => {
-        const booking = await tx.booking.findUnique({
+        let booking = await tx.booking.findUnique({
+          where: { id },
+          include: { item: { select: { ownerId: true } } },
+        });
+        if (!booking)
+          throw new ApiError(404, 'BOOKING_NOT_FOUND', 'Die Anfrage wurde nicht gefunden.');
+        await tx.$queryRaw(
+          Prisma.sql`SELECT "id" FROM "Item" WHERE "id" = ${booking.itemId}::uuid FOR UPDATE`,
+        );
+        booking = await tx.booking.findUnique({
           where: { id },
           include: { item: { select: { ownerId: true } } },
         });
