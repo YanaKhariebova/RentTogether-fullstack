@@ -99,9 +99,9 @@
   content: '';
   background: linear-gradient(
     90deg,
-    rgb(16 34 27 / 24%),
-    rgb(16 34 27 / 12%) 60%,
-    rgb(16 34 27 / 4%)
+    rgb(16 34 27 / 34%),
+    rgb(16 34 27 / 22%) 60%,
+    rgb(16 34 27 / 14%)
   );
 }
 .content {
@@ -124,7 +124,7 @@
 }
 @media (max-width: 767px) {
   .backdrop::after {
-    background: rgb(16 34 27 / 12%);
+    background: rgb(16 34 27 / 22%);
   }
 }
 
