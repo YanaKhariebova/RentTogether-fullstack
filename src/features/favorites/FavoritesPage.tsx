@@ -12,18 +12,18 @@ export function FavoritesPage() {
   return (
     <section className={styles.page} aria-labelledby="favorites-title">
       <div className={styles.content}>
-        <h1 id="favorites-title">Beobachtungsliste</h1>
-        <p className={styles.intro}>Anzeigen, die du beobachten möchtest.</p>
+        <h1 id="favorites-title">Favoriten</h1>
+        <p className={styles.intro}>Deine gespeicherten Anzeigen.</p>
 
         {favoritesQuery.isPending ? (
-          <p className={styles.empty}>Beobachtungsliste wird geladen…</p>
+          <p className={styles.empty}>Favoriten werden geladen…</p>
         ) : favoritesQuery.isError ? (
           <p className={styles.empty} role="alert">
-            Beobachtungsliste konnte nicht geladen werden.
+            Favoriten konnten nicht geladen werden.
           </p>
         ) : items.length === 0 ? (
           <div className={styles.empty}>
-            <p>Du beobachtest noch keine Anzeigen.</p>
+            <p>Du hast noch keine Favoriten gespeichert.</p>
             <Link to="/catalog">Anzeigen entdecken</Link>
           </div>
         ) : (

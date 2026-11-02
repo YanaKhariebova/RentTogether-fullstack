@@ -101,10 +101,10 @@ export function ItemDetailPage() {
                 className={styles.favorite}
                 label={
                   !isLoaded || !isSignedIn
-                    ? 'Bitte melde dich an, um Anzeigen zu beobachten.'
+                    ? 'Bitte melde dich an, um Favoriten zu speichern.'
                     : isFavorite
-                      ? `${item.title} nicht mehr beobachten`
-                      : `${item.title} beobachten`
+                      ? `${item.title} aus Favoriten entfernen`
+                      : `${item.title} zu Favoriten hinzufügen`
                 }
                 aria-pressed={isFavorite}
                 aria-busy={favoriteMutation.isPending || undefined}
