@@ -18,6 +18,39 @@ const item = {
   isPublished: true,
 };
 
+test.beforeEach(async ({ page }) => {
+  await page.route('**/api/bookings/items/*/unavailable-dates', (route) =>
+    route.fulfill({ json: { ranges: [] } }),
+  );
+});
+
+test('failed availability does not expose an unverified calendar and can be retried', async ({
+  page,
+}) => {
+  let failed = true;
+  await page.route(`**/api/items/${item.id}`, (route) => route.fulfill({ json: { item } }));
+  await page.route('**/api/bookings/items/*/unavailable-dates', (route) =>
+    route.fulfill(
+      failed
+        ? {
+            status: 503,
+            json: { error: { code: 'UNAVAILABLE', message: 'Nicht verfügbar.', fields: {} } },
+          }
+        : { json: { ranges: [] } },
+    ),
+  );
+  await page.goto(`/items/${item.id}`);
+  await expect(page.getByRole('alert')).toContainText(
+    'Die Verfügbarkeit konnte nicht geladen werden.',
+  );
+  await expect(page.getByRole('grid')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Anfrage senden', exact: true })).toHaveCount(0);
+  failed = false;
+  await page.getByRole('button', { name: 'Verfügbarkeit erneut laden' }).click();
+  await expect(page.getByRole('grid')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Anfrage senden', exact: true })).toBeDisabled();
+});
+
 test('item detail renders the item received from the public API', async ({ page }) => {
   await page.route(`**/api/items/${item.id}`, (route) => route.fulfill({ json: { item } }));
 

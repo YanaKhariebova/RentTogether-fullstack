@@ -288,6 +288,11 @@ export function CatalogPage() {
           </aside>
 
           <div>
+            {favoriteMutation.isError && (
+              <p role="alert">
+                Favoriten konnten nicht gespeichert werden. Bitte versuche es erneut.
+              </p>
+            )}
             {priceError ? (
               <p className={styles.empty} role="alert">
                 {priceError}

@@ -147,7 +147,38 @@
   }
 
   .layout {
-    grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+    grid-template-columns: minmax(0, 1.1fr) minmax(366px, 0.9fr);
     align-items: start;
+  }
+}
+
+.layout > *,
+.details {
+  min-width: 0;
+}
+.backLink {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+@media (max-width: 767px) {
+  .page {
+    padding-inline: 0;
+  }
+  .details {
+    padding: 12px;
+  }
+  .details :global(.rdp-root) {
+    width: calc(100% + 24px);
+    margin-inline: -12px;
+  }
+}
+@media (max-width: 359px) {
+  /* Seven 44px day buttons still fit a 320px screen without a sideways swipe. */
+  .details :global(.rdp-root) {
+    width: calc(100% + 56px);
+    margin-inline: -28px;
+    padding-inline: 4px;
+    border-radius: 0;
   }
 }

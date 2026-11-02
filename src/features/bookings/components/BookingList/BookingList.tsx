@@ -55,9 +55,8 @@ export function BookingList({ view }: BookingListProps) {
   const sourceBookings = isRentals
     ? (rentalsQuery.data?.bookings ?? [])
     : (incomingQuery.data?.bookings ?? []);
-  const visibleBookings = sourceBookings.filter((booking) =>
-    view === 'rentals' ? booking.renterName === 'Du' : booking.renterName !== 'Du',
-  );
+  // The authenticated API already separates rentals from incoming requests.
+  const actionError = isRentals ? cancelBooking.error : ownerStatus.error;
 
   return (
     <section className={styles.section} aria-labelledby={`${view}-title`}>
@@ -66,17 +65,26 @@ export function BookingList({ view }: BookingListProps) {
         <h1 id={`${view}-title`}>{isRentals ? 'Meine Mieten' : 'Eingehende Anfragen'}</h1>
       </div>
 
+      {actionError && <p role="alert">{actionError.message}</p>}
+
       {(isRentals ? rentalsQuery.isPending : incomingQuery.isPending) ? (
         <div className={styles.empty}>
           <Spinner label="Buchungen werden geladen …" />
         </div>
       ) : (isRentals ? rentalsQuery.isError : incomingQuery.isError) ? (
-        <p className={styles.empty}>Buchungen konnten nicht geladen werden.</p>
-      ) : visibleBookings.length === 0 ? (
+        <div className={styles.empty}>
+          <p role="alert">Buchungen konnten nicht geladen werden.</p>
+          <Button
+            onClick={() => void (isRentals ? rentalsQuery.refetch() : incomingQuery.refetch())}
+          >
+            Erneut versuchen
+          </Button>
+        </div>
+      ) : sourceBookings.length === 0 ? (
         <p className={styles.empty}>Noch keine Buchungen vorhanden.</p>
       ) : (
         <ul className={styles.list}>
-          {visibleBookings.map((booking) => (
+          {sourceBookings.map((booking) => (
             <li key={booking.id} className={styles.card}>
               <div className={styles.cardHeader}>
                 <div>
@@ -113,7 +121,7 @@ export function BookingList({ view }: BookingListProps) {
                 <Button
                   variant="secondary"
                   disabled={cancelBooking.isPending}
-                  onClick={() => cancelBooking.mutate(booking.id)}
+                  onClick={() => cancelBooking.mutate({ id: booking.id, itemId: booking.itemId })}
                 >
                   Anfrage stornieren
                 </Button>
@@ -124,14 +132,26 @@ export function BookingList({ view }: BookingListProps) {
                   <Button
                     variant="primary"
                     disabled={ownerStatus.isPending}
-                    onClick={() => ownerStatus.mutate({ id: booking.id, status: 'APPROVED' })}
+                    onClick={() =>
+                      ownerStatus.mutate({
+                        id: booking.id,
+                        itemId: booking.itemId,
+                        status: 'APPROVED',
+                      })
+                    }
                   >
                     Annehmen
                   </Button>
                   <Button
                     variant="secondary"
                     disabled={ownerStatus.isPending}
-                    onClick={() => ownerStatus.mutate({ id: booking.id, status: 'REJECTED' })}
+                    onClick={() =>
+                      ownerStatus.mutate({
+                        id: booking.id,
+                        itemId: booking.itemId,
+                        status: 'REJECTED',
+                      })
+                    }
                   >
                     Ablehnen
                   </Button>
@@ -142,7 +162,9 @@ export function BookingList({ view }: BookingListProps) {
                 <Button
                   variant="primary"
                   disabled={ownerStatus.isPending}
-                  onClick={() => ownerStatus.mutate({ id: booking.id, status: 'ACTIVE' })}
+                  onClick={() =>
+                    ownerStatus.mutate({ id: booking.id, itemId: booking.itemId, status: 'ACTIVE' })
+                  }
                 >
                   Übergabe starten
                 </Button>
@@ -152,7 +174,13 @@ export function BookingList({ view }: BookingListProps) {
                 <Button
                   variant="primary"
                   disabled={ownerStatus.isPending}
-                  onClick={() => ownerStatus.mutate({ id: booking.id, status: 'COMPLETED' })}
+                  onClick={() =>
+                    ownerStatus.mutate({
+                      id: booking.id,
+                      itemId: booking.itemId,
+                      status: 'COMPLETED',
+                    })
+                  }
                 >
                   Abschließen
                 </Button>

@@ -24,7 +24,15 @@ let loadAttempts = 0;
 async function loadFixtureItems() {
   if (fixtureState === 'loading') return new Promise<typeof mockOwnerItems>(() => {});
   if (fixtureState === 'error' && loadAttempts++ === 0) throw new Error('Fixture load error');
-  return fixtureState === 'empty' ? [] : structuredClone(mockOwnerItems);
+  if (fixtureState === 'empty') return [];
+  const items = structuredClone(mockOwnerItems);
+  return fixtureState === 'published'
+    ? items.map((item) => ({
+        ...item,
+        isPublished: true,
+        images: [{ id: 'fixture-photo', url: '/media/hero-mobile-640.webp', order: 0 }],
+      }))
+    : items;
 }
 function MockOwnerItemsProvider({ children }: { children: React.ReactNode }) {
   const store = useMockOwnerItems(loadFixtureItems);

@@ -77,6 +77,283 @@ async function currentUser(page: Page) {
   }, apiUrl);
 }
 
+test('guest access is blocked on every account entry point', async ({ page }) => {
+  await page.goto('/');
+  await clerk.loaded({ page });
+  for (const path of [
+    '/account',
+    '/account/profile',
+    '/account/items',
+    '/account/items/new',
+    '/account/items/20000000-0000-4000-8000-000000000001/edit',
+    '/account/favorites',
+    '/account/bookings',
+    '/account/bookings/my-rentals',
+    '/account/bookings/incoming',
+  ]) {
+    await page.goto(path);
+    await expect(
+      page.getByRole('heading', { name: 'Bitte melde dich an', exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole('main').getByRole('link', { name: 'Anmelden', exact: true }),
+    ).toHaveAttribute('href', '/sign-in');
+    await expect(page.getByRole('main').locator('input')).toHaveCount(0);
+  }
+});
+
+test('hosted sign-in and sign-up forms fit phones and desktop in both themes', async ({ page }) => {
+  for (const width of [320, 390, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    for (const theme of ['dark', 'light']) {
+      await page.goto('/');
+      await page.evaluate((value) => localStorage.setItem('renttogether-theme', value), theme);
+      for (const path of ['/sign-in', '/sign-up']) {
+        await page.goto(path);
+        await expect(
+          page.getByRole('main').getByLabel('E-Mail-Adresse', { exact: true }),
+        ).toBeVisible();
+        await expect(page.getByRole('main').getByLabel('Passwort', { exact: true })).toBeVisible();
+        await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
+        expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
+          true,
+        );
+      }
+    }
+  }
+});
+
+test('incoming requests do not depend on the renter name and failed actions show errors', async ({
+  page,
+}) => {
+  await page.goto('/');
+  await clerk.loaded({ page });
+  await clerk.signIn({ page, emailAddress: ownerEmail });
+  const booking = {
+    id: '10000000-0000-4000-8000-000000000001',
+    itemId: '20000000-0000-4000-8000-000000000001',
+    itemTitle: 'Audit Anfrage',
+    renterName: 'Du',
+    status: 'PENDING',
+    pickupDate: '2030-01-10',
+    returnDate: '2030-01-13',
+    pricePerDay: '15.50',
+    totalPrice: '46.50',
+  };
+  let failed = true;
+  await page.route('**/api/bookings/incoming', (route) =>
+    route.fulfill(
+      failed
+        ? {
+            status: 503,
+            json: { error: { code: 'UNAVAILABLE', message: 'Nicht verfügbar.', fields: {} } },
+          }
+        : { json: { bookings: [booking] } },
+    ),
+  );
+  await page.route(`**/api/bookings/${booking.id}/status`, (route) =>
+    route.fulfill({
+      status: 409,
+      json: {
+        error: {
+          code: 'BOOKING_DATES_UNAVAILABLE',
+          message: 'Dieser Zeitraum ist nicht mehr verfügbar.',
+          fields: {},
+        },
+      },
+    }),
+  );
+  await page.goto('/account/bookings/incoming');
+  await expect(page.getByRole('alert')).toContainText('Buchungen konnten nicht geladen werden.');
+  failed = false;
+  await page.getByRole('button', { name: 'Erneut versuchen', exact: true }).click();
+  await expect(page.getByRole('heading', { name: booking.itemTitle })).toBeVisible();
+  await page.getByRole('button', { name: 'Annehmen', exact: true }).click();
+  await expect(page.getByRole('alert')).toHaveText('Dieser Zeitraum ist nicht mehr verfügbar.');
+  await expect(page.getByText('Ausstehend', { exact: true })).toBeVisible();
+});
+
+test('booking failures are visible and a successful retry refreshes cached rentals', async ({
+  page,
+}) => {
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await page.goto('/');
+  await clerk.loaded({ page });
+  await clerk.signIn({ page, emailAddress: ownerEmail });
+  const item = {
+    id: '20000000-0000-4000-8000-000000000001',
+    title: 'Audit Beamer',
+    description: 'Testanzeige',
+    pricePerDay: '15.50',
+    city: 'Berlin',
+    isPublished: true,
+    category: { id: '30000000-0000-4000-8000-000000000001', name: 'Elektronik' },
+    owner: { id: '40000000-0000-4000-8000-000000000001', name: 'Olga', city: 'Berlin' },
+    images: [
+      { id: '50000000-0000-4000-8000-000000000001', url: '/media/hero-mobile-640.webp', order: 0 },
+    ],
+  };
+  await page.route(`**/api/items/${item.id}`, (route) => route.fulfill({ json: { item } }));
+  await page.route('**/api/bookings/items/*/unavailable-dates', (route) =>
+    route.fulfill({ json: { ranges: [] } }),
+  );
+  await page.route('**/api/me/favorites', (route) => route.fulfill({ json: { items: [] } }));
+  await page.route(`**/api/me/favorites/${item.id}`, (route) =>
+    route.fulfill({
+      status: 503,
+      json: { error: { code: 'UNAVAILABLE', message: 'Speichern fehlgeschlagen.', fields: {} } },
+    }),
+  );
+  let rejectBooking = true;
+  let booked = false;
+  await page.route('**/api/bookings/my-rentals', (route) =>
+    route.fulfill({
+      json: {
+        bookings: booked
+          ? [
+              {
+                id: '60000000-0000-4000-8000-000000000001',
+                itemId: item.id,
+                itemTitle: item.title,
+                renterName: 'Du',
+                status: 'PENDING',
+                pickupDate: '2030-01-10',
+                returnDate: '2030-01-13',
+                pricePerDay: '15.50',
+                totalPrice: '46.50',
+              },
+            ]
+          : [],
+      },
+    }),
+  );
+  await page.route('**/api/bookings', (route) => {
+    if (rejectBooking)
+      return route.fulfill({
+        status: 409,
+        json: {
+          error: {
+            code: 'BOOKING_DATES_UNAVAILABLE',
+            message: 'Dieser Zeitraum ist nicht mehr verfügbar.',
+            fields: {},
+          },
+        },
+      });
+    booked = true;
+    return route.fulfill({
+      json: {
+        booking: {
+          id: '60000000-0000-4000-8000-000000000001',
+          status: 'PENDING',
+          totalPrice: '46.50',
+        },
+      },
+    });
+  });
+  await page.route('**/api/categories', (route) =>
+    route.fulfill({ json: { categories: [item.category] } }),
+  );
+  await page.route('**/api/items/cities', (route) =>
+    route.fulfill({ json: { cities: ['Berlin'] } }),
+  );
+  await page.route('**/api/items?**', (route) =>
+    route.fulfill({
+      json: {
+        items: [item],
+        pagination: { page: 1, limit: 9, total: 1, totalPages: 1 },
+      },
+    }),
+  );
+  await page.goto('/account/bookings/my-rentals');
+  await expect(page.getByText('Noch keine Buchungen vorhanden.')).toBeVisible();
+  await page
+    .getByRole('navigation', { name: 'Hauptnavigation' })
+    .getByRole('link', { name: 'Entdecken', exact: true })
+    .click();
+  await page.getByRole('link', { name: item.title }).click();
+  await page
+    .getByRole('button', { name: `${item.title} zu Favoriten hinzufügen`, exact: true })
+    .click();
+  await expect(page.getByRole('alert')).toContainText(
+    'Favoriten konnten nicht gespeichert werden.',
+  );
+  const date = new Date();
+  date.setMonth(date.getMonth() + 1, 10);
+  const month = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+  await page.getByRole('button', { name: 'Zum nächsten Monat', exact: true }).click();
+  await page.locator(`[data-day="${month}-10"]:not([data-outside]) button`).click();
+  await page.locator(`[data-day="${month}-13"]:not([data-outside]) button`).click();
+  await page.getByRole('button', { name: 'Anfrage senden', exact: true }).click();
+  await expect(
+    page.getByRole('alert').filter({ hasText: 'Dieser Zeitraum ist nicht mehr verfügbar.' }),
+  ).toBeVisible();
+  rejectBooking = false;
+  await page.getByRole('button', { name: 'Anfrage senden', exact: true }).click();
+  await expect(page.getByText('Deine Anfrage wurde gesendet.', { exact: true })).toBeVisible();
+  await page
+    .getByRole('navigation', { name: 'Hauptnavigation' })
+    .getByRole('link', { name: 'Anfragen', exact: true })
+    .click();
+  await page
+    .getByRole('navigation', { name: 'Buchungen' })
+    .getByRole('link', { name: 'Meine Mieten', exact: true })
+    .click();
+  await expect(page.getByRole('heading', { name: item.title, exact: true })).toBeVisible();
+  expect(errors).toEqual([]);
+});
+
+test('mobile authenticated profile, favorites and booking views fit both themes', async ({
+  page,
+}) => {
+  test.setTimeout(240_000);
+  await page.goto('/');
+  await clerk.loaded({ page });
+  await clerk.signIn({ page, emailAddress: ownerEmail });
+  for (const width of [320, 360, 390, 430, 768, 1024, 1440]) {
+    await page.setViewportSize({ width, height: 844 });
+    for (const theme of ['dark', 'light']) {
+      await page.evaluate((value) => {
+        localStorage.setItem('renttogether-theme', value);
+      }, theme);
+      for (const [path, heading] of [
+        ['/account/profile', 'Mein Profil'],
+        ['/account/favorites', 'Favoriten'],
+        ['/account/bookings/my-rentals', 'Meine Mieten'],
+        ['/account/bookings/incoming', 'Eingehende Anfragen'],
+      ]) {
+        await page.goto(path);
+        await expect(page.getByRole('heading', { name: heading, exact: true })).toBeVisible();
+        await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
+        if (path === '/account/profile') {
+          await expect(page.getByLabel('Name', { exact: true })).toBeVisible();
+          await page.getByLabel('Telefonnummer', { exact: true }).focus();
+          if (width < 1024)
+            await expect(page.getByRole('navigation', { name: 'Mobile Navigation' })).toBeHidden();
+        } else if (path === '/account/favorites') {
+          await expect(page.getByText('Du hast noch keine Favoriten gespeichert.')).toBeVisible();
+        } else {
+          await expect(page.getByText('Noch keine Buchungen vorhanden.')).toBeVisible();
+        }
+        expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
+          true,
+        );
+      }
+    }
+  }
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.getByRole('button', { name: 'Menü öffnen' }).click();
+  await expect(
+    page.getByRole('dialog').getByRole('link', { name: 'Mein Profil', exact: true }),
+  ).toBeVisible();
+  await page.getByRole('button', { name: 'Abmelden', exact: true }).click();
+  await expect(page).toHaveURL('/');
+  await page.getByRole('button', { name: 'Menü öffnen' }).click();
+  await expect(
+    page.getByRole('dialog').getByRole('link', { name: 'Anmelden', exact: true }),
+  ).toBeVisible();
+});
+
 test('real Clerk sessions persist profiles and isolate two accounts across sign-out', async ({
   page,
 }) => {

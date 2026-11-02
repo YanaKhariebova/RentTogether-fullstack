@@ -4,6 +4,8 @@ import '@fontsource-variable/inter';
 import { createRootRoute, createRoute, createRouter, RouterProvider } from '@tanstack/react-router';
 import { HeaderView } from '../../src/shared/ui/organisms/Header/Header';
 import { HomePage } from '../../src/pages/HomePage';
+import { Footer } from '../../src/shared/ui/organisms/Footer/Footer';
+import { DateRangePicker } from '../../src/features/bookings/components/DateRangePicker/DateRangePicker';
 import { Button, Input, Select, Textarea, IconButton } from '../../src/shared/ui/atoms';
 import '../../src/index.css';
 import layout from '../../src/shared/ui/templates/PageLayout/PageLayout.module.css';
@@ -14,7 +16,10 @@ const root = createRootRoute({
       <a href="#main-content" className={layout.skip}>
         Zum Inhalt springen
       </a>
-      <HeaderView auth={<a href="/sign-in">Anmelden</a>} />
+      <HeaderView
+        auth={<a href="/sign-in">Anmelden</a>}
+        signedIn={new URLSearchParams(location.search).has('signedIn')}
+      />
       <main id="main-content" className={layout.main}>
         <HomePage />
         <form aria-label="Beispielformular">
@@ -30,7 +35,9 @@ const root = createRootRoute({
           </Button>
           <IconButton label="Foto entfernen">×</IconButton>
         </form>
+        <DateRangePicker pricePerDay="15" onSubmit={async () => {}} />
       </main>
+      <Footer />
     </>
   ),
 });

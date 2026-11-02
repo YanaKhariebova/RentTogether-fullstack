@@ -116,23 +116,43 @@ export function ItemDetailPage() {
                 </svg>
               </IconButton>
             </div>
+            {favoriteMutation.isError && (
+              <p role="alert">
+                Favoriten konnten nicht gespeichert werden. Bitte versuche es erneut.
+              </p>
+            )}
             <p className={styles.city}>📍 {item.city}</p>
             <p className={styles.price}>{formattedPrice} / Tag</p>
             <p className={styles.description}>{item.description}</p>
             <p className={styles.owner}>Angeboten von {item.owner.name}</p>
 
-            <DateRangePicker
-              pricePerDay={item.pricePerDay}
-              unavailableRanges={unavailableRanges}
-              isSubmitting={createBooking.isPending}
-              isSubmitted={createBooking.isSuccess}
-              errorMessage={
-                createBooking.error instanceof Error ? createBooking.error.message : null
-              }
-              onSubmit={async (dates) => {
-                await createBooking.mutateAsync({ itemId: item.id, ...dates });
-              }}
-            />
+            {unavailableDates.isPending ? (
+              <Spinner label="Verfügbarkeit wird geladen …" />
+            ) : unavailableDates.isError ? (
+              <div role="alert">
+                <p>Die Verfügbarkeit konnte nicht geladen werden. Bitte versuche es erneut.</p>
+                <Button onClick={() => void unavailableDates.refetch()}>
+                  Verfügbarkeit erneut laden
+                </Button>
+              </div>
+            ) : (
+              <DateRangePicker
+                pricePerDay={item.pricePerDay}
+                unavailableRanges={unavailableRanges}
+                isSubmitting={createBooking.isPending}
+                isSubmitted={createBooking.isSuccess}
+                errorMessage={
+                  createBooking.error instanceof Error ? createBooking.error.message : null
+                }
+                onSubmit={async (dates) => {
+                  try {
+                    await createBooking.mutateAsync({ itemId: item.id, ...dates });
+                  } catch {
+                    // The mutation's error is shown in the booking form above.
+                  }
+                }}
+              />
+            )}
           </div>
         </div>
       </section>
