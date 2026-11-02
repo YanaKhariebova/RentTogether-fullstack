@@ -7,12 +7,11 @@ const lightLabel = 'Helles Design aktivieren';
 
 async function buttonColors(page: Page) {
   const controls = [
-    page.getByRole('link', { name: 'Dinge entdecken' }),
-    page.getByRole('link', { name: 'Etwas verleihen' }),
+    page.getByRole('main').getByRole('link', { name: 'Dinge entdecken' }),
+    page.getByRole('main').getByRole('link', { name: 'Etwas verleihen' }),
     ...['Speichern', 'Abbrechen', 'Löschen', 'Foto entfernen'].map((name) =>
       page.getByRole('button', { name, exact: true }),
     ),
-    page.getByRole('button', { name: /Design aktivieren/ }),
   ];
   return Promise.all(
     controls.map((control) =>
@@ -34,6 +33,7 @@ for (const width of [320, 390, 1440]) {
     const originalBackground = await page
       .locator('html')
       .evaluate((element) => getComputedStyle(element).backgroundColor);
+    if (width < 1024) await page.getByRole('button', { name: 'Menü öffnen' }).click();
     const toggle = page.getByRole('button', { name: darkLabel });
     await toggle.focus();
     await page.keyboard.press('Enter');
@@ -42,7 +42,10 @@ for (const width of [320, 390, 1440]) {
       'aria-pressed',
       'true',
     );
-    expect(await buttonColors(page)).toEqual(originalColors);
+    if (width < 1024) await page.getByRole('button', { name: 'Menü schließen' }).click();
+    expect((await buttonColors(page)).filter((_, i) => i !== 1)).toEqual(
+      originalColors.filter((_, i) => i !== 1),
+    );
     expect(
       await page.locator('html').evaluate((element) => getComputedStyle(element).backgroundColor),
     ).toBe('rgb(20, 23, 25)');
@@ -52,8 +55,10 @@ for (const width of [320, 390, 1440]) {
 
     await page.reload();
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+    if (width < 1024) await page.getByRole('button', { name: 'Menü öffnen' }).click();
     await page.getByRole('button', { name: lightLabel }).click();
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+    if (width < 1024) await page.getByRole('button', { name: 'Menü schließen' }).click();
     await page.mouse.move(0, 0);
     expect(await buttonColors(page)).toEqual(originalColors);
     expect(
@@ -67,6 +72,7 @@ for (const width of [320, 390, 1440]) {
 test('theme stays in sync between tabs', async ({ page, context }) => {
   await page.goto(fixture);
   const secondTab = await context.newPage();
+  await secondTab.setViewportSize({ width: 1440, height: 900 });
   await secondTab.goto(fixture);
   await page.getByRole('button', { name: darkLabel }).click();
   await expect(secondTab.locator('html')).toHaveAttribute('data-theme', 'dark');

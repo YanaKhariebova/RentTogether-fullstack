@@ -1,6 +1,6 @@
 import { Link } from '@tanstack/react-router';
 import { ItemGrid } from '@/features/catalog/components/ItemGrid/ItemGrid';
-import { Spinner } from '@/shared/ui/atoms';
+import { Button, Spinner } from '@/shared/ui/atoms';
 import { useFavoriteMutation, useFavoritesQuery } from './api/useFavorites';
 import styles from './FavoritesPage.module.css';
 
@@ -21,9 +21,10 @@ export function FavoritesPage() {
             <Spinner label="Favoriten werden geladen …" />
           </div>
         ) : favoritesQuery.isError ? (
-          <p className={styles.empty} role="alert">
-            Favoriten konnten nicht geladen werden.
-          </p>
+          <div className={styles.empty}>
+            <p role="alert">Favoriten konnten nicht geladen werden.</p>
+            <Button onClick={() => void favoritesQuery.refetch()}>Erneut versuchen</Button>
+          </div>
         ) : items.length === 0 ? (
           <div className={styles.empty}>
             <p>Du hast noch keine Favoriten gespeichert.</p>
@@ -36,6 +37,9 @@ export function FavoritesPage() {
             favoriteBusy={favoriteMutation.isPending}
             onFavoriteToggle={(item, isFavorite) => favoriteMutation.mutate({ item, isFavorite })}
           />
+        )}
+        {favoriteMutation.isError && (
+          <p role="alert">Favoriten konnten nicht gespeichert werden. Bitte versuche es erneut.</p>
         )}
       </div>
     </section>

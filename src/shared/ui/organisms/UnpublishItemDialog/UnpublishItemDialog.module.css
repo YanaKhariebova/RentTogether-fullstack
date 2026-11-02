@@ -3,7 +3,7 @@
   max-height: 85dvh;
   overflow: auto;
   margin: auto auto 0;
-  padding: 24px;
+  padding: 24px 24px max(24px, env(safe-area-inset-bottom));
   border: 1px solid var(--color-border);
   border-radius: 20px 20px 0 0;
   color: var(--color-text);

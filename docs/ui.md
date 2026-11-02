@@ -35,7 +35,10 @@
 `PageLayout` из `@/shared/ui/templates/PageLayout/PageLayout` принимает children;
 его уже применяет корневой route, повторно оборачивать страницы не нужно.
 `Header` из `@/shared/ui/organisms/Header/Header` содержит desktop-навигацию,
-mobile bottom nav и Clerk UserButton. Закрытые страницы — под `/account`.
+Clerk UserButton и мобильное боковое меню. Внизу на mobile остаются Entdecken,
+Meine Anzeigen и Anfragen; профиль, избранное, тема и вход/выход доступны в меню.
+Закрытые страницы — под `/account`. Подробности адаптации и установки:
+[mobile-pwa.md](mobile-pwa.md).
 
 PriceField, ImageUploader, CategorySelect, ItemForm и owner cards делает Ольга.
 SearchBar, ItemCard, ItemGrid, DateRangePicker и BookingForm делает Яна.
@@ -50,7 +53,7 @@ DashboardLayout и общие EmptyState/ErrorState можно добавить 
 Например, `styles.form`, `styles.errorMessage`. Не использовать глобальные
 селекторы для конкретных компонентов и CSS-фреймворки.
 
-Mobile-first от 360 px. CSS breakpoints: `@media (min-width: 768px)` и
+Mobile-first от 320 px. CSS breakpoints: `@media (min-width: 768px)` и
 `@media (min-width: 1024px)`; CSS variables в media queries не подставляются.
 Header меняется на desktop-навигацию с 1024 px. Нижний отступ layout учитывает
 mobile navigation и safe-area. Зоны нажатия — минимум 44×44 px.
@@ -58,7 +61,7 @@ mobile navigation и safe-area. Зоны нажатия — минимум 44×4
 Inputs имеют связанные label, error/hint — aria-describedby; loading — role=status,
 ошибки формы — role=alert, IconButton всегда имеет понятное имя.
 Фокус виден при работе клавиатурой; ссылка «Zum Inhalt springen» ведёт к main.
-Spinner учитывает prefers-reduced-motion. Проверять 360/390/768/1024/1440 px,
+Spinner учитывает prefers-reduced-motion. Проверять 320/360/390/430/768/1024/1440 px,
 клавиатуру и сенсорное управление. UI-тесты проверяют размеры зон нажатия;
 физическое touch-взаимодействие ещё требует ручной проверки.
 

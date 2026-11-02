@@ -193,3 +193,69 @@
     transform: none;
   }
 }
+
+/* A photo row preserves both faces, the handshake and the parcel on phones. */
+@media (max-width: 767px) {
+  .hero {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    min-height: calc(100svh - var(--hero-header-height, 64px) - 56px - env(safe-area-inset-bottom));
+    padding: 0;
+    background: var(--color-background);
+  }
+  .backdrop {
+    position: relative;
+    inset: auto;
+    z-index: 0;
+    width: 100%;
+    aspect-ratio: 1.58;
+    flex-shrink: 0;
+  }
+  .backdrop img {
+    object-position: center;
+  }
+  .backdrop::after {
+    display: none;
+  }
+  .content {
+    flex: 1;
+    width: 100%;
+    max-width: none;
+    padding: 24px max(20px, env(safe-area-inset-right)) 28px max(20px, env(safe-area-inset-left));
+    border: 0;
+    border-radius: 0;
+    background: var(--color-surface);
+    color: var(--color-text);
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  .eyebrow {
+    font-size: 0.75rem;
+    letter-spacing: 0.04em;
+    color: var(--color-emphasis);
+  }
+  .hero h1 {
+    font-size: clamp(1.75rem, 7vw, 2.4rem);
+    margin: 16px 0;
+    line-height: 1.15;
+  }
+  .promise {
+    color: var(--color-emphasis);
+    margin-top: 6px;
+  }
+  .hero p {
+    color: var(--color-muted);
+    font-size: 1rem;
+  }
+  .actions {
+    display: grid;
+    margin-top: 24px;
+  }
+  .actions a + a {
+    background: var(--color-primary-soft);
+    color: var(--color-emphasis);
+    border-color: var(--color-border);
+  }
+}

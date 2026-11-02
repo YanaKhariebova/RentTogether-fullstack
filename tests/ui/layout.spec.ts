@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-for (const width of [360, 390, 768, 1024, 1440]) {
+for (const width of [320, 360, 390, 430, 768, 1024, 1440]) {
   test(`navigation, form labels and no horizontal overflow at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
     await page.goto('/tests/fixtures/ui.html');

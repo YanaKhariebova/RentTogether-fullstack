@@ -37,7 +37,7 @@ test('invalid owner form announces errors and focuses the first invalid field af
   await expect(title).toHaveAttribute('aria-describedby', /.+/);
 });
 
-for (const width of [360, 390, 768, 1024, 1440]) {
+for (const width of [320, 360, 390, 430, 768, 1024, 1440]) {
   test(`owner cards and form fit both themes at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
     await page.goto('/tests/fixtures/owner-items.html');
@@ -57,6 +57,10 @@ for (const width of [360, 390, 768, 1024, 1440]) {
     }
     await page.getByRole('button', { name: '+ Neue Anzeige', exact: true }).click();
     await expect(page.getByLabel('Titel *', { exact: true })).toBeVisible();
+    await page.getByLabel('Fotos auswählen').setInputFiles('public/icons/icon-192.png');
+    await expect(
+      page.getByRole('img', { name: 'Foto 1: icon-192.png', exact: true }),
+    ).toBeVisible();
     for (const theme of ['dark', 'light']) {
       await page
         .getByRole('button', {
@@ -68,6 +72,34 @@ for (const width of [360, 390, 768, 1024, 1440]) {
         true,
       );
     }
+    await page.goto('/tests/fixtures/owner-items.html');
+    await page
+      .getByRole('button', { name: 'Beamer für einen Filmabend bearbeiten', exact: true })
+      .click();
+    await expect(page.getByLabel('Titel *', { exact: true })).toHaveValue(
+      'Beamer für einen Filmabend',
+    );
+    for (const theme of ['dark', 'light']) {
+      await page
+        .getByRole('button', {
+          name: theme === 'dark' ? 'Dunkles Design aktivieren' : 'Helles Design aktivieren',
+          exact: true,
+        })
+        .click();
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
+        true,
+      );
+    }
+    await page.goto('/tests/fixtures/owner-items.html?state=published');
+    await page
+      .getByRole('button', { name: 'Beamer für einen Filmabend ausblenden', exact: true })
+      .click();
+    const dialog = page.getByRole('dialog');
+    await expect(dialog).toBeVisible();
+    const box = await dialog.boundingBox();
+    expect(box!.width).toBeLessThanOrEqual(width);
+    await dialog.getByRole('button', { name: 'Abbrechen', exact: true }).click();
+    await expect(dialog).not.toBeVisible();
   });
 }
 

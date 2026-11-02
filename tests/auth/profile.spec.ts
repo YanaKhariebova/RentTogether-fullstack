@@ -77,6 +77,57 @@ async function currentUser(page: Page) {
   }, apiUrl);
 }
 
+test('mobile authenticated profile, favorites and booking views fit both themes', async ({
+  page,
+}) => {
+  test.setTimeout(240_000);
+  await page.goto('/');
+  await clerk.loaded({ page });
+  await clerk.signIn({ page, emailAddress: ownerEmail });
+  for (const width of [320, 360, 390, 430, 768, 1024, 1440]) {
+    await page.setViewportSize({ width, height: 844 });
+    for (const theme of ['dark', 'light']) {
+      await page.evaluate((value) => {
+        localStorage.setItem('renttogether-theme', value);
+      }, theme);
+      for (const [path, heading] of [
+        ['/account/profile', 'Mein Profil'],
+        ['/account/favorites', 'Favoriten'],
+        ['/account/bookings/my-rentals', 'Meine Mieten'],
+        ['/account/bookings/incoming', 'Eingehende Anfragen'],
+      ]) {
+        await page.goto(path);
+        await expect(page.getByRole('heading', { name: heading, exact: true })).toBeVisible();
+        await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
+        if (path === '/account/profile') {
+          await expect(page.getByLabel('Name', { exact: true })).toBeVisible();
+          await page.getByLabel('Telefonnummer', { exact: true }).focus();
+          if (width < 1024)
+            await expect(page.getByRole('navigation', { name: 'Mobile Navigation' })).toBeHidden();
+        } else if (path === '/account/favorites') {
+          await expect(page.getByText('Du hast noch keine Favoriten gespeichert.')).toBeVisible();
+        } else {
+          await expect(page.getByText('Noch keine Buchungen vorhanden.')).toBeVisible();
+        }
+        expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
+          true,
+        );
+      }
+    }
+  }
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.getByRole('button', { name: 'Menü öffnen' }).click();
+  await expect(
+    page.getByRole('dialog').getByRole('link', { name: 'Mein Profil', exact: true }),
+  ).toBeVisible();
+  await page.getByRole('button', { name: 'Abmelden', exact: true }).click();
+  await expect(page).toHaveURL('/');
+  await page.getByRole('button', { name: 'Menü öffnen' }).click();
+  await expect(
+    page.getByRole('dialog').getByRole('link', { name: 'Anmelden', exact: true }),
+  ).toBeVisible();
+});
+
 test('real Clerk sessions persist profiles and isolate two accounts across sign-out', async ({
   page,
 }) => {

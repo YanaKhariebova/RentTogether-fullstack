@@ -235,7 +235,7 @@
   }
 
   .filterPanel {
-    grid-template-columns: minmax(0, 1fr) 206px 194px 72px;
+    grid-template-columns: minmax(0, 1fr) minmax(140px, 0.7fr) minmax(130px, 0.7fr) 48px;
     align-items: end;
     gap: 14px;
     padding: 16px;
@@ -257,7 +257,7 @@
 
   .searchButton {
     display: grid;
-    width: 72px;
+    width: 48px;
     grid-column: 4;
     grid-row: 1;
   }
@@ -342,4 +342,17 @@
     display: grid;
     gap: 12px;
   }
+}
+
+.pagination {
+  flex-wrap: wrap;
+}
+.pageNumbers {
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.searchField:focus-within,
+.selectField:focus-within {
+  outline: 3px solid var(--color-emphasis);
+  outline-offset: 2px;
 }
