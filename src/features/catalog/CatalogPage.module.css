@@ -1,6 +1,6 @@
 .page {
   min-height: 100vh;
-  padding: 20px 16px 48px;
+  padding: 0 16px 48px;
   background: var(--color-background);
 }
 
@@ -14,6 +14,7 @@
   color: var(--color-text);
   font-size: 2rem;
   line-height: 1.2;
+  text-align: center;
 }
 
 .filterPanel {
@@ -141,6 +142,15 @@
   appearance: none;
 }
 
+:global(:root[data-theme='dark']) .selectField select {
+  color-scheme: dark;
+}
+
+:global(:root[data-theme='dark']) .selectField select option {
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
 .selectField svg {
   position: absolute;
   right: 14px;
@@ -227,7 +237,7 @@
 
 @media (min-width: 768px) {
   .page {
-    padding: 24px 32px 64px;
+    padding: 0 32px 64px;
   }
 
   .title {
@@ -332,6 +342,7 @@
   }
 
   .cityList input {
+    flex: 0 0 20px;
     width: 20px;
     height: 20px;
     margin: 0;

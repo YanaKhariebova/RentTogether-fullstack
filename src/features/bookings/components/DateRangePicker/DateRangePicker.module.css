@@ -1,6 +1,8 @@
 .picker {
   display: grid;
   gap: 16px;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .picker h2 {
@@ -18,16 +20,16 @@
   --rdp-accent-color: var(--color-primary);
   --rdp-accent-background-color: var(--color-primary-soft);
   --rdp-day_button-border-radius: var(--radius-sm);
-  --rdp-day_button-height: 44px;
-  --rdp-day_button-width: 44px;
-  --rdp-day-height: 44px;
-  --rdp-day-width: 44px;
+  --rdp-day_button-height: 38px;
+  --rdp-day_button-width: 38px;
+  --rdp-day-height: 38px;
+  --rdp-day-width: 38px;
   --rdp-disabled-opacity: 0.35;
   --rdp-range_middle-background-color: var(--color-primary-soft);
   --rdp-range_start-date-background-color: var(--color-primary);
   --rdp-range_end-date-background-color: var(--color-primary);
   width: 100%;
-  padding: 8px;
+  padding: 6px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   background: var(--color-surface);
@@ -39,6 +41,19 @@
 
 .calendar :global(.rdp-day) {
   padding: 0;
+}
+
+.calendar :global(.rdp-month_grid) {
+  table-layout: fixed;
+}
+
+.calendar :global(.rdp-selected) {
+  font-size: inherit;
+  font-weight: 600;
+}
+
+.calendar :global(.rdp-selected .rdp-day_button) {
+  box-sizing: border-box;
 }
 
 .calendar :global(.rdp-caption_label) {
@@ -69,21 +84,98 @@
   border: 1px solid #c57b7b;
 }
 
-.total {
-  margin: 0;
-  color: var(--color-emphasis);
-  font-weight: 700;
+.selectionActions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+}
+
+.selectionActions > .selectedPeriod {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+  overflow: hidden;
+  text-align: left;
+  white-space: normal;
+}
+
+.periodSummary {
+  display: grid;
+  gap: 2px;
+  color: var(--color-muted);
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+
+.periodSummary > span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.selectionActions > button:last-child {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.calendarPanel {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  animation: reveal-calendar 220ms ease-out;
+}
+
+@keyframes reveal-calendar {
+  from {
+    max-height: 0;
+    opacity: 0;
+  }
+
+  to {
+    max-height: 560px;
+    opacity: 1;
+  }
+}
+
+@media (max-width: 480px) {
+  .selectionActions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .selectionActions > .selectedPeriod {
+    grid-column: 1 / -1;
+  }
+
+  .selectionActions > button:last-child {
+    grid-column: 2;
+  }
 }
 
 .calendar {
   min-width: 0;
+  max-width: 100%;
   overflow-x: auto;
   overscroll-behavior-inline: contain;
-  --rdp-nav_button-height: 44px;
-  --rdp-nav_button-width: 44px;
+  --rdp-nav_button-height: 40px;
+  --rdp-nav_button-width: 40px;
 }
 .calendar :global(.rdp-months) {
   justify-content: flex-start;
   margin-inline: auto;
   width: max-content;
+}
+
+@media (max-width: 767px) {
+  .calendar {
+    --rdp-day_button-height: 36px;
+    --rdp-day_button-width: 36px;
+    --rdp-day-height: 36px;
+    --rdp-day-width: 36px;
+    --rdp-nav_button-height: 40px;
+    --rdp-nav_button-width: 40px;
+  }
 }

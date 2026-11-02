@@ -4,7 +4,7 @@ import { Header } from '../../organisms/Header/Header';
 import styles from './PageLayout.module.css';
 export function PageLayout({ children }: { children: ReactNode }) {
   return (
-    <>
+    <div className={styles.layout}>
       <a href="#main-content" className={styles.skip}>
         Zum Inhalt springen
       </a>
@@ -13,6 +13,6 @@ export function PageLayout({ children }: { children: ReactNode }) {
         {children}
       </main>
       <Footer />
-    </>
+    </div>
   );
 }
