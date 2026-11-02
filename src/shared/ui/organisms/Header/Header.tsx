@@ -29,7 +29,17 @@ export function Header() {
   const { signOut } = useClerk();
   return (
     <HeaderView
-      auth={isLoaded && (isSignedIn ? <UserButton /> : <Link to="/sign-in">Anmelden</Link>)}
+      auth={
+        isLoaded &&
+        (isSignedIn ? (
+          <UserButton />
+        ) : (
+          <Link to="/sign-in" className={styles.signInLink}>
+            <NavigationIcon name="user" />
+            <span>Anmelden</span>
+          </Link>
+        ))
+      }
       signedIn={Boolean(isSignedIn)}
       authLoaded={isLoaded}
       onSignOut={() => {
@@ -95,8 +105,8 @@ export function HeaderView({
             ))}
           </nav>
           <div className={styles.auth}>
-            <ThemeToggle />
             {auth}
+            <ThemeToggle />
           </div>
           <button
             ref={trigger}
