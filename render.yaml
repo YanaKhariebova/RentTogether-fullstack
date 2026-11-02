@@ -1,0 +1,58 @@
+# Shared demo deployment. Secrets are entered in Render, never in this file.
+# Setup and first deployment: docs/deployment.md
+services:
+  - type: web
+    name: renttogether-api
+    runtime: node
+    plan: free
+    region: frankfurt
+    branch: main
+    rootDir: server
+    autoDeployTrigger: 'off'
+    buildCommand: npm ci --include=dev && npm run build
+    # Free services do not have a pre-deploy hook. Deploy existing migrations
+    # and seed categories before listening; both commands are repeatable.
+    startCommand: npm run db:deploy && npm run db:seed && npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: 24.14.0
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: CLIENT_URL
+        sync: false
+      - key: CLERK_PUBLISHABLE_KEY
+        sync: false
+      - key: CLERK_SECRET_KEY
+        sync: false
+      - key: IMAGE_STORAGE
+        value: cloudinary
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+      - key: CLOUDINARY_FOLDER
+        value: renttogether/demo/items
+
+  - type: web
+    name: renttogether-web
+    runtime: static
+    branch: main
+    autoDeployTrigger: 'off'
+    buildCommand: npm ci --include=dev && npm run build
+    staticPublishPath: ./dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: NODE_VERSION
+        value: 24.14.0
+      - key: VITE_CLERK_PUBLISHABLE_KEY
+        sync: false
+      - key: VITE_API_URL
+        sync: false
