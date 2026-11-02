@@ -7,8 +7,8 @@ import styles from './Header.module.css';
 
 const navigation = [
   { to: '/catalog', label: 'Entdecken' },
-  { to: '/account/favorites', label: 'Favoriten' },
   { to: '/account/items', label: 'Meine Anzeigen' },
+  { to: '/account/favorites', label: 'Favoriten' },
   { to: '/account/bookings', label: 'Anfragen' },
   { to: '/account/profile', label: 'Profil' },
 ] as const;
