@@ -73,9 +73,39 @@
   background: var(--color-surface);
 }
 
+.titleRow {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
 .details h1 {
   margin: 12px 0 8px;
   color: var(--color-text);
+}
+
+.favorite {
+  margin-top: 6px;
+  color: var(--color-muted);
+}
+
+.favorite svg {
+  width: 24px;
+  height: 24px;
+  fill: transparent;
+  stroke: currentColor;
+  stroke-linejoin: round;
+  stroke-width: 2;
+}
+
+.favorite[aria-pressed='true'],
+.favorite:hover:not(:disabled) {
+  color: #c63c4a;
+}
+
+.favorite[aria-pressed='true'] svg {
+  fill: currentColor;
 }
 
 .category {

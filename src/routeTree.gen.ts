@@ -15,6 +15,7 @@ import { Route as CatalogRouteImport } from './routes/catalog'
 import { Route as SignInRouteImport } from './routes/sign-in'
 import { Route as SignUpRouteImport } from './routes/sign-up'
 import { Route as AccountBookingsRouteImport } from './routes/account.bookings'
+import { Route as AccountFavoritesRouteImport } from './routes/account.favorites'
 import { Route as AccountItemsRouteImport } from './routes/account.items'
 import { Route as AccountProfileRouteImport } from './routes/account.profile'
 import { Route as ItemsItemIdRouteImport } from './routes/items.$itemId'
@@ -52,6 +53,11 @@ const SignUpRoute = SignUpRouteImport.update({
 const AccountBookingsRoute = AccountBookingsRouteImport.update({
   id: '/bookings',
   path: '/bookings',
+  getParentRoute: () => AccountRoute,
+} as any)
+const AccountFavoritesRoute = AccountFavoritesRouteImport.update({
+  id: '/favorites',
+  path: '/favorites',
   getParentRoute: () => AccountRoute,
 } as any)
 const AccountItemsRoute = AccountItemsRouteImport.update({
@@ -103,6 +109,7 @@ export interface FileRoutesByFullPath {
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
   '/account/bookings': typeof AccountBookingsRouteWithChildren
+  '/account/favorites': typeof AccountFavoritesRoute
   '/account/items': typeof AccountItemsRouteWithChildren
   '/account/profile': typeof AccountProfileRoute
   '/items/$itemId': typeof ItemsItemIdRoute
@@ -119,6 +126,7 @@ export interface FileRoutesByTo {
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
   '/account/bookings': typeof AccountBookingsRouteWithChildren
+  '/account/favorites': typeof AccountFavoritesRoute
   '/account/profile': typeof AccountProfileRoute
   '/items/$itemId': typeof ItemsItemIdRoute
   '/account/bookings/incoming': typeof AccountBookingsIncomingRoute
@@ -135,6 +143,7 @@ export interface FileRoutesById {
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
   '/account/bookings': typeof AccountBookingsRouteWithChildren
+  '/account/favorites': typeof AccountFavoritesRoute
   '/account/items': typeof AccountItemsRouteWithChildren
   '/account/profile': typeof AccountProfileRoute
   '/items/$itemId': typeof ItemsItemIdRoute
@@ -153,6 +162,7 @@ export interface FileRouteTypes {
     | '/sign-in'
     | '/sign-up'
     | '/account/bookings'
+    | '/account/favorites'
     | '/account/items'
     | '/account/profile'
     | '/items/$itemId'
@@ -169,6 +179,7 @@ export interface FileRouteTypes {
     | '/sign-in'
     | '/sign-up'
     | '/account/bookings'
+    | '/account/favorites'
     | '/account/profile'
     | '/items/$itemId'
     | '/account/bookings/incoming'
@@ -184,6 +195,7 @@ export interface FileRouteTypes {
     | '/sign-in'
     | '/sign-up'
     | '/account/bookings'
+    | '/account/favorites'
     | '/account/items'
     | '/account/profile'
     | '/items/$itemId'
@@ -245,6 +257,13 @@ declare module '@tanstack/react-router' {
       path: '/bookings'
       fullPath: '/account/bookings'
       preLoaderRoute: typeof AccountBookingsRouteImport
+      parentRoute: typeof AccountRoute
+    }
+    '/account/favorites': {
+      id: '/account/favorites'
+      path: '/favorites'
+      fullPath: '/account/favorites'
+      preLoaderRoute: typeof AccountFavoritesRouteImport
       parentRoute: typeof AccountRoute
     }
     '/account/items': {
@@ -338,12 +357,14 @@ const AccountItemsRouteWithChildren = AccountItemsRoute._addFileChildren(
 
 interface AccountRouteChildren {
   AccountBookingsRoute: typeof AccountBookingsRouteWithChildren
+  AccountFavoritesRoute: typeof AccountFavoritesRoute
   AccountItemsRoute: typeof AccountItemsRouteWithChildren
   AccountProfileRoute: typeof AccountProfileRoute
 }
 
 const AccountRouteChildren: AccountRouteChildren = {
   AccountBookingsRoute: AccountBookingsRouteWithChildren,
+  AccountFavoritesRoute: AccountFavoritesRoute,
   AccountItemsRoute: AccountItemsRouteWithChildren,
   AccountProfileRoute: AccountProfileRoute,
 }
