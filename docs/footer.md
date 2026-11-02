@@ -45,3 +45,9 @@
 ## Redaktionelle Anpassung — 02.11.2026
 
 Auf Wunsch von Ольга beschreibt „Über RentTogether“ die gemeinsame Idee von Olga, Yana und Vlad: privates Leihen und Verleihen von Werkzeug, Technik und anderen Dingen in der Nachbarschaft. Hinweise auf einen Ausbildungsabschluss wurden aus dem öffentlichen Vorstellungstext, der Footer-Zeile und dem Kontextabschnitt im Impressum entfernt. Die rechtlichen Seiten bleiben als unvollständige Entwürfe gekennzeichnet; Betreiberangaben sind weiterhin offen.
+
+## Примерные реквизиты и авторство — 02.11.2026
+
+По просьбе Ольги добавлены вымышленные реквизиты RentTogether Musterteam, Beispielweg 12, 12345 Musterstadt, Deutschland и kontakt@renttogether.example. В интерфейсе они явно обозначены как примеры, а не реальные сведения оператора. Адрес .example не является действующим каналом поддержки. Перед публичным использованием заменить подтверждёнными реквизитами.
+
+Подпись в футере: «Entwickelt von Olha Khodakivska, Yana Khariebova und Vladislav Nedbailo.» Copyright сохранён.

@@ -197,11 +197,17 @@ export function InformationPage({ kind }: { kind: PageKind }) {
           <p className={styles.lead}>Angaben zum Anbieter von RentTogether.</p>
           <Section title="Anbieter und Kontakt">
             <p>
-              Verantwortlicher Anbieter: <strong>Noch zu ergänzen</strong>
+              Die folgenden Angaben sind frei erfundene Beispieldaten für die Gestaltung dieser
+              Seite.
+            </p>
+            <p>
+              Verantwortlicher Anbieter: <strong>RentTogether Musterteam</strong>
               <br />
-              Ladungsfähige Anschrift: <strong>Noch zu ergänzen</strong>
+              Ladungsfähige Anschrift:{' '}
+              <strong>Beispielweg 12, 12345 Musterstadt, Deutschland</strong>
               <br />
-              E-Mail für eine unmittelbare Kontaktaufnahme: <strong>Noch zu ergänzen</strong>
+              E-Mail für eine unmittelbare Kontaktaufnahme:{' '}
+              <strong>kontakt@renttogether.example</strong>
             </p>
           </Section>
           <Section title="Über die Plattform">

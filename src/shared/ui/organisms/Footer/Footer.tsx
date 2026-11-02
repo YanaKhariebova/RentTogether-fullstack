@@ -64,7 +64,7 @@ export function Footer() {
         </nav>
         <div className={styles.bottom}>
           <small>© {new Date().getFullYear()} RentTogether</small>
-          <small>Dinge teilen. Möglichkeiten schaffen.</small>
+          <small>Entwickelt von Olha Khodakivska, Yana Khariebova und Vladislav Nedbailo.</small>
           <a href="#main-content">
             Zum Seitenanfang <span aria-hidden="true">↑</span>
           </a>
