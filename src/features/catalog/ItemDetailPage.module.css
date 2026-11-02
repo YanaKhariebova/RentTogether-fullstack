@@ -1,6 +1,6 @@
 .page {
   min-height: 100%;
-  padding: 24px 16px 48px;
+  padding: 0 16px 48px;
   background: var(--color-background);
 }
 
@@ -70,6 +70,7 @@
 }
 
 .details {
+  overflow: hidden;
   padding: 20px;
   border-radius: var(--radius-lg);
   background: var(--color-surface);
@@ -145,7 +146,7 @@
 
 @media (min-width: 768px) {
   .page {
-    padding: 40px 32px 64px;
+    padding: 0 32px 64px;
   }
 
   .layout {
@@ -169,18 +170,5 @@
   }
   .details {
     padding: 12px;
-  }
-  .details :global(.rdp-root) {
-    width: calc(100% + 24px);
-    margin-inline: -12px;
-  }
-}
-@media (max-width: 359px) {
-  /* Seven 44px day buttons still fit a 320px screen without a sideways swipe. */
-  .details :global(.rdp-root) {
-    width: calc(100% + 56px);
-    margin-inline: -28px;
-    padding-inline: 4px;
-    border-radius: 0;
   }
 }
