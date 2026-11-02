@@ -1,14 +1,20 @@
 import { Link } from '@tanstack/react-router';
-import { useState } from 'react';
 import type { ItemCardData } from '../../types/item';
 import styles from './ItemCard.module.css';
 
 type ItemCardProps = {
   item: ItemCardData;
+  isFavorite?: boolean;
+  favoriteBusy?: boolean;
+  onFavoriteToggle?: (item: ItemCardData, isFavorite: boolean) => void;
 };
 
-export function ItemCard({ item }: ItemCardProps) {
-  const [isFavorite, setIsFavorite] = useState(false);
+export function ItemCard({
+  item,
+  isFavorite = false,
+  favoriteBusy = false,
+  onFavoriteToggle,
+}: ItemCardProps) {
   const imageUrl = item.images[0]?.url ?? 'https://picsum.photos/seed/rent-together/800/600';
 
   const formattedPrice = new Intl.NumberFormat('de-DE', {
@@ -44,12 +50,16 @@ export function ItemCard({ item }: ItemCardProps) {
         type="button"
         className={styles.favorite}
         aria-label={
-          isFavorite
-            ? `${item.title} aus Favoriten entfernen`
-            : `${item.title} zu Favoriten hinzufügen`
+          !onFavoriteToggle
+            ? 'Bitte melde dich an, um Favoriten zu speichern.'
+            : isFavorite
+              ? `${item.title} aus Favoriten entfernen`
+              : `${item.title} zu Favoriten hinzufügen`
         }
         aria-pressed={isFavorite}
-        onClick={() => setIsFavorite((currentValue) => !currentValue)}
+        aria-busy={favoriteBusy || undefined}
+        disabled={!onFavoriteToggle || favoriteBusy}
+        onClick={() => onFavoriteToggle?.(item, isFavorite)}
       >
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.9-8.6a5.5 5.5 0 0 0-.1-7.8Z" />

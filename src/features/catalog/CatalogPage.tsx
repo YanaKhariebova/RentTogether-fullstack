@@ -1,15 +1,18 @@
+import { useAuth } from '@clerk/react';
 import { useMemo, useState } from 'react';
 import { Button } from '@/shared/ui/atoms';
 import { useCategoriesQuery } from '../items/api/useCategoriesQuery';
 import { ItemGrid } from './components/ItemGrid/ItemGrid';
 import { useCatalogItemsQuery } from './api/useCatalogItemsQuery';
 import { useCatalogCitiesQuery } from './api/useCatalogCitiesQuery';
+import { useFavoriteMutation, useFavoritesQuery } from '../favorites/api/useFavorites';
 import { catalogPrice } from './model/catalogPrice';
 import styles from './CatalogPage.module.css';
 
 const pageSize = 9;
 
 export function CatalogPage() {
+  const { isLoaded, isSignedIn } = useAuth();
   const [search, setSearch] = useState('');
   const [city, setCity] = useState('');
   const [category, setCategory] = useState('');
@@ -46,6 +49,12 @@ export function CatalogPage() {
     error,
     refetch,
   } = useCatalogItemsQuery(catalogQuery, !priceError);
+  const favoritesQuery = useFavoritesQuery();
+  const favoriteMutation = useFavoriteMutation();
+  const favoriteIds = useMemo(
+    () => new Set((favoritesQuery.data?.items ?? []).map((item) => item.id)),
+    [favoritesQuery.data?.items],
+  );
 
   const cityOptions = useMemo(
     () => [
@@ -296,7 +305,16 @@ export function CatalogPage() {
               </div>
             ) : items.length > 0 ? (
               <>
-                <ItemGrid items={items} />
+                <ItemGrid
+                  items={items}
+                  favoriteIds={favoriteIds}
+                  favoriteBusy={favoriteMutation.isPending}
+                  onFavoriteToggle={
+                    isLoaded && isSignedIn
+                      ? (item, isFavorite) => favoriteMutation.mutate({ item, isFavorite })
+                      : undefined
+                  }
+                />
 
                 {totalPages > 1 && (
                   <nav className={styles.pagination} aria-label="Seitennavigation">

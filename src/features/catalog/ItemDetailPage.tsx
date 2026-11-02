@@ -1,18 +1,23 @@
 import { ApiError } from '@/shared/api/client';
-import { Button } from '@/shared/ui/atoms';
+import { Button, IconButton } from '@/shared/ui/atoms';
+import { useAuth } from '@clerk/react';
 import { Link, useParams } from '@tanstack/react-router';
 import { useState } from 'react';
 import { DateRangePicker } from '../bookings/components/DateRangePicker/DateRangePicker';
 import { useCreateBookingMutation } from '../bookings/api/useCreateBookingMutation';
 import { useUnavailableDatesQuery } from '../bookings/api/useUnavailableDatesQuery';
 import { useItemDetailQuery } from './api/useItemDetailQuery';
+import { useFavoriteMutation, useFavoritesQuery } from '../favorites/api/useFavorites';
 import styles from './ItemDetailPage.module.css';
 
 export function ItemDetailPage() {
+  const { isLoaded, isSignedIn } = useAuth();
   const { itemId } = useParams({ from: '/items/$itemId' });
   const { data, isPending, isError, error, refetch } = useItemDetailQuery(itemId);
   const createBooking = useCreateBookingMutation();
   const unavailableDates = useUnavailableDatesQuery(itemId);
+  const favoritesQuery = useFavoritesQuery();
+  const favoriteMutation = useFavoriteMutation();
   const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
 
   if (isPending) {
@@ -57,6 +62,7 @@ export function ItemDetailPage() {
     currency: 'EUR',
   }).format(Number(item.pricePerDay));
   const unavailableRanges = unavailableDates.data?.ranges ?? [];
+  const isFavorite = (favoritesQuery.data?.items ?? []).some((favorite) => favorite.id === item.id);
 
   return (
     <section className={styles.page}>
@@ -89,7 +95,27 @@ export function ItemDetailPage() {
 
           <div className={styles.details}>
             <span className={styles.category}>{item.category.name}</span>
-            <h1 id="item-title">{item.title}</h1>
+            <div className={styles.titleRow}>
+              <h1 id="item-title">{item.title}</h1>
+              <IconButton
+                className={styles.favorite}
+                label={
+                  !isLoaded || !isSignedIn
+                    ? 'Bitte melde dich an, um Favoriten zu speichern.'
+                    : isFavorite
+                      ? `${item.title} aus Favoriten entfernen`
+                      : `${item.title} zu Favoriten hinzufügen`
+                }
+                aria-pressed={isFavorite}
+                aria-busy={favoriteMutation.isPending || undefined}
+                disabled={!isLoaded || !isSignedIn || favoriteMutation.isPending}
+                onClick={() => favoriteMutation.mutate({ item, isFavorite })}
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.9-8.6a5.5 5.5 0 0 0-.1-7.8Z" />
+                </svg>
+              </IconButton>
+            </div>
             <p className={styles.city}>📍 {item.city}</p>
             <p className={styles.price}>{formattedPrice} / Tag</p>
             <p className={styles.description}>{item.description}</p>
