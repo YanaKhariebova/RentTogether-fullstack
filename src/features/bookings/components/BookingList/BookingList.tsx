@@ -1,11 +1,9 @@
-import { useMemo, useState } from 'react';
 import { Badge, Button } from '@/shared/ui/atoms';
-import { mockBookings } from '../../mocks/bookings.mock';
 import { useMyRentalsQuery } from '../../api/useMyRentalsQuery';
 import { useIncomingBookingsQuery } from '../../api/useIncomingBookingsQuery';
 import { useOwnerBookingStatusMutation } from '../../api/useOwnerBookingStatusMutation';
 import { useCancelBookingMutation } from '../../api/useCancelBookingMutation';
-import type { Booking, BookingStatus } from '../../types/booking';
+import type { BookingStatus } from '../../types/booking';
 import styles from './BookingList.module.css';
 
 type BookingListProps = {
@@ -54,15 +52,12 @@ export function BookingList({ view }: BookingListProps) {
   const incomingQuery = useIncomingBookingsQuery(!isRentals);
   const ownerStatus = useOwnerBookingStatusMutation();
   const cancelBooking = useCancelBookingMutation();
-  const [bookings] = useState<Booking[]>(mockBookings);
-  const visibleBookings = useMemo(() => {
-    const sourceBookings = isRentals
-      ? (rentalsQuery.data?.bookings ?? [])
-      : (incomingQuery.data?.bookings ?? bookings);
-    return sourceBookings.filter((booking) =>
-      view === 'rentals' ? booking.renterName === 'Du' : booking.renterName !== 'Du',
-    );
-  }, [bookings, incomingQuery.data?.bookings, isRentals, rentalsQuery.data?.bookings, view]);
+  const sourceBookings = isRentals
+    ? (rentalsQuery.data?.bookings ?? [])
+    : (incomingQuery.data?.bookings ?? []);
+  const visibleBookings = sourceBookings.filter((booking) =>
+    view === 'rentals' ? booking.renterName === 'Du' : booking.renterName !== 'Du',
+  );
 
   return (
     <section className={styles.section} aria-labelledby={`${view}-title`}>

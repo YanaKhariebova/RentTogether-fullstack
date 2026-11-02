@@ -1165,3 +1165,33 @@ test('concurrent approvals of overlapping bookings approve only one request', as
   });
   assert.equal(approved, 1);
 });
+
+test('concurrent approval and renter cancellation persist only one valid status', async () => {
+  const item = await createItemFixture();
+  const renter = await createItemFixture();
+  const booking = await prisma.booking.create({
+    data: {
+      itemId: item.id,
+      renterId: renter.ownerId,
+      pickupDate: new Date('2026-12-20T00:00:00.000Z'),
+      returnDate: new Date('2026-12-23T00:00:00.000Z'),
+      pricePerDaySnapshot: '15.50',
+      totalPrice: '46.50',
+    },
+  });
+  const responses = await Promise.all([
+    fetch(`${base}/api/bookings/${booking.id}/status`, {
+      method: 'PATCH',
+      headers: headersFor(item),
+      body: JSON.stringify({ status: 'APPROVED' }),
+    }),
+    fetch(`${base}/api/bookings/${booking.id}/cancel`, {
+      method: 'PATCH',
+      headers: headersFor(renter),
+    }),
+  ]);
+
+  assert.deepEqual(responses.map((response) => response.status).sort(), [200, 409]);
+  const saved = await prisma.booking.findUniqueOrThrow({ where: { id: booking.id } });
+  assert.ok(['APPROVED', 'CANCELLED'].includes(saved.status));
+});
