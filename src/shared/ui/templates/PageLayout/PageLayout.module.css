@@ -4,13 +4,6 @@
   padding: 28px 16px;
   min-height: 70vh;
 }
-.footer {
-  max-width: 1200px;
-  margin: auto;
-  padding: 20px 16px calc(90px + env(safe-area-inset-bottom));
-  color: var(--color-muted);
-  font-size: 0.875rem;
-}
 .skip {
   position: fixed;
   left: 16px;
@@ -25,10 +18,5 @@
 @media (min-width: 768px) {
   .main {
     padding: 40px 24px;
-  }
-}
-@media (min-width: 1024px) {
-  .footer {
-    padding-bottom: 24px;
   }
 }

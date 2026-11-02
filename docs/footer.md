@@ -1,0 +1,47 @@
+# Футер и информационные страницы — 02.11.2026
+
+По решению команды футер реализует Ольга. Он подключён в общем PageLayout и доступен в том числе без авторизации.
+
+## Что добавлено
+
+- Footer organism с логотипом, описанием, медовым акцентом и тремя группами ссылок.
+- «Entdecken & teilen»: каталог, создание, свои объявления, инструкция.
+- «Gut zu wissen»: проект, FAQ и советы по безопасности.
+- «Rechtliches»: Datenschutz и Impressum.
+- Нижняя строка с годом, указанием учебного проекта и ссылкой к основному содержимому.
+- Шесть публичных маршрутов: `/ueber-uns`, `/so-funktionierts`, `/hilfe`, `/sicherheit`, `/datenschutz`, `/impressum`.
+- Общие стили информационных страниц, FAQ на нативных details/summary.
+
+Футер использует существующие дизайн-токены, SVG и Inter. На desktop колонки стоят рядом, на mobile — последовательно. Нижний отступ учитывает фиксированную мобильную навигацию и safe area. Header, Hero, Booking и Favorite API не менялись. Новых зависимостей нет.
+
+## Юридические страницы пока являются черновиками
+
+Владелец сайта, адрес и контактный email не подтверждены, поэтому реальные сведения не выдумывались. В интерфейсе явно обозначены незаполненные данные и статус черновика. Название DCI не используется как указание оператора сайта.
+
+Перед публичным запуском команда должна определить и внести:
+
+- Полное имя/организацию ответственного оператора, адрес, контактный email; иные применимые реквизиты.
+- Правовые основания обработки, договоры с поставщиками, хостинг и места обработки данных.
+- Конкретные сроки хранения/удаления, сведения о браузерных хранилищах и возможных международных передачах.
+- Контакт для обращений по защите данных и компетентный надзорный орган.
+
+Тексты учитывают фактические Clerk, Cloudinary, PostgreSQL, профили, объявления, заявки и избранное. Страницы не представлены как завершённые юридические документы. Нет фиктивного support email, обещаний страхования, онлайн-оплаты или неработающих социальных ссылок.
+
+Источники для последующей проверки полноты:
+
+- [§ 5 DDG — сведения об операторе](https://www.gesetze-im-internet.de/ddg/__5.html).
+- [Официальные разъяснения по обязанностям информирования согласно ст. 13 DSGVO](https://www.datenschutz.sachsen.de/informationspflichten.html).
+
+## Проверка
+
+- `npm run build`, `npm run lint`, `git diff --check` прошли.
+- `PLAYWRIGHT_CHANNEL=chrome npx playwright test tests/ui/layout.spec.ts`: 5/5.
+- Browser: все шесть ссылок открывают соответствующие страницы, FAQ раскрывается по нажатию.
+- Нет горизонтального overflow на 360/390/768/1024/1440 px. Ссылки в группах футера имеют высоту 44 px.
+- Визуально проверены desktop в светлой теме и mobile в тёмной.
+
+Пакет подготовлен к публикации в feat/items-owner-dashboard и командному review. Перед включением в main проверить текст и заполнить подтверждённые юридические реквизиты.
+
+## Redaktionelle Anpassung — 02.11.2026
+
+Auf Wunsch von Ольга beschreibt „Über RentTogether“ die gemeinsame Idee von Olga, Yana und Vlad: privates Leihen und Verleihen von Werkzeug, Technik und anderen Dingen in der Nachbarschaft. Hinweise auf einen Ausbildungsabschluss wurden aus dem öffentlichen Vorstellungstext, der Footer-Zeile und dem Kontextabschnitt im Impressum entfernt. Die rechtlichen Seiten bleiben als unvollständige Entwürfe gekennzeichnet; Betreiberangaben sind weiterhin offen.

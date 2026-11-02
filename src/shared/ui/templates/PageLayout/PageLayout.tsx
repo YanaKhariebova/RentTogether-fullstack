@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { Footer } from '../../organisms/Footer/Footer';
 import { Header } from '../../organisms/Header/Header';
 import styles from './PageLayout.module.css';
 export function PageLayout({ children }: { children: ReactNode }) {
@@ -11,7 +12,7 @@ export function PageLayout({ children }: { children: ReactNode }) {
       <main id="main-content" className={styles.main}>
         {children}
       </main>
-      <footer className={styles.footer}>RentTogether · Gemeinsam nutzen, gemeinsam sparen.</footer>
+      <Footer />
     </>
   );
 }
