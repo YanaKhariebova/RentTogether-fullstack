@@ -92,6 +92,60 @@
   font-size: 0.8125rem;
   text-decoration: none;
 }
+
+@media (max-width: 599px) {
+  .footer {
+    background: var(--color-surface);
+  }
+
+  .inner {
+    padding-top: 28px;
+    padding-bottom: calc(88px + env(safe-area-inset-bottom));
+    text-align: center;
+  }
+
+  .tagline,
+  .description,
+  .note,
+  .group h2,
+  .bottom small:nth-of-type(2) {
+    display: none;
+  }
+
+  .intro {
+    margin-bottom: 16px;
+  }
+
+  .brand {
+    justify-content: center;
+  }
+
+  .navigation {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0 18px;
+    margin-top: 0;
+  }
+
+  .group,
+  .group ul {
+    display: contents;
+  }
+
+  .group a {
+    justify-content: center;
+    width: auto;
+    min-height: 44px;
+  }
+
+  .bottom {
+    justify-content: center;
+    margin-top: 20px;
+    padding-top: 16px;
+  }
+}
+
 @media (min-width: 600px) {
   .navigation {
     grid-template-columns: repeat(3, minmax(0, 1fr));
