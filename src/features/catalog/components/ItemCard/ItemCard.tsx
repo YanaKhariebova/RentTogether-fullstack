@@ -51,10 +51,10 @@ export function ItemCard({
         className={styles.favorite}
         aria-label={
           !onFavoriteToggle
-            ? 'Bitte melde dich an, um Favoriten zu speichern.'
+            ? 'Bitte melde dich an, um Anzeigen zu beobachten.'
             : isFavorite
-              ? `${item.title} aus Favoriten entfernen`
-              : `${item.title} zu Favoriten hinzufügen`
+              ? `${item.title} nicht mehr beobachten`
+              : `${item.title} beobachten`
         }
         aria-pressed={isFavorite}
         aria-busy={favoriteBusy || undefined}
