@@ -5,13 +5,14 @@ import { Button, IconButton } from '../../atoms';
 import { ThemeToggle } from '../../../../features/theme/ThemeToggle';
 import logo from '../../../assets/renttogether-icon.svg';
 import styles from './Header.module.css';
+import { NavigationIcon } from './NavigationIcon';
 
 const navigation = [
-  { to: '/catalog', label: 'Entdecken' },
-  { to: '/account/items', label: 'Meine Anzeigen' },
-  { to: '/account/favorites', label: 'Favoriten' },
-  { to: '/account/bookings', label: 'Anfragen' },
-  { to: '/account/profile', label: 'Profil' },
+  { to: '/catalog', label: 'Entdecken', icon: 'search' },
+  { to: '/account/items', label: 'Meine Anzeigen', icon: 'grid' },
+  { to: '/account/favorites', label: 'Favoriten', icon: 'heart' },
+  { to: '/account/bookings', label: 'Anfragen', icon: 'chat' },
+  { to: '/account/profile', label: 'Profil', icon: 'user' },
 ] as const;
 
 const information = [
@@ -86,9 +87,10 @@ export function HeaderView({
             </span>
           </Link>
           <nav aria-label="Hauptnavigation" className={styles.desktop}>
-            {navigation.map(({ to, label }) => (
-              <Link key={to} to={to} activeProps={{ 'aria-current': 'page' }}>
-                {label}
+            {navigation.map(({ to, label, icon }) => (
+              <Link key={to} to={to} title={label} activeProps={{ 'aria-current': 'page' }}>
+                <NavigationIcon name={icon} />
+                <span className={styles.navLabel}>{label}</span>
               </Link>
             ))}
           </nav>
@@ -174,9 +176,10 @@ export function HeaderView({
           }}
         >
           <Link to="/">Startseite</Link>
-          {navigation.map(({ to, label }) => (
+          {navigation.map(({ to, label, icon }) => (
             <Link key={to} to={to} activeProps={{ 'aria-current': 'page' }}>
-              {label}
+              <NavigationIcon name={icon} />
+              <span>{label}</span>
             </Link>
           ))}
           <Link to="/account/items/new">Etwas verleihen</Link>
@@ -214,9 +217,10 @@ export function HeaderView({
       <nav aria-label="Mobile Navigation" className={styles.mobile}>
         {navigation
           .filter(({ to }) => ['/catalog', '/account/items', '/account/bookings'].includes(to))
-          .map(({ to, label }) => (
+          .map(({ to, label, icon }) => (
             <Link key={to} to={to} activeProps={{ 'aria-current': 'page' }}>
-              {label}
+              <NavigationIcon name={icon} />
+              <span>{label}</span>
             </Link>
           ))}
       </nav>
