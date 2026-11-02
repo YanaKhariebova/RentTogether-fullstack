@@ -1,0 +1,123 @@
+.footer {
+  border-top: 1px solid var(--color-border);
+  background: var(--color-primary-soft);
+  color: var(--color-text);
+}
+.inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 16px calc(100px + env(safe-area-inset-bottom));
+}
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--color-emphasis);
+  text-decoration: none;
+  font-size: 1.4rem;
+  font-weight: 750;
+  min-height: 44px;
+}
+.tagline {
+  margin: 8px 0 16px;
+  font-weight: 600;
+}
+.description {
+  max-width: 34ch;
+  margin: 0 0 20px;
+  color: var(--color-muted);
+  font-size: 0.9375rem;
+  line-height: 1.7;
+}
+.note {
+  display: inline-block;
+  padding: 7px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+.navigation {
+  display: grid;
+  gap: 24px;
+  margin-top: 36px;
+}
+.group h2 {
+  margin: 0 0 12px;
+  font-size: 0.9375rem;
+  font-weight: 700;
+}
+.group ul {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+.group a {
+  display: flex;
+  align-items: center;
+  width: fit-content;
+  min-height: 44px;
+  color: var(--color-muted);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  text-decoration: none;
+}
+.group a:hover,
+.bottom a:hover {
+  color: var(--color-emphasis);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.bottom {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 24px;
+  border-top: 1px solid var(--color-border);
+  padding-top: 20px;
+  margin-top: 32px;
+  color: var(--color-muted);
+  line-height: 1.6;
+}
+.bottom small {
+  font-size: 0.75rem;
+}
+.bottom a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  color: var(--color-emphasis);
+  font-size: 0.8125rem;
+  text-decoration: none;
+}
+@media (min-width: 600px) {
+  .navigation {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .inner {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+}
+@media (min-width: 1024px) {
+  .inner {
+    display: grid;
+    grid-template-columns: minmax(240px, 1fr) 2fr;
+    gap: 0 64px;
+    padding-top: 56px;
+    padding-bottom: 24px;
+  }
+  .navigation {
+    margin-top: 8px;
+    gap: 32px;
+  }
+  .bottom {
+    grid-column: 1 / -1;
+    margin-top: 40px;
+  }
+  .bottom a {
+    margin-left: auto;
+  }
+}

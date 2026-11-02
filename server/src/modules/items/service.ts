@@ -184,10 +184,16 @@ export function createItemsService(prisma: ItemsDatabase, storage?: ImageStorage
     async listMine(ownerId: string) {
       const items = await prisma.item.findMany({
         where: { ownerId },
-        select: ownerItemSelect,
+        select: {
+          ...ownerItemSelect,
+          favorites: { where: { userId: ownerId }, select: { id: true }, take: 1 },
+        },
         orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       });
-      return items.map(toOwnerItem);
+      return items.map(({ favorites, ...item }) => ({
+        ...toOwnerItem(item),
+        isFavorite: favorites.length > 0,
+      }));
     },
 
     async assertOwner(ownerId: string, id: string) {

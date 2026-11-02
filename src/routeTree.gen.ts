@@ -12,8 +12,14 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AccountRouteImport } from './routes/account'
 import { Route as CatalogRouteImport } from './routes/catalog'
+import { Route as DatenschutzRouteImport } from './routes/datenschutz'
+import { Route as HilfeRouteImport } from './routes/hilfe'
+import { Route as ImpressumRouteImport } from './routes/impressum'
+import { Route as SicherheitRouteImport } from './routes/sicherheit'
 import { Route as SignInRouteImport } from './routes/sign-in'
 import { Route as SignUpRouteImport } from './routes/sign-up'
+import { Route as SoFunktioniertsRouteImport } from './routes/so-funktionierts'
+import { Route as UeberUnsRouteImport } from './routes/ueber-uns'
 import { Route as AccountBookingsRouteImport } from './routes/account.bookings'
 import { Route as AccountFavoritesRouteImport } from './routes/account.favorites'
 import { Route as AccountItemsRouteImport } from './routes/account.items'
@@ -40,6 +46,26 @@ const CatalogRoute = CatalogRouteImport.update({
   path: '/catalog',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DatenschutzRoute = DatenschutzRouteImport.update({
+  id: '/datenschutz',
+  path: '/datenschutz',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HilfeRoute = HilfeRouteImport.update({
+  id: '/hilfe',
+  path: '/hilfe',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ImpressumRoute = ImpressumRouteImport.update({
+  id: '/impressum',
+  path: '/impressum',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SicherheitRoute = SicherheitRouteImport.update({
+  id: '/sicherheit',
+  path: '/sicherheit',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SignInRoute = SignInRouteImport.update({
   id: '/sign-in',
   path: '/sign-in',
@@ -48,6 +74,16 @@ const SignInRoute = SignInRouteImport.update({
 const SignUpRoute = SignUpRouteImport.update({
   id: '/sign-up',
   path: '/sign-up',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SoFunktioniertsRoute = SoFunktioniertsRouteImport.update({
+  id: '/so-funktionierts',
+  path: '/so-funktionierts',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UeberUnsRoute = UeberUnsRouteImport.update({
+  id: '/ueber-uns',
+  path: '/ueber-uns',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AccountBookingsRoute = AccountBookingsRouteImport.update({
@@ -106,8 +142,14 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/account': typeof AccountRouteWithChildren
   '/catalog': typeof CatalogRoute
+  '/datenschutz': typeof DatenschutzRoute
+  '/hilfe': typeof HilfeRoute
+  '/impressum': typeof ImpressumRoute
+  '/sicherheit': typeof SicherheitRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
+  '/so-funktionierts': typeof SoFunktioniertsRoute
+  '/ueber-uns': typeof UeberUnsRoute
   '/account/bookings': typeof AccountBookingsRouteWithChildren
   '/account/favorites': typeof AccountFavoritesRoute
   '/account/items': typeof AccountItemsRouteWithChildren
@@ -123,8 +165,14 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/account': typeof AccountRouteWithChildren
   '/catalog': typeof CatalogRoute
+  '/datenschutz': typeof DatenschutzRoute
+  '/hilfe': typeof HilfeRoute
+  '/impressum': typeof ImpressumRoute
+  '/sicherheit': typeof SicherheitRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
+  '/so-funktionierts': typeof SoFunktioniertsRoute
+  '/ueber-uns': typeof UeberUnsRoute
   '/account/bookings': typeof AccountBookingsRouteWithChildren
   '/account/favorites': typeof AccountFavoritesRoute
   '/account/profile': typeof AccountProfileRoute
@@ -140,8 +188,14 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/account': typeof AccountRouteWithChildren
   '/catalog': typeof CatalogRoute
+  '/datenschutz': typeof DatenschutzRoute
+  '/hilfe': typeof HilfeRoute
+  '/impressum': typeof ImpressumRoute
+  '/sicherheit': typeof SicherheitRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
+  '/so-funktionierts': typeof SoFunktioniertsRoute
+  '/ueber-uns': typeof UeberUnsRoute
   '/account/bookings': typeof AccountBookingsRouteWithChildren
   '/account/favorites': typeof AccountFavoritesRoute
   '/account/items': typeof AccountItemsRouteWithChildren
@@ -159,8 +213,14 @@ export interface FileRouteTypes {
     | '/'
     | '/account'
     | '/catalog'
+    | '/datenschutz'
+    | '/hilfe'
+    | '/impressum'
+    | '/sicherheit'
     | '/sign-in'
     | '/sign-up'
+    | '/so-funktionierts'
+    | '/ueber-uns'
     | '/account/bookings'
     | '/account/favorites'
     | '/account/items'
@@ -176,8 +236,14 @@ export interface FileRouteTypes {
     | '/'
     | '/account'
     | '/catalog'
+    | '/datenschutz'
+    | '/hilfe'
+    | '/impressum'
+    | '/sicherheit'
     | '/sign-in'
     | '/sign-up'
+    | '/so-funktionierts'
+    | '/ueber-uns'
     | '/account/bookings'
     | '/account/favorites'
     | '/account/profile'
@@ -192,8 +258,14 @@ export interface FileRouteTypes {
     | '/'
     | '/account'
     | '/catalog'
+    | '/datenschutz'
+    | '/hilfe'
+    | '/impressum'
+    | '/sicherheit'
     | '/sign-in'
     | '/sign-up'
+    | '/so-funktionierts'
+    | '/ueber-uns'
     | '/account/bookings'
     | '/account/favorites'
     | '/account/items'
@@ -210,8 +282,14 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AccountRoute: typeof AccountRouteWithChildren
   CatalogRoute: typeof CatalogRoute
+  DatenschutzRoute: typeof DatenschutzRoute
+  HilfeRoute: typeof HilfeRoute
+  ImpressumRoute: typeof ImpressumRoute
+  SicherheitRoute: typeof SicherheitRoute
   SignInRoute: typeof SignInRoute
   SignUpRoute: typeof SignUpRoute
+  SoFunktioniertsRoute: typeof SoFunktioniertsRoute
+  UeberUnsRoute: typeof UeberUnsRoute
   ItemsItemIdRoute: typeof ItemsItemIdRoute
 }
 
@@ -238,6 +316,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CatalogRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/datenschutz': {
+      id: '/datenschutz'
+      path: '/datenschutz'
+      fullPath: '/datenschutz'
+      preLoaderRoute: typeof DatenschutzRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hilfe': {
+      id: '/hilfe'
+      path: '/hilfe'
+      fullPath: '/hilfe'
+      preLoaderRoute: typeof HilfeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/impressum': {
+      id: '/impressum'
+      path: '/impressum'
+      fullPath: '/impressum'
+      preLoaderRoute: typeof ImpressumRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sicherheit': {
+      id: '/sicherheit'
+      path: '/sicherheit'
+      fullPath: '/sicherheit'
+      preLoaderRoute: typeof SicherheitRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sign-in': {
       id: '/sign-in'
       path: '/sign-in'
@@ -250,6 +356,20 @@ declare module '@tanstack/react-router' {
       path: '/sign-up'
       fullPath: '/sign-up'
       preLoaderRoute: typeof SignUpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/so-funktionierts': {
+      id: '/so-funktionierts'
+      path: '/so-funktionierts'
+      fullPath: '/so-funktionierts'
+      preLoaderRoute: typeof SoFunktioniertsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ueber-uns': {
+      id: '/ueber-uns'
+      path: '/ueber-uns'
+      fullPath: '/ueber-uns'
+      preLoaderRoute: typeof UeberUnsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/account/bookings': {
@@ -376,8 +496,14 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AccountRoute: AccountRouteWithChildren,
   CatalogRoute: CatalogRoute,
+  DatenschutzRoute: DatenschutzRoute,
+  HilfeRoute: HilfeRoute,
+  ImpressumRoute: ImpressumRoute,
+  SicherheitRoute: SicherheitRoute,
   SignInRoute: SignInRoute,
   SignUpRoute: SignUpRoute,
+  SoFunktioniertsRoute: SoFunktioniertsRoute,
+  UeberUnsRoute: UeberUnsRoute,
   ItemsItemIdRoute: ItemsItemIdRoute,
 }
 export const routeTree = rootRouteImport
