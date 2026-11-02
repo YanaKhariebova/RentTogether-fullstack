@@ -609,3 +609,14 @@ Prisma Client обновлён, API перезапущен через watch.
 - [ ] Review и merge футера: пакет подготовлен к отправке в feat/items-owner-dashboard.
 
 Подробности и официальные источники: [футер](footer.md).
+
+### Подготовка общего demo deployment — 02.11.2026
+
+- [x] Изучены команды запуска, миграции, seed, CORS, Clerk и Cloudinary.
+- [x] Подготовлен `render.yaml`: Static Site + Free Express API, Neon отдельно; без секретов и автоматического deployment.
+- [x] Blueprint проверен по официальной Render JSON Schema.
+- [x] Добавлен read-only smoke script для публичных URL и пошаговая инструкция [deployment](deployment.md).
+- [ ] Создать Render/Neon, настроить переменные и общие HTTPS URL; проверить Clerk с Владом.
+- [ ] Пройти сценарий двумя аккаунтами с разных устройств; после mobile — проверить PWA с Владом.
+
+Локальные env и базы не менялись. Ресурсы в облаке пока не созданы, deployment ещё не выполнен.
