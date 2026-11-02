@@ -7,11 +7,12 @@ import { ApiError, errorHandler } from './lib/errors.js';
 import { profilePatchSchema, toCurrentUser } from './modules/users/profile.js';
 import { createItemsRoutes } from './modules/items/routes.js';
 import { createBookingsRoutes } from './modules/bookings/routes.js';
+import { createFavoritesRoutes } from './modules/favorites/routes.js';
 
 export function createApp(deps: {
   prisma: Pick<
     PrismaClient,
-    'user' | 'category' | 'item' | 'booking' | '$transaction' | 'imageCleanup'
+    'user' | 'category' | 'item' | 'booking' | 'favorite' | '$transaction' | 'imageCleanup'
   >;
   authenticate: RequestHandler;
   authMiddleware?: RequestHandler;
@@ -62,6 +63,7 @@ export function createApp(deps: {
   app.use('/api/items', itemsRouter);
   app.use('/api/my', myRouter);
   app.use('/api/bookings', createBookingsRoutes(deps.prisma, deps.authenticate));
+  app.use('/api/me/favorites', createFavoritesRoutes(deps.prisma, deps.authenticate));
   app.use((_req, _res) => {
     throw new ApiError(404, 'NOT_FOUND', 'Die Seite wurde nicht gefunden.');
   });
