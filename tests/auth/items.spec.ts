@@ -165,6 +165,24 @@ test('real owner creates, reloads, publishes and edits photos; another account c
   await expect(
     page.getByText('Deine Anzeige wurde veröffentlicht.', { exact: true }),
   ).toBeVisible();
+  const favoriteHeart = page.getByRole('button', {
+    name: `Test Beamer ${runId} zu Favoriten hinzufügen`,
+    exact: true,
+  });
+  await expect(favoriteHeart).toBeEnabled();
+  await favoriteHeart.click();
+  await expect(
+    page.getByRole('button', { name: `Test Beamer ${runId} aus Favoriten entfernen`, exact: true }),
+  ).toHaveAttribute('aria-pressed', 'true');
+  await page.reload();
+  await expect(
+    page.getByRole('button', { name: `Test Beamer ${runId} aus Favoriten entfernen`, exact: true }),
+  ).toHaveAttribute('aria-pressed', 'true');
+  expect(
+    (await apiRequest(page, '/me/favorites')).body.items.some(
+      (entry: { id: string }) => entry.id === first.id,
+    ),
+  ).toBe(true);
   await page.goto('/catalog');
   await page.getByRole('searchbox', { name: 'Wonach suchst du?' }).fill(runId);
   await expect(
@@ -228,6 +246,8 @@ test('real owner creates, reloads, publishes and edits photos; another account c
   await page.goto('/account/items');
   await expect(page.getByText('Hier ist Platz für deine erste Anzeige.')).toBeVisible();
   expect((await apiRequest(page, '/my/items')).body.items).toHaveLength(0);
+  expect((await apiRequest(page, '/me/favorites')).body.items).toHaveLength(0);
+  expect((await apiRequest(page, `/me/favorites/${first.id}`, 'DELETE')).status).toBe(204);
   for (const method of ['PATCH', 'DELETE']) {
     const denied = await apiRequest(
       page,
@@ -250,6 +270,20 @@ test('real owner creates, reloads, publishes and edits photos; another account c
   await expect(page.getByText('Deine Anzeige wurde ausgeblendet.', { exact: true })).toBeVisible();
   await page.reload();
   expect((await apiRequest(page, '/my/items')).body.items[0].isPublished).toBe(false);
+  expect((await apiRequest(page, '/my/items')).body.items[0].isFavorite).toBe(true);
+  expect((await apiRequest(page, '/me/favorites')).body.items).toHaveLength(0);
+  const hiddenFavorite = page.getByRole('button', {
+    name: `Test Beamer ${runId} aus Favoriten entfernen`,
+    exact: true,
+  });
+  await expect(hiddenFavorite).toBeEnabled();
+  await hiddenFavorite.click();
+  await expect(
+    page.getByRole('button', {
+      name: `Test Beamer ${runId}: Zum Favorisieren zuerst veröffentlichen.`,
+      exact: true,
+    }),
+  ).toHaveAttribute('aria-pressed', 'false');
   for (const width of [360, 390, 768, 1024, 1440]) {
     await page.setViewportSize({ width, height: 900 });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(

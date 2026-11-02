@@ -80,7 +80,31 @@ export function useOwnerItems() {
     retry: false,
     onSettled: refresh,
   });
+  const favorite = useMutation({
+    mutationFn: ({ id, isFavorite }: { id: string; isFavorite: boolean }) =>
+      api(`/me/favorites/${id}`, { method: isFavorite ? 'PUT' : 'DELETE' }),
+    retry: false,
+    onSuccess: (_response, { id, isFavorite }) => {
+      client.setQueryData<OwnerItemsResponse>(apiKeys.myItems(userId ?? ''), (current) =>
+        current
+          ? {
+              ...current,
+              items: current.items.map((item) => (item.id === id ? { ...item, isFavorite } : item)),
+            }
+          : current,
+      );
+    },
+    onSettled: async () => {
+      await Promise.all([refresh(), client.invalidateQueries({ queryKey: ['favorites'] })]);
+    },
+  });
   return {
+    setFavorite:
+      isLoaded && isSignedIn
+        ? async (id: string, isFavorite: boolean) => {
+            await favorite.mutateAsync({ id, isFavorite });
+          }
+        : undefined,
     deleteItem: (id: string) => deletion.mutateAsync(id),
     items: query.data?.items ?? [],
     loadError: query.error ? itemErrorMessage(query.error) : null,

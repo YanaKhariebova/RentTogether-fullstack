@@ -1250,3 +1250,45 @@ test('favorites are private, idempotent and only list published items', async ()
   await prisma.item.delete({ where: { id: item.id } });
   assert.equal(await prisma.favorite.count({ where: { userId: user.ownerId } }), 0);
 });
+
+test('owner favorite DTO is user-specific, survives hiding, supports removal and cascades on permanent item deletion', async () => {
+  const item = await createItemFixture();
+  const other = await createItemFixture();
+  const service = createItemsService(prisma, storage);
+  await service.update(item.ownerId, item.id, { isPublished: true });
+  const favorite = (identity: typeof item, method: string) =>
+    fetch(`${base}/api/me/favorites/${item.id}`, {
+      method,
+      headers: headersFor(identity),
+    });
+  const mine = async () => {
+    const response = await fetch(`${base}/api/my/items`, { headers: headersFor(item) });
+    assert.equal(response.status, 200);
+    return (await response.json()).items.find((entry: { id: string }) => entry.id === item.id);
+  };
+  assert.equal((await favorite(other, 'PUT')).status, 201);
+  assert.equal((await mine()).isFavorite, false);
+  assert.equal((await favorite(item, 'PUT')).status, 201);
+  const selected = await mine();
+  assert.equal(selected.isFavorite, true);
+  assert.equal('favorites' in selected, false);
+  assert.equal('_count' in selected, false);
+  await service.update(item.ownerId, item.id, { isPublished: false });
+  assert.equal((await mine()).isFavorite, true);
+  const visible = await fetch(`${base}/api/me/favorites`, { headers: headersFor(item) });
+  assert.deepEqual((await visible.json()).items, []);
+  assert.equal((await favorite(item, 'DELETE')).status, 204);
+  assert.equal((await mine()).isFavorite, false);
+  assert.equal(
+    await prisma.favorite.count({ where: { itemId: item.id, userId: other.ownerId } }),
+    1,
+  );
+  // Fixture URLs are metadata only; no real files exist for these image rows.
+  await prisma.itemImage.deleteMany({ where: { itemId: item.id } });
+  const deleted = await fetch(`${base}/api/items/${item.id}/permanent`, {
+    method: 'DELETE',
+    headers: headersFor(item),
+  });
+  assert.equal(deleted.status, 204);
+  assert.equal(await prisma.favorite.count({ where: { itemId: item.id } }), 0);
+});
