@@ -196,7 +196,54 @@ test('real owner creates, reloads, publishes and edits photos; another account c
     page.getByRole('heading', { name: `Test Beamer ${runId}`, exact: true }),
   ).toBeVisible();
   await expect(page.getByRole('button', { name: 'Foto 2 anzeigen', exact: true })).toBeVisible();
-  await page.goto('/account/items');
+  const removeFavorite = () =>
+    page.getByRole('button', {
+      name: `Test Beamer ${runId} aus Favoriten entfernen`,
+      exact: true,
+    });
+  const addFavorite = () =>
+    page.getByRole('button', {
+      name: `Test Beamer ${runId} zu Favoriten hinzufügen`,
+      exact: true,
+    });
+  const openNavigation = (name: string) =>
+    page
+      .getByRole('navigation', {
+        name: 'Hauptnavigation',
+        exact: true,
+      })
+      .getByRole('link', { name, exact: true })
+      .click();
+
+  // Keep the same SPA/cache: full reloads would hide stale cross-page state.
+  await expect(removeFavorite()).toHaveAttribute('aria-pressed', 'true');
+  await removeFavorite().click();
+  await expect(addFavorite()).toHaveAttribute('aria-pressed', 'false');
+  await openNavigation('Meine Anzeigen');
+  await expect(addFavorite()).toHaveAttribute('aria-pressed', 'false');
+  await expect(addFavorite()).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+  await expect(addFavorite()).toHaveCSS('border-top-width', '0px');
+  await addFavorite().click();
+  await expect(removeFavorite()).toHaveAttribute('aria-pressed', 'true');
+  await openNavigation('Favoriten');
+  await expect(removeFavorite()).toHaveAttribute('aria-pressed', 'true');
+  await removeFavorite().click();
+  await expect(
+    page.getByText('Du hast noch keine Favoriten gespeichert.', { exact: true }),
+  ).toBeVisible();
+  await openNavigation('Meine Anzeigen');
+  await expect(addFavorite()).toHaveAttribute('aria-pressed', 'false');
+  await addFavorite().click();
+  await expect(removeFavorite()).toHaveAttribute('aria-pressed', 'true');
+  await openNavigation('Entdecken');
+  await page.getByRole('searchbox', { name: 'Wonach suchst du?' }).fill(runId);
+  await expect(removeFavorite()).toHaveAttribute('aria-pressed', 'true');
+  await removeFavorite().click();
+  await expect(addFavorite()).toHaveAttribute('aria-pressed', 'false');
+  await openNavigation('Meine Anzeigen');
+  await expect(addFavorite()).toHaveAttribute('aria-pressed', 'false');
+  await addFavorite().click();
+  await expect(removeFavorite()).toHaveAttribute('aria-pressed', 'true');
   await page.getByRole('button', { name: `Test Beamer ${runId} bearbeiten`, exact: true }).click();
   await page.getByLabel('Preis pro Tag', { exact: false }).fill('20,00');
   await page.getByRole('button', { name: 'Foto 2 nach vorne verschieben', exact: true }).click();
