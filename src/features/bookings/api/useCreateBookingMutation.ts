@@ -21,10 +21,11 @@ export function useCreateBookingMutation() {
   const { userId } = useAuth();
   const api = useApi();
   const client = useQueryClient();
+
   return useMutation({
     mutationFn: (input: CreateBookingInput) =>
       api<BookingResponse>('/bookings', { method: 'POST', body: JSON.stringify(input) }),
+    onSuccess: () => void client.invalidateQueries({ queryKey: apiKeys.myRentals(userId ?? '') }),
     retry: false,
-    onSuccess: () => client.invalidateQueries({ queryKey: apiKeys.myRentals(userId ?? '') }),
   });
 }
