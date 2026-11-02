@@ -21,6 +21,13 @@ function toLocalDate(date: string) {
   return new Date(`${date}T12:00:00`);
 }
 
+function dayBefore(date: string) {
+  const result = toLocalDate(date);
+  result.setDate(result.getDate() - 1);
+
+  return result;
+}
+
 function toDateString(date: Date) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -44,7 +51,8 @@ export function DateRangePicker({
   const returnDate = selectedRange?.to ? toDateString(selectedRange.to) : '';
   const unavailableDateRanges = unavailableRanges.map((range) => ({
     from: toLocalDate(range.pickupDate),
-    to: toLocalDate(range.returnDate),
+    // The return day is available for the next pickup and is not charged.
+    to: dayBefore(range.returnDate),
   }));
   const totalDays =
     selectedRange?.from && selectedRange.to

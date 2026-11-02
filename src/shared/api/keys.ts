@@ -6,4 +6,6 @@ export const apiKeys = {
   itemList: (query: ItemsQuery) => ['items', 'list', query] as const,
   item: (id: string) => ['items', 'detail', id] as const,
   myItems: (userId: string) => ['my-items', userId] as const,
+  myRentals: (userId: string) => ['bookings', 'my-rentals', userId] as const,
+  incomingBookings: (userId: string) => ['bookings', 'incoming', userId] as const,
 };
