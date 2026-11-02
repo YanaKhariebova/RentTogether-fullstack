@@ -1,5 +1,6 @@
 import { Link } from '@tanstack/react-router';
 import { ItemGrid } from '@/features/catalog/components/ItemGrid/ItemGrid';
+import { Spinner } from '@/shared/ui/atoms';
 import { useFavoriteMutation, useFavoritesQuery } from './api/useFavorites';
 import styles from './FavoritesPage.module.css';
 
@@ -16,7 +17,9 @@ export function FavoritesPage() {
         <p className={styles.intro}>Deine gespeicherten Anzeigen.</p>
 
         {favoritesQuery.isPending ? (
-          <p className={styles.empty}>Favoriten werden geladen…</p>
+          <div className={styles.empty}>
+            <Spinner label="Favoriten werden geladen …" />
+          </div>
         ) : favoritesQuery.isError ? (
           <p className={styles.empty} role="alert">
             Favoriten konnten nicht geladen werden.

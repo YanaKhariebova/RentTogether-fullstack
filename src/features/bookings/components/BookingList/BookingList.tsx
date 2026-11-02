@@ -1,4 +1,4 @@
-import { Badge, Button } from '@/shared/ui/atoms';
+import { Badge, Button, Spinner } from '@/shared/ui/atoms';
 import { useMyRentalsQuery } from '../../api/useMyRentalsQuery';
 import { useIncomingBookingsQuery } from '../../api/useIncomingBookingsQuery';
 import { useOwnerBookingStatusMutation } from '../../api/useOwnerBookingStatusMutation';
@@ -67,7 +67,9 @@ export function BookingList({ view }: BookingListProps) {
       </div>
 
       {(isRentals ? rentalsQuery.isPending : incomingQuery.isPending) ? (
-        <p className={styles.empty}>Buchungen werden geladen…</p>
+        <div className={styles.empty}>
+          <Spinner label="Buchungen werden geladen …" />
+        </div>
       ) : (isRentals ? rentalsQuery.isError : incomingQuery.isError) ? (
         <p className={styles.empty}>Buchungen konnten nicht geladen werden.</p>
       ) : visibleBookings.length === 0 ? (
