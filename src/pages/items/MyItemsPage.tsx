@@ -1,4 +1,4 @@
-import { Button } from '@/shared/ui/atoms';
+import { Button, Spinner } from '@/shared/ui/atoms';
 import { OwnerItemCard } from '../../shared/ui/organisms/OwnerItemCard/OwnerItemCard';
 import type { OwnerItem } from '../../features/items/types/item';
 import styles from './MyItemsPage.module.css';
@@ -48,9 +48,9 @@ export function MyItemsPage({
         </Button>
       </header>
       {status === 'loading' && (
-        <p className={styles.state} role="status">
-          Deine Anzeigen werden geladen …
-        </p>
+        <div className={styles.state}>
+          <Spinner label="Deine Anzeigen werden geladen …" />
+        </div>
       )}
       {status === 'error' && (
         <div className={styles.state} role="alert">

@@ -1,6 +1,6 @@
 import { useAuth } from '@clerk/react';
 import { useMemo, useState } from 'react';
-import { Button } from '@/shared/ui/atoms';
+import { Button, Spinner } from '@/shared/ui/atoms';
 import { useCategoriesQuery } from '../items/api/useCategoriesQuery';
 import { ItemGrid } from './components/ItemGrid/ItemGrid';
 import { useCatalogItemsQuery } from './api/useCatalogItemsQuery';
@@ -293,7 +293,9 @@ export function CatalogPage() {
                 {priceError}
               </p>
             ) : isPending ? (
-              <p className={styles.empty}>Anzeigen werden geladen…</p>
+              <div className={styles.empty}>
+                <Spinner label="Anzeigen werden geladen …" />
+              </div>
             ) : isError ? (
               <div className={styles.empty} role="alert">
                 <p>

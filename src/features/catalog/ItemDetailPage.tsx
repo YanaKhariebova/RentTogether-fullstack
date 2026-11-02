@@ -1,5 +1,5 @@
 import { ApiError } from '@/shared/api/client';
-import { Button, IconButton } from '@/shared/ui/atoms';
+import { Button, IconButton, Spinner } from '@/shared/ui/atoms';
 import { useAuth } from '@clerk/react';
 import { Link, useParams } from '@tanstack/react-router';
 import { useState } from 'react';
@@ -24,7 +24,7 @@ export function ItemDetailPage() {
     return (
       <section className={styles.page}>
         <section className={styles.empty}>
-          <p>Anzeige wird geladen…</p>
+          <Spinner label="Anzeige wird geladen …" />
         </section>
       </section>
     );
