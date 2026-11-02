@@ -315,7 +315,9 @@ export function CatalogPage() {
                 <ItemGrid
                   items={items}
                   favoriteIds={favoriteIds}
-                  favoriteBusy={favoriteMutation.isPending}
+                  favoriteBusy={
+                    favoriteMutation.isPending || (isSignedIn && favoritesQuery.isPending)
+                  }
                   onFavoriteToggle={
                     isLoaded && isSignedIn
                       ? (item, isFavorite) => favoriteMutation.mutate({ item, isFavorite })

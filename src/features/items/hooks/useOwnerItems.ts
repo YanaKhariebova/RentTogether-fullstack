@@ -7,6 +7,7 @@ import { useApi } from '@/features/auth/api/useApi';
 import { useCurrentUser } from '@/features/profile/api/useCurrentUser';
 import { useCategoriesQuery } from '../api/useCategoriesQuery';
 import { apiKeys } from '@/shared/api/keys';
+import type { FavoritesResponse } from '@/features/favorites/api/useFavorites';
 import { ApiError } from '@/shared/api/client';
 import { itemErrorMessage } from '../model/itemErrorMessage';
 import { createOwnerItemSaveSession } from '../model/saveOwnerItem';
@@ -31,6 +32,7 @@ export function useOwnerItems() {
     await Promise.all([
       client.invalidateQueries({ queryKey: apiKeys.myItems(userId ?? '') }),
       client.invalidateQueries({ queryKey: apiKeys.items }),
+      client.invalidateQueries({ queryKey: apiKeys.favorites(userId ?? '') }),
     ]);
   }
   const save = useMutation({
@@ -81,11 +83,20 @@ export function useOwnerItems() {
     onSettled: refresh,
   });
   const favorite = useMutation({
-    mutationFn: ({ id, isFavorite }: { id: string; isFavorite: boolean }) =>
+    mutationFn: ({ id, isFavorite }: { id: string; isFavorite: boolean; userId: string }) =>
       api(`/me/favorites/${id}`, { method: isFavorite ? 'PUT' : 'DELETE' }),
     retry: false,
-    onSuccess: (_response, { id, isFavorite }) => {
-      client.setQueryData<OwnerItemsResponse>(apiKeys.myItems(userId ?? ''), (current) =>
+    onSuccess: (_response, { id, isFavorite, userId: mutationUserId }) => {
+      const item = client
+        .getQueryData<OwnerItemsResponse>(apiKeys.myItems(mutationUserId))
+        ?.items.find((entry) => entry.id === id);
+      client.setQueryData<FavoritesResponse>(apiKeys.favorites(mutationUserId), (current) => {
+        if (!current) return current;
+        if (!isFavorite) return { items: current.items.filter((entry) => entry.id !== id) };
+        if (!item || current.items.some((entry) => entry.id === id)) return current;
+        return { items: [item, ...current.items] };
+      });
+      client.setQueryData<OwnerItemsResponse>(apiKeys.myItems(mutationUserId), (current) =>
         current
           ? {
               ...current,
@@ -94,15 +105,18 @@ export function useOwnerItems() {
           : current,
       );
     },
-    onSettled: async () => {
-      await Promise.all([refresh(), client.invalidateQueries({ queryKey: ['favorites'] })]);
+    onSettled: async (_response, _error, { userId: mutationUserId }) => {
+      await Promise.all([
+        client.invalidateQueries({ queryKey: apiKeys.myItems(mutationUserId) }),
+        client.invalidateQueries({ queryKey: apiKeys.favorites(mutationUserId) }),
+      ]);
     },
   });
   return {
     setFavorite:
       isLoaded && isSignedIn
         ? async (id: string, isFavorite: boolean) => {
-            await favorite.mutateAsync({ id, isFavorite });
+            await favorite.mutateAsync({ id, isFavorite, userId: userId ?? '' });
           }
         : undefined,
     deleteItem: (id: string) => deletion.mutateAsync(id),

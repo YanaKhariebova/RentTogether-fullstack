@@ -108,7 +108,9 @@ export function ItemDetailPage() {
                 }
                 aria-pressed={isFavorite}
                 aria-busy={favoriteMutation.isPending || undefined}
-                disabled={!isLoaded || !isSignedIn || favoriteMutation.isPending}
+                disabled={
+                  !isLoaded || !isSignedIn || favoritesQuery.isPending || favoriteMutation.isPending
+                }
                 onClick={() => favoriteMutation.mutate({ item, isFavorite })}
               >
                 <svg viewBox="0 0 24 24" aria-hidden="true">
