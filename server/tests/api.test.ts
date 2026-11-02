@@ -29,7 +29,7 @@ const prisma = {
   },
 } as unknown as Pick<
   PrismaClient,
-  'user' | 'category' | 'item' | 'booking' | '$transaction' | 'imageCleanup'
+  'user' | 'category' | 'item' | 'booking' | 'favorite' | '$transaction' | 'imageCleanup'
 >;
 let server: Server;
 let base: string;
@@ -97,6 +97,9 @@ test('all owner item endpoints require authentication', async () => {
     ['POST', `/api/items/${user.id}/images`],
     ['DELETE', `/api/items/${user.id}/images/${user.id}`],
     ['POST', '/api/bookings'],
+    ['GET', '/api/me/favorites'],
+    ['PUT', `/api/me/favorites/${user.id}`],
+    ['DELETE', `/api/me/favorites/${user.id}`],
   ]) {
     const response = await fetch(`${base}${path}`, { method });
     assert.equal(response.status, 401);

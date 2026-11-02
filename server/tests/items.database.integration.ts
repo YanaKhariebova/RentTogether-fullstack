@@ -1195,3 +1195,58 @@ test('concurrent approval and renter cancellation persist only one valid status'
   const saved = await prisma.booking.findUniqueOrThrow({ where: { id: booking.id } });
   assert.ok(['APPROVED', 'CANCELLED'].includes(saved.status));
 });
+
+test('favorites are private, idempotent and only list published items', async () => {
+  const item = await createItemFixture();
+  const user = await createItemFixture();
+  await prisma.item.update({ where: { id: item.id }, data: { isPublished: true } });
+
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const response = await fetch(`${base}/api/me/favorites/${item.id}`, {
+      method: 'PUT',
+      headers: headersFor(user),
+    });
+    assert.equal(response.status, 201);
+  }
+  assert.equal(
+    await prisma.favorite.count({ where: { userId: user.ownerId, itemId: item.id } }),
+    1,
+  );
+
+  const listed = await fetch(`${base}/api/me/favorites`, { headers: headersFor(user) });
+  assert.equal(listed.status, 200);
+  assert.deepEqual(
+    (await listed.json()).items.map((entry: { id: string }) => entry.id),
+    [item.id],
+  );
+
+  await prisma.item.update({ where: { id: item.id }, data: { isPublished: false } });
+  const hidden = await fetch(`${base}/api/me/favorites`, { headers: headersFor(user) });
+  assert.deepEqual((await hidden.json()).items, []);
+  assert.equal(
+    await prisma.favorite.count({ where: { userId: user.ownerId, itemId: item.id } }),
+    1,
+  );
+  const unavailable = await fetch(`${base}/api/me/favorites/${item.id}`, {
+    method: 'PUT',
+    headers: headersFor(user),
+  });
+  assert.equal(unavailable.status, 404);
+
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const response = await fetch(`${base}/api/me/favorites/${item.id}`, {
+      method: 'DELETE',
+      headers: headersFor(user),
+    });
+    assert.equal(response.status, 204);
+  }
+  assert.equal(
+    await prisma.favorite.count({ where: { userId: user.ownerId, itemId: item.id } }),
+    0,
+  );
+
+  await prisma.item.update({ where: { id: item.id }, data: { isPublished: true } });
+  await fetch(`${base}/api/me/favorites/${item.id}`, { method: 'PUT', headers: headersFor(user) });
+  await prisma.item.delete({ where: { id: item.id } });
+  assert.equal(await prisma.favorite.count({ where: { userId: user.ownerId } }), 0);
+});
