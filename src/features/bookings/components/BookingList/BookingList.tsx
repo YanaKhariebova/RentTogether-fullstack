@@ -113,7 +113,7 @@ export function BookingList({ view }: BookingListProps) {
                 <Button
                   variant="secondary"
                   disabled={cancelBooking.isPending}
-                  onClick={() => cancelBooking.mutate(booking.id)}
+                  onClick={() => cancelBooking.mutate({ id: booking.id, itemId: booking.itemId })}
                 >
                   Anfrage stornieren
                 </Button>
@@ -124,14 +124,26 @@ export function BookingList({ view }: BookingListProps) {
                   <Button
                     variant="primary"
                     disabled={ownerStatus.isPending}
-                    onClick={() => ownerStatus.mutate({ id: booking.id, status: 'APPROVED' })}
+                    onClick={() =>
+                      ownerStatus.mutate({
+                        id: booking.id,
+                        itemId: booking.itemId,
+                        status: 'APPROVED',
+                      })
+                    }
                   >
                     Annehmen
                   </Button>
                   <Button
                     variant="secondary"
                     disabled={ownerStatus.isPending}
-                    onClick={() => ownerStatus.mutate({ id: booking.id, status: 'REJECTED' })}
+                    onClick={() =>
+                      ownerStatus.mutate({
+                        id: booking.id,
+                        itemId: booking.itemId,
+                        status: 'REJECTED',
+                      })
+                    }
                   >
                     Ablehnen
                   </Button>
@@ -142,7 +154,9 @@ export function BookingList({ view }: BookingListProps) {
                 <Button
                   variant="primary"
                   disabled={ownerStatus.isPending}
-                  onClick={() => ownerStatus.mutate({ id: booking.id, status: 'ACTIVE' })}
+                  onClick={() =>
+                    ownerStatus.mutate({ id: booking.id, itemId: booking.itemId, status: 'ACTIVE' })
+                  }
                 >
                   Übergabe starten
                 </Button>
@@ -152,7 +166,13 @@ export function BookingList({ view }: BookingListProps) {
                 <Button
                   variant="primary"
                   disabled={ownerStatus.isPending}
-                  onClick={() => ownerStatus.mutate({ id: booking.id, status: 'COMPLETED' })}
+                  onClick={() =>
+                    ownerStatus.mutate({
+                      id: booking.id,
+                      itemId: booking.itemId,
+                      status: 'COMPLETED',
+                    })
+                  }
                 >
                   Abschließen
                 </Button>
