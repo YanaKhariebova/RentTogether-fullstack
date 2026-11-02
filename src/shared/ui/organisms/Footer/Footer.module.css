@@ -6,7 +6,7 @@
 .inner {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 40px 16px calc(100px + env(safe-area-inset-bottom));
+  padding: 40px max(16px, env(safe-area-inset-right)) 32px max(16px, env(safe-area-inset-left));
 }
 .brand {
   display: inline-flex;

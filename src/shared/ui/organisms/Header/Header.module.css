@@ -36,7 +36,7 @@
 .auth {
   margin-left: auto;
   min-height: 44px;
-  display: flex;
+  display: none;
   align-items: center;
   gap: 12px;
 }
@@ -72,19 +72,24 @@
   left: 0;
   right: 0;
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   background: var(--color-surface);
   border-top: 1px solid var(--color-border);
   padding-bottom: env(safe-area-inset-bottom);
   z-index: 10;
 }
 .mobile a {
-  display: grid;
-  place-items: center;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
   text-align: center;
-  padding: 12px 4px;
+  padding: 4px;
   min-height: 56px;
   font-size: 0.75rem;
+  line-height: 1.2;
   color: var(--color-muted);
   text-decoration: none;
 }
@@ -96,12 +101,16 @@
 @media (min-width: 1024px) {
   .desktop {
     display: flex;
-    gap: 24px;
+    gap: 14px;
     margin-left: auto;
   }
   .desktop a {
+    position: relative;
     display: inline-flex;
     align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 6px 4px;
     min-height: 44px;
     min-width: 44px;
     text-decoration: none;
@@ -111,6 +120,145 @@
     display: none;
   }
   .auth {
-    margin-left: 20px;
+    display: flex;
+    margin-left: 12px;
+  }
+}
+
+.menuButton {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  margin-left: auto;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+  cursor: pointer;
+}
+.panel {
+  position: fixed;
+  inset: 0 0 0 auto;
+  margin: 0;
+  width: min(360px, calc(100% - 24px));
+  max-width: none;
+  height: 100dvh;
+  max-height: 100dvh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right))
+    max(24px, env(safe-area-inset-bottom)) 16px;
+  border: 0;
+  border-left: 1px solid var(--color-border);
+  color: var(--color-text);
+  background: var(--color-surface);
+}
+.panel::backdrop {
+  background: rgb(10 26 19 / 55%);
+}
+.panelHeading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.panelHeading h2 {
+  font-size: 1.125rem;
+  margin: 0;
+}
+.panel nav {
+  display: grid;
+  margin-block: 24px;
+}
+.panel a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+}
+
+.desktop svg,
+.mobile svg,
+.panel nav svg {
+  flex-shrink: 0;
+}
+.desktop a[aria-current='page']::after,
+.mobile a[aria-current='page']::after {
+  content: '';
+  position: absolute;
+  bottom: 1px;
+  left: 6px;
+  right: 6px;
+  height: 3px;
+  border-radius: 3px;
+  background: currentColor;
+}
+@media (min-width: 1024px) and (max-width: 1199px) {
+  .desktop .navLabel {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+.panel a:hover,
+.panel a[aria-current='page'] {
+  background: var(--color-primary-soft);
+}
+.information {
+  display: grid;
+  border-top: 1px solid var(--color-border);
+  margin-top: 16px;
+  padding-top: 16px;
+}
+.panelSettings {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  border-top: 1px solid var(--color-border);
+  padding-top: 16px;
+}
+.panelSettings > a {
+  flex-basis: 100%;
+  font-weight: 700;
+}
+@media (max-width: 1023px) {
+  .inner {
+    padding-top: max(10px, env(safe-area-inset-top));
+    padding-left: max(12px, env(safe-area-inset-left));
+    padding-right: max(12px, env(safe-area-inset-right));
+    padding-bottom: 10px;
+  }
+  .brand {
+    min-height: 44px;
+  }
+  .tagline {
+    font-size: 12px;
+  }
+}
+@media (min-width: 1024px) {
+  .menuButton {
+    display: none;
+  }
+  .brand {
+    font-size: 1.1rem;
+  }
+  .desktop {
+    font-size: 0.875rem;
+  }
+}
+@media (max-width: 1023px) {
+  :global(body:has(input:focus, textarea:focus, select:focus)) .mobile {
+    display: none;
   }
 }

@@ -20,3 +20,12 @@
     padding: 40px 24px;
   }
 }
+
+.main {
+  overflow-wrap: anywhere;
+}
+@media (max-width: 1023px) {
+  .main {
+    padding-inline: max(16px, env(safe-area-inset-left)) max(16px, env(safe-area-inset-right));
+  }
+}

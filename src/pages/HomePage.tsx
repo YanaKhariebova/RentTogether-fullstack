@@ -18,7 +18,14 @@ export function HomePage() {
   return (
     <section ref={hero} className={styles.hero}>
       <div className={styles.backdrop} aria-hidden="true">
-        <img src="/media/hero-brownstone.webp" alt="" fetchPriority="high" />
+        <picture>
+          <source
+            media="(max-width: 767px)"
+            srcSet="/media/hero-mobile-640.webp 640w, /media/hero-mobile-960.webp 960w"
+            sizes="100vw"
+          />
+          <img src="/media/hero-brownstone.webp" alt="" fetchPriority="high" />
+        </picture>
       </div>
       <div className={styles.content}>
         <span className={styles.eyebrow}>DEINE NACHBARSCHAFT. DEINE MÖGLICHKEITEN.</span>

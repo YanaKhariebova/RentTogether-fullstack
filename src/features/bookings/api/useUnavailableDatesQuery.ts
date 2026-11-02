@@ -12,5 +12,6 @@ export function useUnavailableDatesQuery(itemId: string) {
         `/bookings/items/${itemId}/unavailable-dates`,
       ),
     enabled: Boolean(itemId),
+    retry: false,
   });
 }
