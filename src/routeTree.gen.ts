@@ -21,6 +21,7 @@ import { Route as SignUpRouteImport } from './routes/sign-up'
 import { Route as SoFunktioniertsRouteImport } from './routes/so-funktionierts'
 import { Route as UeberUnsRouteImport } from './routes/ueber-uns'
 import { Route as AccountBookingsRouteImport } from './routes/account.bookings'
+import { Route as AccountFavoritesRouteImport } from './routes/account.favorites'
 import { Route as AccountItemsRouteImport } from './routes/account.items'
 import { Route as AccountProfileRouteImport } from './routes/account.profile'
 import { Route as ItemsItemIdRouteImport } from './routes/items.$itemId'
@@ -90,6 +91,11 @@ const AccountBookingsRoute = AccountBookingsRouteImport.update({
   path: '/bookings',
   getParentRoute: () => AccountRoute,
 } as any)
+const AccountFavoritesRoute = AccountFavoritesRouteImport.update({
+  id: '/favorites',
+  path: '/favorites',
+  getParentRoute: () => AccountRoute,
+} as any)
 const AccountItemsRoute = AccountItemsRouteImport.update({
   id: '/items',
   path: '/items',
@@ -145,6 +151,7 @@ export interface FileRoutesByFullPath {
   '/so-funktionierts': typeof SoFunktioniertsRoute
   '/ueber-uns': typeof UeberUnsRoute
   '/account/bookings': typeof AccountBookingsRouteWithChildren
+  '/account/favorites': typeof AccountFavoritesRoute
   '/account/items': typeof AccountItemsRouteWithChildren
   '/account/profile': typeof AccountProfileRoute
   '/items/$itemId': typeof ItemsItemIdRoute
@@ -167,6 +174,7 @@ export interface FileRoutesByTo {
   '/so-funktionierts': typeof SoFunktioniertsRoute
   '/ueber-uns': typeof UeberUnsRoute
   '/account/bookings': typeof AccountBookingsRouteWithChildren
+  '/account/favorites': typeof AccountFavoritesRoute
   '/account/profile': typeof AccountProfileRoute
   '/items/$itemId': typeof ItemsItemIdRoute
   '/account/bookings/incoming': typeof AccountBookingsIncomingRoute
@@ -189,6 +197,7 @@ export interface FileRoutesById {
   '/so-funktionierts': typeof SoFunktioniertsRoute
   '/ueber-uns': typeof UeberUnsRoute
   '/account/bookings': typeof AccountBookingsRouteWithChildren
+  '/account/favorites': typeof AccountFavoritesRoute
   '/account/items': typeof AccountItemsRouteWithChildren
   '/account/profile': typeof AccountProfileRoute
   '/items/$itemId': typeof ItemsItemIdRoute
@@ -213,6 +222,7 @@ export interface FileRouteTypes {
     | '/so-funktionierts'
     | '/ueber-uns'
     | '/account/bookings'
+    | '/account/favorites'
     | '/account/items'
     | '/account/profile'
     | '/items/$itemId'
@@ -235,6 +245,7 @@ export interface FileRouteTypes {
     | '/so-funktionierts'
     | '/ueber-uns'
     | '/account/bookings'
+    | '/account/favorites'
     | '/account/profile'
     | '/items/$itemId'
     | '/account/bookings/incoming'
@@ -256,6 +267,7 @@ export interface FileRouteTypes {
     | '/so-funktionierts'
     | '/ueber-uns'
     | '/account/bookings'
+    | '/account/favorites'
     | '/account/items'
     | '/account/profile'
     | '/items/$itemId'
@@ -367,6 +379,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AccountBookingsRouteImport
       parentRoute: typeof AccountRoute
     }
+    '/account/favorites': {
+      id: '/account/favorites'
+      path: '/favorites'
+      fullPath: '/account/favorites'
+      preLoaderRoute: typeof AccountFavoritesRouteImport
+      parentRoute: typeof AccountRoute
+    }
     '/account/items': {
       id: '/account/items'
       path: '/items'
@@ -458,12 +477,14 @@ const AccountItemsRouteWithChildren = AccountItemsRoute._addFileChildren(
 
 interface AccountRouteChildren {
   AccountBookingsRoute: typeof AccountBookingsRouteWithChildren
+  AccountFavoritesRoute: typeof AccountFavoritesRoute
   AccountItemsRoute: typeof AccountItemsRouteWithChildren
   AccountProfileRoute: typeof AccountProfileRoute
 }
 
 const AccountRouteChildren: AccountRouteChildren = {
   AccountBookingsRoute: AccountBookingsRouteWithChildren,
+  AccountFavoritesRoute: AccountFavoritesRoute,
   AccountItemsRoute: AccountItemsRouteWithChildren,
   AccountProfileRoute: AccountProfileRoute,
 }
