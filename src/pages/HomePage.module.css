@@ -1,61 +1,195 @@
+/* Full-width hero on the homepage; other routes keep the shared container. */
+:global(#main-content):has(> .hero) {
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  min-height: 0;
+}
 .hero {
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  background: var(--color-primary-soft);
-  padding: 32px 20px;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  min-height: calc(100svh - var(--hero-header-height, 77px));
+  width: 100%;
+  padding: 48px clamp(24px, 2.7vw, 56px);
+  color: white;
+  background: #0d1915;
+}
+.backdrop,
+.backdrop::after,
+.backdrop img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.backdrop {
+  z-index: -1;
+  pointer-events: none;
+}
+.backdrop img {
+  left: 0;
+  width: 100%;
+  object-fit: cover;
+  object-position: 82% center;
+}
+.backdrop::after {
+  content: none;
+}
+
+.content {
+  width: 43%;
+  max-width: 610px;
+  padding: clamp(32px, 4vw, 56px) clamp(20px, 2.5vw, 36px);
+  border: 1px solid rgb(255 255 255 / 32%);
+  border-radius: 24px;
+  background: rgb(18 35 28 / 82%);
+  box-shadow: 0 16px 48px rgb(10 26 19 / 18%);
 }
 .eyebrow {
-  color: var(--color-emphasis);
-  font-size: 0.7rem;
-  letter-spacing: 0.08em;
+  display: block;
+  color: var(--color-accent);
+  font-size: calc(0.95rem + 2px);
+  line-height: 1.5;
+  letter-spacing: 0.06em;
   font-weight: 700;
 }
 .hero h1 {
-  font-size: clamp(2rem, 5.5vw, 4rem);
+  font-size: clamp(2rem, 4.1vw, 3.25rem);
+  font-weight: 700;
   line-height: 1.08;
-  letter-spacing: -0.055em;
-  max-width: 850px;
-  margin: 28px 0 24px;
+  letter-spacing: -0.045em;
+  margin: 24px 0 20px;
+  text-wrap: balance;
 }
 .hero p {
-  color: var(--color-muted);
-  line-height: 1.7;
-  max-width: 560px;
+  color: #f1f5f2;
+  font-size: clamp(1rem, 1.3vw, 1.125rem);
+  line-height: 1.6;
+  max-width: 440px;
+  margin: 0;
 }
 .actions {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
-  margin: 28px 0;
+  margin-top: 36px;
 }
 .actions a {
   display: inline-flex;
-  justify-content: space-between;
-  gap: 20px;
+  justify-content: center;
   align-items: center;
+  gap: 16px;
   min-height: 48px;
   padding: 12px 20px;
-  text-decoration: none;
+  border: 1px solid transparent;
   border-radius: var(--radius-sm);
   background: var(--color-primary);
   color: white;
+  text-decoration: none;
   font-weight: 600;
+  font-size: calc(1rem + 1px);
+  letter-spacing: 0.5px;
+  transition:
+    box-shadow 220ms ease,
+    transform 360ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  -webkit-tap-highlight-color: transparent;
 }
 .actions a + a {
-  background: var(--color-button-hover);
-  color: var(--color-primary);
-  border: 1px solid var(--color-primary);
+  background: rgb(13 25 21 / 30%);
+  border-color: rgb(181 211 184 / 65%);
+}
+.actions a:focus-visible {
+  outline: 3px solid var(--color-accent);
+  outline-offset: 3px;
+}
+@media (max-width: 767px) {
+  .hero {
+    padding: 40px 24px calc(88px + env(safe-area-inset-bottom));
+  }
+  .content {
+    width: 100%;
+    max-width: 540px;
+  }
+  .backdrop img {
+    left: 0;
+    width: 100%;
+    object-position: 82% center;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+}
+@media (min-width: 768px) and (max-width: 1023px) {
+  .hero {
+    padding-bottom: calc(88px + env(safe-area-inset-bottom));
+  }
+  .content {
+    width: 48%;
+  }
 }
 
-.note {
-  border-top: 1px solid var(--color-border);
-  margin-top: 40px;
-  padding-top: 20px;
-  font-size: 0.875rem;
-  color: var(--color-emphasis);
+@supports ((backdrop-filter: blur(14px)) or (-webkit-backdrop-filter: blur(14px))) {
+  .content {
+    background: rgb(18 35 28 / 24%);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+  }
 }
+:global(:root[data-theme='dark']) .backdrop::after {
+  content: '';
+  background: rgb(7 14 11 / 32%);
+}
+
+.promise {
+  display: block;
+  margin-top: 12px;
+  color: var(--color-accent);
+  text-wrap: balance;
+}
+@media (min-width: 1024px) {
+  .hero h1 {
+    font-size: clamp(50px, 3.7vw, 52px);
+  }
+  .hero p {
+    font-size: clamp(17px, 1.3vw, 18px);
+  }
+}
+
 @media (min-width: 768px) {
-  .hero {
-    padding: 56px;
+  .backdrop img {
+    object-position: calc(82% + 1.5cm) center;
+  }
+  .content {
+    width: calc(43% + 1.5cm);
+    max-width: calc(610px + 1.5cm);
+  }
+}
+@media (min-width: 768px) and (max-width: 1023px) {
+  .content {
+    width: calc(48% + 1.5cm);
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .actions a:hover {
+    box-shadow:
+      0 0 0 1px rgb(121 211 171 / 28%),
+      0 0 20px rgb(121 211 171 / 24%);
+    transform: translateY(-1px);
+  }
+}
+.actions a:active {
+  transform: translateY(1px) scale(0.97);
+  transition-duration: 90ms;
+}
+@media (prefers-reduced-motion: reduce) {
+  .actions a {
+    transition: none;
+  }
+  .actions a:hover,
+  .actions a:active {
+    transform: none;
   }
 }

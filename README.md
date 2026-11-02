@@ -12,15 +12,14 @@ npm --prefix server ci
 ```
 
 Vor dem ersten Start Clerk und PostgreSQL gemäß [Setup](docs/foundation-setup.md)
-konfigurieren. Bestehende env-Dateien ergänzen. Backend und Frontend in getrennten Terminals starten:
+konfigurieren. Bestehende env-Dateien ergänzen. Danach alle lokalen Dienste starten:
 
 ```bash
-npm --prefix server run dev
+npm run dev:all
 ```
 
-```bash
-npm run dev
-```
+Alte Backend-Prozesse vorher mit Ctrl+C beenden. Das Terminal offen lassen;
+die Adresse erscheint nach `[dev:all] Ready`. Einzelne Startbefehle stehen im Setup.
 
 Foundation mit Clerk, Router, Query und Inter ist integriert. Kopiere `.env.example`
 nach `.env.local` und `server/.env.example` nach `server/.env` und konfiguriere

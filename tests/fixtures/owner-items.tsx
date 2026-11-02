@@ -13,16 +13,44 @@ import {
 import '@fontsource-variable/inter';
 import '../../src/index.css';
 import styles from './owner-items.module.css';
+import workspaceStyles from '../../src/pages/items/OwnerItemsWorkspace.module.css';
 import { OwnerItemsContext } from '../../src/features/items/model/OwnerItemsContext';
 import { useMockOwnerItems } from '../../src/features/items/hooks/useMockOwnerItems';
-import { mockCategories } from '../../src/features/items/mocks/items';
+import { mockCategories, mockOwnerItems } from '../../src/features/items/mocks/items';
+import { ThemeToggle } from '../../src/features/theme/ThemeToggle';
+const fixtureState = new URLSearchParams(window.location.search).get('state');
+const favoriteFixture = new URLSearchParams(window.location.search).get('favorite');
+let loadAttempts = 0;
+async function loadFixtureItems() {
+  if (fixtureState === 'loading') return new Promise<typeof mockOwnerItems>(() => {});
+  if (fixtureState === 'error' && loadAttempts++ === 0) throw new Error('Fixture load error');
+  return fixtureState === 'empty' ? [] : structuredClone(mockOwnerItems);
+}
 function MockOwnerItemsProvider({ children }: { children: React.ReactNode }) {
-  const store = useMockOwnerItems();
+  const store = useMockOwnerItems(loadFixtureItems);
   const [notice, setNotice] = useState('');
+  const [favorites, setFavorites] = useState<Record<string, boolean>>({});
   return (
     <OwnerItemsContext.Provider
       value={{
         ...store,
+        items: store.items.map((item) =>
+          favoriteFixture
+            ? {
+                ...item,
+                isPublished: true,
+                isFavorite: favorites[item.id] ?? false,
+              }
+            : item,
+        ),
+        setFavorite: favoriteFixture
+          ? async (id, isFavorite) => {
+              await new Promise((resolve) => setTimeout(resolve, 200));
+              if (favoriteFixture === 'error')
+                throw new Error('Favoriten konnten nicht gespeichert werden.');
+              setFavorites((current) => ({ ...current, [id]: isFavorite }));
+            }
+          : undefined,
         notice,
         setNotice,
         categories: mockCategories,
@@ -43,9 +71,12 @@ export function TestRoot() {
   const location = useLocation();
   return (
     <main className={styles.main}>
+      <ThemeToggle />
       <output aria-label="Aktuelle Route">{location.pathname}</output>
       <MockOwnerItemsProvider>
-        <Outlet />
+        <section className={workspaceStyles.workspace}>
+          <Outlet />
+        </section>
       </MockOwnerItemsProvider>
     </main>
   );

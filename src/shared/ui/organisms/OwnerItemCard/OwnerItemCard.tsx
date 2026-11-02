@@ -1,4 +1,4 @@
-import { Badge, Button } from '@/shared/ui/atoms';
+import { Badge, Button, IconButton } from '@/shared/ui/atoms';
 import styles from './OwnerItemCard.module.css';
 
 interface OwnerItemCardProps {
@@ -8,6 +8,7 @@ interface OwnerItemCardProps {
     city: string;
     pricePerDay: string;
     isPublished: boolean;
+    isFavorite?: boolean;
     category: { name: string };
     images: { id: string; url: string; order: number }[];
   };
@@ -16,6 +17,8 @@ interface OwnerItemCardProps {
   onUnpublish: (id: string) => void;
   onPublish?: (id: string) => void;
   busy?: boolean;
+  favoriteBusy?: boolean;
+  onFavoriteToggle?: (id: string, isFavorite: boolean) => void;
 }
 
 export function OwnerItemCard({
@@ -25,6 +28,8 @@ export function OwnerItemCard({
   onUnpublish,
   onPublish,
   busy = false,
+  favoriteBusy = false,
+  onFavoriteToggle,
 }: OwnerItemCardProps) {
   const cover = [...item.images].sort((a, b) => a.order - b.order)[0];
   return (
@@ -38,6 +43,39 @@ export function OwnerItemCard({
         <Badge className={styles.status} variant={item.isPublished ? 'success' : 'neutral'}>
           {item.isPublished ? 'Veröffentlicht' : 'Nicht veröffentlicht'}
         </Badge>
+        <IconButton
+          className={styles.favorite}
+          label={
+            !onFavoriteToggle
+              ? `${item.title}: Favoriten sind bald verfügbar.`
+              : !item.isPublished && !item.isFavorite
+                ? `${item.title}: Zum Favorisieren zuerst veröffentlichen.`
+                : item.isFavorite
+                  ? `${item.title} aus Favoriten entfernen`
+                  : `${item.title} zu Favoriten hinzufügen`
+          }
+          aria-pressed={onFavoriteToggle ? Boolean(item.isFavorite) : undefined}
+          aria-busy={favoriteBusy || undefined}
+          disabled={
+            busy || favoriteBusy || !onFavoriteToggle || (!item.isPublished && !item.isFavorite)
+          }
+          onClick={() => onFavoriteToggle?.(item.id, !item.isFavorite)}
+        >
+          <svg
+            viewBox="0 0 24 24"
+            width="24"
+            height="24"
+            aria-hidden="true"
+            focusable="false"
+            fill={item.isFavorite ? 'currentColor' : 'none'}
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.5 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z" />
+          </svg>
+        </IconButton>
       </div>
       <div className={styles.body}>
         <h3 className={styles.title}>{item.title}</h3>
