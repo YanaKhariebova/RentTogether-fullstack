@@ -162,6 +162,7 @@
     object-position: calc(82% + 1.5cm) center;
   }
   .content {
+    margin-left: 200px;
     width: calc(43% + 1.5cm);
     max-width: calc(610px + 1.5cm);
   }
