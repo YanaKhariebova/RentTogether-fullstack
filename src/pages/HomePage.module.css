@@ -55,6 +55,7 @@
   line-height: 1.5;
   letter-spacing: 0.06em;
   font-weight: 700;
+  animation: hero-headline-reveal 900ms cubic-bezier(0.16, 1, 0.3, 1) 2900ms both;
 }
 .hero h1 {
   font-size: clamp(2rem, 4.1vw, 3.25rem);
@@ -64,12 +65,33 @@
   margin: 24px 0 20px;
   text-wrap: balance;
 }
+.headlineLead,
+.promise {
+  display: block;
+  animation: hero-headline-reveal 1300ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.headlineLead {
+  animation-delay: 160ms;
+}
+
+@keyframes hero-headline-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 .hero p {
   color: #f1f5f2;
   font-size: clamp(1rem, 1.3vw, 1.125rem);
   line-height: 1.6;
   max-width: 440px;
   margin: 0;
+  animation: hero-headline-reveal 900ms cubic-bezier(0.16, 1, 0.3, 1) 2900ms both;
 }
 .actions {
   display: flex;
@@ -143,10 +165,10 @@
 }
 
 .promise {
-  display: block;
   margin-top: 12px;
   color: var(--color-accent);
   text-wrap: balance;
+  animation-delay: 1460ms;
 }
 @media (min-width: 1024px) {
   .hero h1 {
@@ -186,7 +208,12 @@
   transition-duration: 90ms;
 }
 @media (prefers-reduced-motion: reduce) {
-  .actions a {
+  .actions a,
+  .eyebrow,
+  .headlineLead,
+  .promise,
+  .hero p {
+    animation: none;
     transition: none;
   }
   .actions a:hover,
