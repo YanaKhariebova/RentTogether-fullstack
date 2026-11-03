@@ -1,3 +1,4 @@
+import { useEffect, useMemo } from 'react';
 import { Badge, Button, Spinner } from '@/shared/ui/atoms';
 import { useNavigate } from '@tanstack/react-router';
 import { useMyRentalsQuery } from '../../api/useMyRentalsQuery';
@@ -56,13 +57,20 @@ export function BookingList({ view }: BookingListProps) {
   const cancelBooking = useCancelBookingMutation();
   const createConversation = useCreateConversationMutation();
   const navigate = useNavigate();
-  const sourceBookings = isRentals
-    ? (rentalsQuery.data?.bookings ?? [])
-    : (incomingQuery.data?.bookings ?? []);
+  const sourceBookings = useMemo(
+    () => (isRentals ? (rentalsQuery.data?.bookings ?? []) : (incomingQuery.data?.bookings ?? [])),
+    [isRentals, rentalsQuery.data, incomingQuery.data],
+  );
   // The authenticated API already separates rentals from incoming requests.
   const actionError = isRentals
     ? (cancelBooking.error ?? createConversation.error)
     : (ownerStatus.error ?? createConversation.error);
+
+  useEffect(() => {
+    const id = window.location.hash.slice(1);
+    if (!sourceBookings.some((booking) => id === `booking-${booking.id}`)) return;
+    document.getElementById(id)?.scrollIntoView({ block: 'center' });
+  }, [sourceBookings]);
 
   return (
     <section className={styles.section} aria-labelledby={`${view}-title`}>
@@ -91,7 +99,7 @@ export function BookingList({ view }: BookingListProps) {
       ) : (
         <ul className={styles.list}>
           {sourceBookings.map((booking) => (
-            <li key={booking.id} className={styles.card}>
+            <li key={booking.id} id={`booking-${booking.id}`} className={styles.card}>
               <div className={styles.cardHeader}>
                 <div>
                   <h2>{booking.itemTitle}</h2>

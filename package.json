@@ -14,7 +14,8 @@
     "format:check": "prettier --check .",
     "test:ui": "playwright test",
     "test:auth": "npm --prefix server run db:generate && tsc --project tsconfig.auth.json && playwright test --config playwright.auth.config.ts",
-    "test:items": "node --test src/features/items/model/*.test.mjs"
+    "test:items": "node --test src/features/items/model/*.test.mjs",
+    "test:notifications": "node --test src/features/notifications/model/*.test.mjs"
   },
   "dependencies": {
     "@clerk/localizations": "^4.24.3",
