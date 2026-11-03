@@ -6,7 +6,15 @@ export function createNotificationsService(prisma: NotificationsDatabase) {
   return {
     async list(userId: string, cursor?: string, limit = 20) {
       const notifications = await prisma.notification.findMany({
-        where: { userId },
+        where: {
+          userId,
+          booking: {
+            OR: [
+              { renterId: userId, renterArchivedAt: null },
+              { item: { ownerId: userId }, ownerArchivedAt: null },
+            ],
+          },
+        },
         orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
         take: limit + 1,
         ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
@@ -33,7 +41,18 @@ export function createNotificationsService(prisma: NotificationsDatabase) {
     },
 
     async unreadCount(userId: string) {
-      return prisma.notification.count({ where: { userId, readAt: null } });
+      return prisma.notification.count({
+        where: {
+          userId,
+          readAt: null,
+          booking: {
+            OR: [
+              { renterId: userId, renterArchivedAt: null },
+              { item: { ownerId: userId }, ownerArchivedAt: null },
+            ],
+          },
+        },
+      });
     },
 
     async markRead(userId: string, ids: string[]) {

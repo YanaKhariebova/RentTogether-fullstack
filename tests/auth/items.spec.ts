@@ -459,5 +459,40 @@ test('two real accounts book a published item, preserve snapshot after edit and 
   );
   expect(preserved.pricePerDay).toBe('15.50');
   expect(preserved.totalPrice).toBe('46.50');
+  await page
+    .getByRole('button', { name: title + ': aus meinem Verlauf entfernen', exact: true })
+    .click();
+  const removal = page.getByRole('dialog', {
+    name: 'Anfrage aus deinem Verlauf entfernen?',
+    exact: true,
+  });
+  await expect(removal).toContainText(
+    'Für die andere Person und im Chat bleibt die Buchung erhalten.',
+  );
+  await removal.getByRole('button', { name: 'Abbrechen', exact: true }).click();
+  await expect(page.getByRole('heading', { name: title, exact: true })).toBeVisible();
+  await page
+    .getByRole('button', { name: title + ': aus meinem Verlauf entfernen', exact: true })
+    .click();
+  await removal.getByRole('button', { name: 'Aus meinem Verlauf entfernen', exact: true }).click();
+  await expect(
+    page.getByText('Die Anfrage wurde aus deinem Verlauf entfernt.', { exact: true }),
+  ).toBeVisible();
+  await expect(page.getByRole('heading', { name: title, exact: true })).toHaveCount(0);
+  await page.reload();
+  await expect(page.getByRole('heading', { name: 'Meine Mieten', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: title, exact: true })).toHaveCount(0);
+  await clerk.signOut({ page });
+  await clerk.signIn({ page, emailAddress: emails[0] });
+  await page.goto('/account/bookings/incoming');
+  await expect(page.getByRole('heading', { name: title, exact: true })).toBeVisible();
+  await page
+    .getByRole('button', { name: title + ': aus meinem Verlauf entfernen', exact: true })
+    .click();
+  await page
+    .getByRole('dialog', { name: 'Anfrage aus deinem Verlauf entfernen?', exact: true })
+    .getByRole('button', { name: 'Aus meinem Verlauf entfernen', exact: true })
+    .click();
+  await expect(page.getByRole('heading', { name: title, exact: true })).toHaveCount(0);
   await clerk.signOut({ page });
 });

@@ -1292,3 +1292,135 @@ test('owner favorite DTO is user-specific, survives hiding, supports removal and
   assert.equal(deleted.status, 204);
   assert.equal(await prisma.favorite.count({ where: { itemId: item.id } }), 0);
 });
+
+test('personal booking history only hides terminal bookings for the caller and preserves the other participant, chat and snapshots', async () => {
+  const item = await createItemFixture();
+  const renter = await createItemFixture();
+  const outsider = await createItemFixture();
+  const ids: string[] = [];
+  const list = async (who: typeof item, kind: string) => {
+    const response = await fetch(base + '/api/bookings/' + kind, { headers: headersFor(who) });
+    assert.equal(response.status, 200);
+    return (await response.json()).bookings as { id: string }[];
+  };
+  try {
+    for (const status of [
+      'PENDING',
+      'APPROVED',
+      'REJECTED',
+      'ACTIVE',
+      'COMPLETED',
+      'CANCELLED',
+    ] as const) {
+      const booking = await prisma.booking.create({
+        data: {
+          itemId: item.id,
+          renterId: renter.ownerId,
+          status,
+          pickupDate: new Date('2027-01-10T00:00:00Z'),
+          returnDate: new Date('2027-01-12T00:00:00Z'),
+          pricePerDaySnapshot: '15.50',
+          totalPrice: '31.00',
+        },
+      });
+      ids.push(booking.id);
+      const archive = (who?: typeof item) =>
+        fetch(base + '/api/bookings/' + booking.id + '/history', {
+          method: 'DELETE',
+          ...(who ? { headers: headersFor(who) } : {}),
+        });
+      assert.equal((await archive()).status, 401);
+      assert.equal((await archive(outsider)).status, 404);
+      if (status !== 'COMPLETED' && status !== 'CANCELLED') {
+        assert.equal((await archive(item)).status, 409);
+        assert.equal((await archive(renter)).status, 409);
+        const saved = await prisma.booking.findUniqueOrThrow({ where: { id: booking.id } });
+        assert.equal(saved.renterArchivedAt, null);
+        assert.equal(saved.ownerArchivedAt, null);
+        continue;
+      }
+      const conversation = await prisma.conversation.create({
+        data: {
+          bookingId: booking.id,
+          messages: {
+            create: { senderId: renter.ownerId, body: 'History must remain available.' },
+          },
+        },
+      });
+      await prisma.notification.createMany({
+        data: [
+          { bookingId: booking.id, userId: item.ownerId, type: 'BOOKING_REQUEST_CREATED' },
+          { bookingId: booking.id, userId: renter.ownerId, type: 'BOOKING_COMPLETED' },
+        ],
+      });
+      assert.equal((await archive(renter)).status, 204);
+      const firstArchivedAt = (
+        await prisma.booking.findUniqueOrThrow({ where: { id: booking.id } })
+      ).renterArchivedAt;
+      assert.equal((await archive(renter)).status, 204);
+      assert.equal(
+        (await list(renter, 'my-rentals')).some((row) => row.id === booking.id),
+        false,
+      );
+      assert.equal(
+        (await list(item, 'incoming')).some((row) => row.id === booking.id),
+        true,
+      );
+      const renterNotifications = await fetch(base + '/api/me/notifications', {
+        headers: headersFor(renter),
+      });
+      assert.equal(
+        (await renterNotifications.json()).notifications.some(
+          (row: { booking: { id: string } }) => row.booking.id === booking.id,
+        ),
+        false,
+      );
+      const ownerNotifications = await fetch(base + '/api/me/notifications', {
+        headers: headersFor(item),
+      });
+      assert.equal(
+        (await ownerNotifications.json()).notifications.some(
+          (row: { booking: { id: string } }) => row.booking.id === booking.id,
+        ),
+        true,
+      );
+      const count = await fetch(base + '/api/me/notifications/unread-count', {
+        headers: headersFor(renter),
+      });
+      assert.equal((await count.json()).unreadCount, 0);
+      assert.equal((await archive(item)).status, 204);
+      assert.equal((await archive(item)).status, 204);
+      assert.equal(
+        (await list(item, 'incoming')).some((row) => row.id === booking.id),
+        false,
+      );
+      const saved = await prisma.booking.findUniqueOrThrow({ where: { id: booking.id } });
+      assert.equal(saved.status, status);
+      assert.equal(saved.totalPrice.toFixed(2), '31.00');
+      assert.equal(saved.renterArchivedAt?.getTime(), firstArchivedAt?.getTime());
+      assert.ok(saved.ownerArchivedAt);
+      assert.equal(await prisma.message.count({ where: { conversationId: conversation.id } }), 1);
+      assert.equal(await prisma.notification.count({ where: { bookingId: booking.id } }), 2);
+    }
+    assert.equal(
+      (
+        await fetch(base + '/api/bookings/not-a-uuid/history', {
+          method: 'DELETE',
+          headers: headersFor(item),
+        })
+      ).status,
+      400,
+    );
+    assert.equal(
+      (
+        await fetch(base + '/api/bookings/' + randomUUID() + '/history', {
+          method: 'DELETE',
+          headers: headersFor(item),
+        })
+      ).status,
+      404,
+    );
+  } finally {
+    await prisma.booking.deleteMany({ where: { id: { in: ids } } });
+  }
+});
