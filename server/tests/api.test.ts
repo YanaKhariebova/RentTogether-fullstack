@@ -34,6 +34,7 @@ const prisma = {
   | 'item'
   | 'booking'
   | 'favorite'
+  | 'hiddenConversation'
   | 'notification'
   | 'conversation'
   | 'message'

@@ -58,6 +58,12 @@ export function MessageComposer({
         value={body}
         disabled={disabled || isSending}
         onChange={(event) => setBody(event.target.value)}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) {
+            event.preventDefault();
+            void submitMessage();
+          }
+        }}
       />
       <div className={styles.actions}>
         <span aria-live="polite">{body.length}/2000</span>
