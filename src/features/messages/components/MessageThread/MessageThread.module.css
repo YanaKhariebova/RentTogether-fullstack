@@ -183,14 +183,31 @@
 .empty {
   display: grid;
   min-height: clamp(240px, 42vh, 480px);
+  align-content: center;
   margin: 0;
+  gap: 6px;
   place-items: center;
   padding: 24px;
-  border: 1px dashed var(--color-border);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  background: var(--color-primary-soft);
+  background: var(--color-surface);
   color: var(--color-muted);
   text-align: center;
+}
+
+.empty svg {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 6px;
+  fill: var(--color-primary-soft);
+  stroke: var(--color-emphasis);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+}
+
+.empty strong {
+  color: var(--color-text);
 }
 
 .actionError {
