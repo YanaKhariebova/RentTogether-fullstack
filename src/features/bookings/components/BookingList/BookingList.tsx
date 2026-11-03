@@ -1,12 +1,13 @@
-import { useEffect, useMemo } from 'react';
-import { Badge, Button, Spinner } from '@/shared/ui/atoms';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
+import { Badge, Button, IconButton, Spinner } from '@/shared/ui/atoms';
 import { useNavigate } from '@tanstack/react-router';
 import { useMyRentalsQuery } from '../../api/useMyRentalsQuery';
 import { useIncomingBookingsQuery } from '../../api/useIncomingBookingsQuery';
 import { useOwnerBookingStatusMutation } from '../../api/useOwnerBookingStatusMutation';
 import { useCancelBookingMutation } from '../../api/useCancelBookingMutation';
 import { useCreateConversationMutation } from '@/features/messages/api/useConversations';
-import type { BookingStatus } from '../../types/booking';
+import { useArchiveBookingMutation } from '../../api/useArchiveBookingMutation';
+import type { Booking, BookingStatus } from '../../types/booking';
 import styles from './BookingList.module.css';
 
 type BookingListProps = {
@@ -57,6 +58,15 @@ export function BookingList({ view }: BookingListProps) {
   const cancelBooking = useCancelBookingMutation();
   const createConversation = useCreateConversationMutation();
   const navigate = useNavigate();
+  const archive = useArchiveBookingMutation();
+  const [selected, setSelected] = useState<Booking | null>(null);
+  const [notice, setNotice] = useState('');
+  const confirmation = useRef<HTMLDialogElement>(null);
+  const dialogId = useId();
+  useEffect(() => {
+    if (selected && !confirmation.current?.open) confirmation.current?.showModal();
+    if (!selected && confirmation.current?.open) confirmation.current.close();
+  }, [selected]);
   const sourceBookings = useMemo(
     () => (isRentals ? (rentalsQuery.data?.bookings ?? []) : (incomingQuery.data?.bookings ?? [])),
     [isRentals, rentalsQuery.data, incomingQuery.data],
@@ -80,6 +90,45 @@ export function BookingList({ view }: BookingListProps) {
       </div>
 
       {actionError && <p role="alert">{actionError.message}</p>}
+      {notice && <p role="status">{notice}</p>}
+      <dialog
+        ref={confirmation}
+        className={styles.dialog}
+        aria-labelledby={dialogId + '-title'}
+        aria-describedby={dialogId + '-description'}
+        onCancel={(event) => {
+          event.preventDefault();
+          if (!archive.isPending) setSelected(null);
+        }}
+      >
+        <h2 id={dialogId + '-title'}>Anfrage aus deinem Verlauf entfernen?</h2>
+        <p id={dialogId + '-description'}>
+          „{selected?.itemTitle}“ wird nur aus deinem Verlauf und deinen zugehörigen
+          Benachrichtigungen entfernt. Für die andere Person und im Chat bleibt die Buchung
+          erhalten.
+        </p>
+        {archive.error && <p role="alert">{archive.error.message}</p>}
+        <div className={styles.actions}>
+          <Button autoFocus disabled={archive.isPending} onClick={() => setSelected(null)}>
+            Abbrechen
+          </Button>
+          <Button
+            variant="danger"
+            loading={archive.isPending}
+            onClick={() => {
+              if (!selected) return;
+              archive.mutate(selected.id, {
+                onSuccess: () => {
+                  setSelected(null);
+                  setNotice('Die Anfrage wurde aus deinem Verlauf entfernt.');
+                },
+              });
+            }}
+          >
+            Aus meinem Verlauf entfernen
+          </Button>
+        </div>
+      </dialog>
 
       {(isRentals ? rentalsQuery.isPending : incomingQuery.isPending) ? (
         <div className={styles.empty}>
@@ -109,9 +158,37 @@ export function BookingList({ view }: BookingListProps) {
                       : `Anfrage von ${booking.renterName}`}
                   </p>
                 </div>
-                <Badge variant={getBadgeVariant(booking.status)}>
-                  {statusLabels[booking.status]}
-                </Badge>
+                <div className={styles.statusActions}>
+                  <Badge variant={getBadgeVariant(booking.status)}>
+                    {statusLabels[booking.status]}
+                  </Badge>
+                  {(booking.status === 'COMPLETED' || booking.status === 'CANCELLED') && (
+                    <IconButton
+                      label={booking.itemTitle + ': aus meinem Verlauf entfernen'}
+                      className={styles.archiveButton}
+                      disabled={archive.isPending}
+                      onClick={() => {
+                        archive.reset();
+                        setNotice('');
+                        setSelected(booking);
+                      }}
+                    >
+                      <svg
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.7"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        aria-hidden="true"
+                      >
+                        <path d="M3 6h18M9 6V4h6v2M5 6l1 14h12l1-14M10 10v6M14 10v6" />
+                      </svg>
+                    </IconButton>
+                  )}
+                </div>
               </div>
 
               <dl className={styles.details}>

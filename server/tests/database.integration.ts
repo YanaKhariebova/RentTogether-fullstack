@@ -40,13 +40,28 @@ after(async () => {
   await prisma.$disconnect();
 });
 
-test('migration and repeated seed create four categories with UUID IDs', async () => {
+test('repeated seed adds the full rental catalog without duplicates and preserves original category IDs', async () => {
   const response = await fetch(`${base}/api/categories`);
   assert.equal(response.status, 200);
   const { categories } = await response.json();
-  assert.equal(categories.length, 4);
-  assert.equal(new Set(categories.map((category: { name: string }) => category.name)).size, 4);
+  assert.equal(categories.length, 27);
+  assert.equal(new Set(categories.map((category: { name: string }) => category.name)).size, 27);
   for (const category of categories) assert.match(category.id, /^[0-9a-f-]{36}$/i);
+  for (const [name, id] of [
+    ['Elektronik', '10000000-0000-4000-8000-000000000001'],
+    ['Werkzeug', '10000000-0000-4000-8000-000000000002'],
+    ['Sport & Freizeit', '10000000-0000-4000-8000-000000000003'],
+    ['Haushalt & Garten', '10000000-0000-4000-8000-000000000004'],
+  ])
+    assert.equal(categories.find((category: { name: string }) => category.name === name)?.id, id);
+  for (const name of [
+    'Foto & Video',
+    'Camping & Outdoor',
+    'Baby & Kinder',
+    'Tierbedarf',
+    'Sonstiges',
+  ])
+    assert.ok(categories.some((category: { name: string }) => category.name === name));
 });
 test('profile survives a fresh database connection and subsequent identity sync', async () => {
   const headers = { 'x-test-subject': ownerSubject, 'Content-Type': 'application/json' };
