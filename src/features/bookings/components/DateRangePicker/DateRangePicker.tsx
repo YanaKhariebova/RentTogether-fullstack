@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { DayPicker, type DateRange } from 'react-day-picker';
 import { de } from 'react-day-picker/locale';
 import 'react-day-picker/style.css';
@@ -14,7 +14,7 @@ type DateRangePickerProps = {
   onSubmit: (dates: { pickupDate: string; returnDate: string }) => Promise<void>;
   isSubmitting?: boolean;
   errorMessage?: string | null;
-  isSubmitted?: boolean;
+  onDatesChange?: () => void;
 };
 
 function toLocalDate(date: string) {
@@ -42,14 +42,35 @@ export function DateRangePicker({
   onSubmit,
   isSubmitting = false,
   errorMessage,
-  isSubmitted = false,
+  onDatesChange,
 }: DateRangePickerProps) {
   const [selectedRange, setSelectedRange] = useState<DateRange>();
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const [sentRanges, setSentRanges] = useState<string[]>([]);
+  const [sending, setSending] = useState(false);
+  const submitting = useRef(false);
+  const busy = sending || isSubmitting;
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const pickupDate = selectedRange?.from ? toDateString(selectedRange.from) : '';
   const returnDate = selectedRange?.to ? toDateString(selectedRange.to) : '';
+  const rangeKey = pickupDate + '/' + returnDate;
+  const isSubmitted = sentRanges.includes(rangeKey);
+  async function submit() {
+    if (submitting.current || busy || isSubmitted || !pickupDate || !returnDate || totalDays <= 0)
+      return;
+    submitting.current = true;
+    setSending(true);
+    try {
+      await onSubmit({ pickupDate, returnDate });
+      setSentRanges((current) => [...current, rangeKey]);
+    } catch {
+      // The mutation supplies the error message; unsuccessful requests remain retryable.
+    } finally {
+      submitting.current = false;
+      setSending(false);
+    }
+  }
   const unavailableDateRanges = unavailableRanges.map((range) => ({
     from: toLocalDate(range.pickupDate),
     // The return day is available for the next pickup and is not charged.
@@ -90,7 +111,14 @@ export function DateRangePicker({
           variant="secondary"
           aria-expanded={isCalendarOpen}
           aria-controls="booking-calendar"
-          onClick={() => setIsCalendarOpen((current) => !current)}
+          disabled={busy}
+          onClick={() => {
+            if (!isCalendarOpen && isSubmitted) {
+              setSelectedRange(undefined);
+              onDatesChange?.();
+            }
+            setIsCalendarOpen((current) => !current);
+          }}
         >
           <span>
             {isCalendarOpen
@@ -109,10 +137,10 @@ export function DateRangePicker({
           )}
         </Button>
         <Button
-          disabled={!pickupDate || !returnDate || totalDays === 0 || isSubmitting}
-          onClick={() => void onSubmit({ pickupDate, returnDate })}
+          disabled={!pickupDate || !returnDate || totalDays <= 0 || busy || isSubmitted}
+          onClick={() => void submit()}
         >
-          {isSubmitting ? 'Anfrage wird gesendet…' : 'Anfrage senden'}
+          {busy ? 'Anfrage wird gesendet…' : isSubmitted ? 'Anfrage gesendet' : 'Anfrage senden'}
         </Button>
       </div>
 
@@ -124,6 +152,7 @@ export function DateRangePicker({
             selected={selectedRange}
             onSelect={(range) => {
               setSelectedRange(range);
+              onDatesChange?.();
 
               if (range?.from && range.to && range.to.getTime() > range.from.getTime()) {
                 setIsCalendarOpen(false);

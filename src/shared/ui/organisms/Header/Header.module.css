@@ -280,3 +280,37 @@
     display: none;
   }
 }
+
+/* Booking updates only; Nachrichten keeps its own independent badge. */
+.bookingBadge {
+  position: absolute;
+  top: -3px;
+  right: -8px;
+  pointer-events: none;
+}
+.mobile .bookingBadge {
+  top: 1px;
+  right: calc(50% - 32px);
+}
+.panel .bookingBadge {
+  position: static;
+  margin-left: auto;
+}
+.menuButton {
+  position: relative;
+}
+.menuBadge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  pointer-events: none;
+}
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

@@ -404,6 +404,7 @@ test('two real accounts book a published item, preserve snapshot after edit and 
   await page.locator(`[data-day="${month}-13"]:not([data-outside]) button`).click();
   await page.getByRole('button', { name: 'Anfrage senden', exact: true }).click();
   await expect(page.getByText('Deine Anfrage wurde gesendet.', { exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Anfrage gesendet', exact: true })).toBeDisabled();
   await page.goto('/account/bookings/my-rentals');
   await expect(page.getByRole('heading', { name: title, exact: true })).toBeVisible();
   await expect(page.getByText('Ausstehend', { exact: true })).toBeVisible();
@@ -422,6 +423,19 @@ test('two real accounts book a published item, preserve snapshot after edit and 
     .getByRole('button', { name: 'Ausblenden', exact: true })
     .click();
   await expect(page.getByText('Deine Anzeige wurde ausgeblendet.', { exact: true })).toBeVisible();
+  expect((await apiRequest(page, '/me/notifications/unread-count')).body.unreadCount).toBe(1);
+  const requestsLink = page
+    .getByRole('navigation', { name: 'Hauptnavigation', exact: true })
+    .getByRole('link', { name: 'Anfragen', exact: true });
+  await expect(requestsLink).toContainText('1');
+  await page.goto('/account/bookings');
+  await expect(page.getByRole('heading', { name: 'Neue Mietanfrage', exact: true })).toBeVisible();
+  await expect(page.getByText(title, { exact: true })).toBeVisible();
+  await page
+    .getByRole('button', { name: 'Neue Mietanfrage: als gelesen markieren', exact: true })
+    .click();
+  await expect(requestsLink).toHaveText('Anfragen');
+  expect((await apiRequest(page, '/me/notifications/unread-count')).body.unreadCount).toBe(0);
   await page.goto('/account/bookings/incoming');
   const card = page
     .locator('li')
