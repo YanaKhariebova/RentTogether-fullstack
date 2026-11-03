@@ -248,7 +248,7 @@ export function CatalogPage() {
                   </button>
                 ))}
               </div>
-              {categories.length > 4 && (
+              {categories.length > 0 && (
                 <Button
                   variant="secondary"
                   className={styles.expandButton}
@@ -323,7 +323,7 @@ export function CatalogPage() {
                   ) : null}
                 </div>
               </div>
-              {matchingCities.length > 4 && (
+              {matchingCities.length >= 4 && (
                 <Button
                   variant="secondary"
                   className={styles.expandButton}

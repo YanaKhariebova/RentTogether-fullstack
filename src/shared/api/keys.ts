@@ -1,5 +1,8 @@
 import type { ItemsQuery } from './types';
 export const apiKeys = {
+  notifications: (userId: string) => ['notifications', userId] as const,
+  notificationList: (userId: string) => ['notifications', userId, 'list'] as const,
+  notificationUnread: (userId: string) => ['notifications', userId, 'unread-count'] as const,
   categories: ['categories'] as const,
   items: ['items'] as const,
   catalogCities: ['items', 'cities'] as const,

@@ -200,3 +200,70 @@ test('sidebar limits categories and cities, expands them and searches the full c
   await searchCity.fill('');
   await expect(filters.getByRole('radio')).toHaveCount(4);
 });
+
+for (const theme of ['light', 'dark']) {
+  test(`expansion buttons remain available with four categories and cities and fit the ${theme} theme`, async ({
+    page,
+  }) => {
+    await page.addInitScript((value) => localStorage.setItem('renttogether-theme', value), theme);
+    await page.route('**/api/categories', (route) =>
+      route.fulfill({
+        json: {
+          categories: [
+            category,
+            ...['Haushalt & Garten', 'Sport & Freizeit', 'Werkzeug'].map((name, index) => ({
+              id: `10000000-0000-4000-8000-00000000000${index + 2}`,
+              name,
+            })),
+          ],
+        },
+      }),
+    );
+    await page.route('**/api/items/cities', (route) =>
+      route.fulfill({
+        json: {
+          cities: ['Berlin', 'Bremen', 'Dresden', 'Frankfurt'],
+        },
+      }),
+    );
+    await page.route('**/api/items?**', (route) =>
+      route.fulfill({
+        json: {
+          items: [item],
+          pagination: { page: 1, limit: 9, total: 1, totalPages: 1 },
+        },
+      }),
+    );
+    await page.goto('/catalog');
+    const filters = page.getByRole('complementary', { name: 'Katalogfilter' });
+    const categoriesButton = filters.getByRole('button', {
+      name: 'Alle Kategorien anzeigen',
+      exact: true,
+    });
+    await expect(categoriesButton).toBeVisible();
+    for (const button of [
+      categoriesButton,
+      filters.getByRole('button', { name: 'Alle Städte anzeigen', exact: true }),
+    ]) {
+      await expect(button).toHaveCSS(
+        'background-color',
+        theme === 'dark' ? 'rgb(28, 36, 35)' : 'rgb(232, 242, 238)',
+      );
+      await expect(button).toHaveCSS(
+        'color',
+        theme === 'dark' ? 'rgb(121, 211, 171)' : 'rgb(36, 92, 60)',
+      );
+      await button.hover();
+      await expect(button).toHaveCSS(
+        'background-color',
+        theme === 'dark' ? 'rgb(20, 23, 25)' : 'rgb(245, 248, 244)',
+      );
+    }
+    const citiesButton = filters.getByRole('button', { name: 'Alle Städte anzeigen', exact: true });
+    await citiesButton.click();
+    await expect(
+      filters.getByRole('button', { name: 'Weniger Städte anzeigen', exact: true }),
+    ).toHaveAttribute('aria-expanded', 'true');
+    await expect(filters.getByRole('radio')).toHaveCount(4);
+  });
+}

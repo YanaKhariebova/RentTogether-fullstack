@@ -26,6 +26,7 @@ import { Route as AccountItemsRouteImport } from './routes/account.items'
 import { Route as AccountMessagesRouteImport } from './routes/account.messages'
 import { Route as AccountProfileRouteImport } from './routes/account.profile'
 import { Route as ItemsItemIdRouteImport } from './routes/items.$itemId'
+import { Route as AccountBookingsIndexRouteImport } from './routes/account.bookings.index'
 import { Route as AccountBookingsIncomingRouteImport } from './routes/account.bookings.incoming'
 import { Route as AccountBookingsMyRentalsRouteImport } from './routes/account.bookings.my-rentals'
 import { Route as AccountItemsIndexRouteImport } from './routes/account.items.index'
@@ -119,6 +120,11 @@ const ItemsItemIdRoute = ItemsItemIdRouteImport.update({
   path: '/items/$itemId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AccountBookingsIndexRoute = AccountBookingsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AccountBookingsRoute,
+} as any)
 const AccountBookingsIncomingRoute = AccountBookingsIncomingRouteImport.update({
   id: '/incoming',
   path: '/incoming',
@@ -179,6 +185,7 @@ export interface FileRoutesByFullPath {
   '/account/bookings/my-rentals': typeof AccountBookingsMyRentalsRoute
   '/account/items/new': typeof AccountItemsNewRoute
   '/account/messages/$conversationId': typeof AccountMessagesConversationIdRoute
+  '/account/bookings/': typeof AccountBookingsIndexRoute
   '/account/items/': typeof AccountItemsIndexRoute
   '/account/messages/': typeof AccountMessagesIndexRoute
   '/account/items/$itemId/edit': typeof AccountItemsItemIdEditRoute
@@ -195,7 +202,6 @@ export interface FileRoutesByTo {
   '/sign-up': typeof SignUpRoute
   '/so-funktionierts': typeof SoFunktioniertsRoute
   '/ueber-uns': typeof UeberUnsRoute
-  '/account/bookings': typeof AccountBookingsRouteWithChildren
   '/account/favorites': typeof AccountFavoritesRoute
   '/account/profile': typeof AccountProfileRoute
   '/items/$itemId': typeof ItemsItemIdRoute
@@ -203,6 +209,7 @@ export interface FileRoutesByTo {
   '/account/bookings/my-rentals': typeof AccountBookingsMyRentalsRoute
   '/account/items/new': typeof AccountItemsNewRoute
   '/account/messages/$conversationId': typeof AccountMessagesConversationIdRoute
+  '/account/bookings': typeof AccountBookingsIndexRoute
   '/account/items': typeof AccountItemsIndexRoute
   '/account/messages': typeof AccountMessagesIndexRoute
   '/account/items/$itemId/edit': typeof AccountItemsItemIdEditRoute
@@ -230,6 +237,7 @@ export interface FileRoutesById {
   '/account/bookings/my-rentals': typeof AccountBookingsMyRentalsRoute
   '/account/items/new': typeof AccountItemsNewRoute
   '/account/messages/$conversationId': typeof AccountMessagesConversationIdRoute
+  '/account/bookings/': typeof AccountBookingsIndexRoute
   '/account/items/': typeof AccountItemsIndexRoute
   '/account/messages/': typeof AccountMessagesIndexRoute
   '/account/items/$itemId/edit': typeof AccountItemsItemIdEditRoute
@@ -258,6 +266,7 @@ export interface FileRouteTypes {
     | '/account/bookings/my-rentals'
     | '/account/items/new'
     | '/account/messages/$conversationId'
+    | '/account/bookings/'
     | '/account/items/'
     | '/account/messages/'
     | '/account/items/$itemId/edit'
@@ -274,7 +283,6 @@ export interface FileRouteTypes {
     | '/sign-up'
     | '/so-funktionierts'
     | '/ueber-uns'
-    | '/account/bookings'
     | '/account/favorites'
     | '/account/profile'
     | '/items/$itemId'
@@ -282,6 +290,7 @@ export interface FileRouteTypes {
     | '/account/bookings/my-rentals'
     | '/account/items/new'
     | '/account/messages/$conversationId'
+    | '/account/bookings'
     | '/account/items'
     | '/account/messages'
     | '/account/items/$itemId/edit'
@@ -308,6 +317,7 @@ export interface FileRouteTypes {
     | '/account/bookings/my-rentals'
     | '/account/items/new'
     | '/account/messages/$conversationId'
+    | '/account/bookings/'
     | '/account/items/'
     | '/account/messages/'
     | '/account/items/$itemId/edit'
@@ -449,6 +459,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ItemsItemIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/account/bookings/': {
+      id: '/account/bookings/'
+      path: '/'
+      fullPath: '/account/bookings/'
+      preLoaderRoute: typeof AccountBookingsIndexRouteImport
+      parentRoute: typeof AccountBookingsRoute
+    }
     '/account/bookings/incoming': {
       id: '/account/bookings/incoming'
       path: '/incoming'
@@ -504,11 +521,13 @@ declare module '@tanstack/react-router' {
 interface AccountBookingsRouteChildren {
   AccountBookingsIncomingRoute: typeof AccountBookingsIncomingRoute
   AccountBookingsMyRentalsRoute: typeof AccountBookingsMyRentalsRoute
+  AccountBookingsIndexRoute: typeof AccountBookingsIndexRoute
 }
 
 const AccountBookingsRouteChildren: AccountBookingsRouteChildren = {
   AccountBookingsIncomingRoute: AccountBookingsIncomingRoute,
   AccountBookingsMyRentalsRoute: AccountBookingsMyRentalsRoute,
+  AccountBookingsIndexRoute: AccountBookingsIndexRoute,
 }
 
 const AccountBookingsRouteWithChildren = AccountBookingsRoute._addFileChildren(

@@ -139,19 +139,16 @@ export function ItemDetailPage() {
               </div>
             ) : (
               <DateRangePicker
+                key={item.id}
                 pricePerDay={item.pricePerDay}
                 unavailableRanges={unavailableRanges}
                 isSubmitting={createBooking.isPending}
-                isSubmitted={createBooking.isSuccess}
+                onDatesChange={() => createBooking.reset()}
                 errorMessage={
                   createBooking.error instanceof Error ? createBooking.error.message : null
                 }
                 onSubmit={async (dates) => {
-                  try {
-                    await createBooking.mutateAsync({ itemId: item.id, ...dates });
-                  } catch {
-                    // The mutation's error is shown in the booking form above.
-                  }
+                  await createBooking.mutateAsync({ itemId: item.id, ...dates });
                 }}
               />
             )}

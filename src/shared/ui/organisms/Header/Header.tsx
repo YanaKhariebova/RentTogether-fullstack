@@ -6,6 +6,8 @@ import { ThemeToggle } from '../../../../features/theme/ThemeToggle';
 import logo from '../../../assets/renttogether-icon.svg';
 import styles from './Header.module.css';
 import { NavigationIcon } from './NavigationIcon';
+import { useBookingNotificationCount } from '@/features/notifications/api/useBookingNotifications';
+import { NotificationBadge } from '@/features/notifications/components/NotificationBadge';
 
 const navigation = [
   { to: '/catalog', label: 'Entdecken', icon: 'search' },
@@ -28,6 +30,7 @@ const information = [
 export function Header() {
   const { isLoaded, isSignedIn } = useAuth();
   const { signOut } = useClerk();
+  const bookingNotifications = useBookingNotificationCount();
   return (
     <HeaderView
       auth={
@@ -40,6 +43,9 @@ export function Header() {
             <span>Anmelden</span>
           </Link>
         ))
+      }
+      bookingUnreadCount={
+        bookingNotifications.isError ? undefined : bookingNotifications.data?.unreadCount
       }
       signedIn={Boolean(isSignedIn)}
       authLoaded={isLoaded}
@@ -55,16 +61,27 @@ export function HeaderView({
   signedIn = false,
   authLoaded = true,
   onSignOut,
+  bookingUnreadCount,
 }: {
   auth: ReactNode;
   signedIn?: boolean;
   authLoaded?: boolean;
   onSignOut?: () => void;
+  bookingUnreadCount?: number;
 }) {
   const panel = useRef<HTMLDialogElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
   const [open, setOpen] = useState(false);
   const id = useId();
+  const bookingCount = signedIn ? bookingUnreadCount : undefined;
+  const hasBookingUpdates = typeof bookingCount === 'number' && bookingCount > 0;
+  const bookingDescription = `${id}-booking-updates`;
+  const bookingBadge = (to: string) =>
+    to === '/account/bookings' && hasBookingUpdates ? (
+      <span className={styles.bookingBadge}>
+        <NotificationBadge count={bookingCount} />
+      </span>
+    ) : null;
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const close = () => panel.current?.close();
 
@@ -99,9 +116,18 @@ export function HeaderView({
           </Link>
           <nav aria-label="Hauptnavigation" className={styles.desktop}>
             {navigation.map(({ to, label, icon }) => (
-              <Link key={to} to={to} title={label} activeProps={{ 'aria-current': 'page' }}>
+              <Link
+                key={to}
+                to={to}
+                title={label}
+                aria-describedby={
+                  to === '/account/bookings' && hasBookingUpdates ? bookingDescription : undefined
+                }
+                activeProps={{ 'aria-current': 'page' }}
+              >
                 <NavigationIcon name={icon} />
                 <span className={styles.navLabel}>{label}</span>
+                {bookingBadge(to)}
               </Link>
             ))}
           </nav>
@@ -117,6 +143,7 @@ export function HeaderView({
             aria-expanded={open}
             aria-controls={id}
             aria-haspopup="dialog"
+            aria-describedby={hasBookingUpdates ? bookingDescription : undefined}
             onClick={() => {
               panel.current?.showModal();
               setOpen(true);
@@ -133,6 +160,11 @@ export function HeaderView({
             >
               <path d="M4 6h16M4 12h16M4 18h16" />
             </svg>
+            {hasBookingUpdates && (
+              <span className={styles.menuBadge}>
+                <NotificationBadge count={bookingCount} />
+              </span>
+            )}
           </button>
         </div>
       </header>
@@ -188,9 +220,17 @@ export function HeaderView({
         >
           <Link to="/">Startseite</Link>
           {navigation.map(({ to, label, icon }) => (
-            <Link key={to} to={to} activeProps={{ 'aria-current': 'page' }}>
+            <Link
+              key={to}
+              to={to}
+              aria-describedby={
+                to === '/account/bookings' && hasBookingUpdates ? bookingDescription : undefined
+              }
+              activeProps={{ 'aria-current': 'page' }}
+            >
               <NavigationIcon name={icon} />
               <span>{label}</span>
+              {bookingBadge(to)}
             </Link>
           ))}
           <Link to="/account/items/new">Etwas verleihen</Link>
@@ -229,12 +269,31 @@ export function HeaderView({
         {navigation
           .filter(({ to }) => ['/catalog', '/account/items', '/account/bookings'].includes(to))
           .map(({ to, label, icon }) => (
-            <Link key={to} to={to} activeProps={{ 'aria-current': 'page' }}>
+            <Link
+              key={to}
+              to={to}
+              aria-describedby={
+                to === '/account/bookings' && hasBookingUpdates ? bookingDescription : undefined
+              }
+              activeProps={{ 'aria-current': 'page' }}
+            >
               <NavigationIcon name={icon} />
               <span>{label}</span>
+              {bookingBadge(to)}
             </Link>
           ))}
       </nav>
+      <span
+        id={bookingDescription}
+        className={styles.srOnly}
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+      >
+        {hasBookingUpdates
+          ? `${bookingCount} ungelesene ${bookingCount === 1 ? 'Benachrichtigung' : 'Benachrichtigungen'} zu deinen Anfragen.`
+          : ''}
+      </span>
     </>
   );
 }
