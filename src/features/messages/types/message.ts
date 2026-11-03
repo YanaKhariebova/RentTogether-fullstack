@@ -11,7 +11,15 @@ export type ConversationPreview = {
   bookingId: string;
   itemTitle: string;
   otherParticipantName: string;
+  bookingStatus: 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED' | 'ACTIVE' | 'COMPLETED';
   lastMessage: ChatMessage | null;
   unreadCount: number;
+  updatedAt: string;
+};
+
+export type Conversation = {
+  id: string;
+  bookingId: string;
+  createdAt: string;
   updatedAt: string;
 };

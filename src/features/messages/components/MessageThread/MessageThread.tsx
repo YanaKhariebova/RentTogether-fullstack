@@ -7,12 +7,9 @@ type MessageThreadProps = {
 };
 
 function formatTime(value: string) {
-  return new Intl.DateTimeFormat('de-DE', {
-    day: '2-digit',
-    month: 'short',
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(new Date(value));
+  return new Intl.DateTimeFormat('de-DE', { hour: '2-digit', minute: '2-digit' }).format(
+    new Date(value),
+  );
 }
 
 export function MessageThread({ currentUserId, messages }: MessageThreadProps) {

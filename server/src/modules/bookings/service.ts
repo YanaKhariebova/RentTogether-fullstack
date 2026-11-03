@@ -3,7 +3,10 @@ import type { PrismaClient } from '../../generated/prisma/client.js';
 import { ApiError } from '../../lib/errors.js';
 import type { CreateBookingData } from './schemas.js';
 
-export type BookingsDatabase = Pick<PrismaClient, 'item' | 'booking' | '$transaction'>;
+export type BookingsDatabase = Pick<
+  PrismaClient,
+  'item' | 'booking' | 'notification' | '$transaction'
+>;
 
 function utcDay(value: string) {
   return Date.parse(`${value}T00:00:00.000Z`);
@@ -27,7 +30,7 @@ export function createBookingsService(prisma: BookingsDatabase) {
     },
     async cancel(renterId: string, id: string) {
       return prisma.$transaction(async (tx) => {
-        let booking = await tx.booking.findUnique({
+        const booking = await tx.booking.findUnique({
           where: { id },
           select: { itemId: true, renterId: true, status: true },
         });
@@ -36,25 +39,37 @@ export function createBookingsService(prisma: BookingsDatabase) {
         await tx.$queryRaw(
           Prisma.sql`SELECT "id" FROM "Item" WHERE "id" = ${booking.itemId}::uuid FOR UPDATE`,
         );
-        booking = await tx.booking.findUnique({
+        const lockedBooking = await tx.booking.findUnique({
           where: { id },
-          select: { renterId: true, status: true, itemId: true },
+          include: { item: { select: { ownerId: true } } },
         });
-        if (!booking)
+        if (!lockedBooking)
           throw new ApiError(404, 'BOOKING_NOT_FOUND', 'Die Anfrage wurde nicht gefunden.');
-        if (booking.renterId !== renterId)
+        if (lockedBooking.renterId !== renterId)
           throw new ApiError(403, 'FORBIDDEN', 'Du darfst diese Anfrage nicht stornieren.');
-        if (booking.status !== 'PENDING')
+        if (lockedBooking.status !== 'PENDING')
           throw new ApiError(
             409,
             'BOOKING_STATUS_INVALID',
             'Diese Anfrage kann nicht mehr storniert werden.',
           );
-        return tx.booking.update({
+        const updated = await tx.booking.update({
           where: { id },
           data: { status: 'CANCELLED' },
           select: { id: true, status: true },
         });
+        await tx.notification.upsert({
+          where: {
+            bookingId_userId_type: {
+              bookingId: id,
+              userId: lockedBooking.item.ownerId,
+              type: 'BOOKING_CANCELLED',
+            },
+          },
+          create: { bookingId: id, userId: lockedBooking.item.ownerId, type: 'BOOKING_CANCELLED' },
+          update: {},
+        });
+        return updated;
       });
     },
 
@@ -107,11 +122,29 @@ export function createBookingsService(prisma: BookingsDatabase) {
               'Dieser Zeitraum ist nicht mehr verfügbar.',
             );
         }
-        return tx.booking.update({
+        const updated = await tx.booking.update({
           where: { id },
           data: { status },
           select: { id: true, status: true },
         });
+        const typeByStatus = {
+          APPROVED: 'BOOKING_APPROVED',
+          REJECTED: 'BOOKING_REJECTED',
+          ACTIVE: 'BOOKING_ACTIVE',
+          COMPLETED: 'BOOKING_COMPLETED',
+        } as const;
+        await tx.notification.upsert({
+          where: {
+            bookingId_userId_type: {
+              bookingId: id,
+              userId: booking.renterId,
+              type: typeByStatus[status],
+            },
+          },
+          create: { bookingId: id, userId: booking.renterId, type: typeByStatus[status] },
+          update: {},
+        });
+        return updated;
       });
     },
     async listIncoming(ownerId: string) {
@@ -172,36 +205,44 @@ export function createBookingsService(prisma: BookingsDatabase) {
     },
 
     async create(renterId: string, data: CreateBookingData) {
-      const item = await prisma.item.findUnique({
-        where: { id: data.itemId },
-        select: { id: true, ownerId: true, isPublished: true, pricePerDay: true },
-      });
-      if (!item || !item.isPublished)
-        throw new ApiError(404, 'ITEM_NOT_FOUND', 'Die Anzeige wurde nicht gefunden.');
-      if (item.ownerId === renterId)
-        throw new ApiError(403, 'BOOKING_OWN_ITEM', 'Du kannst deine eigene Anzeige nicht mieten.');
-
-      const totalDays = (utcDay(data.returnDate) - utcDay(data.pickupDate)) / 86_400_000;
-      const totalPrice = item.pricePerDay.mul(totalDays);
-      const booking = await prisma.booking.create({
-        data: {
-          itemId: item.id,
-          renterId,
-          pickupDate: toDate(data.pickupDate),
-          returnDate: toDate(data.returnDate),
-          status: 'PENDING',
-          pricePerDaySnapshot: item.pricePerDay,
-          totalPrice,
-        },
-        select: {
-          id: true,
-          itemId: true,
-          pickupDate: true,
-          returnDate: true,
-          status: true,
-          pricePerDaySnapshot: true,
-          totalPrice: true,
-        },
+      const booking = await prisma.$transaction(async (tx) => {
+        const item = await tx.item.findUnique({
+          where: { id: data.itemId },
+          select: { id: true, ownerId: true, isPublished: true, pricePerDay: true },
+        });
+        if (!item || !item.isPublished)
+          throw new ApiError(404, 'ITEM_NOT_FOUND', 'Die Anzeige wurde nicht gefunden.');
+        if (item.ownerId === renterId)
+          throw new ApiError(
+            403,
+            'BOOKING_OWN_ITEM',
+            'Du kannst deine eigene Anzeige nicht mieten.',
+          );
+        const totalDays = (utcDay(data.returnDate) - utcDay(data.pickupDate)) / 86_400_000;
+        const created = await tx.booking.create({
+          data: {
+            itemId: item.id,
+            renterId,
+            pickupDate: toDate(data.pickupDate),
+            returnDate: toDate(data.returnDate),
+            status: 'PENDING',
+            pricePerDaySnapshot: item.pricePerDay,
+            totalPrice: item.pricePerDay.mul(totalDays),
+          },
+          select: {
+            id: true,
+            itemId: true,
+            pickupDate: true,
+            returnDate: true,
+            status: true,
+            pricePerDaySnapshot: true,
+            totalPrice: true,
+          },
+        });
+        await tx.notification.create({
+          data: { bookingId: created.id, userId: item.ownerId, type: 'BOOKING_REQUEST_CREATED' },
+        });
+        return created;
       });
       return {
         ...booking,

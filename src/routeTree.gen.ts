@@ -30,6 +30,8 @@ import { Route as AccountBookingsIncomingRouteImport } from './routes/account.bo
 import { Route as AccountBookingsMyRentalsRouteImport } from './routes/account.bookings.my-rentals'
 import { Route as AccountItemsIndexRouteImport } from './routes/account.items.index'
 import { Route as AccountItemsNewRouteImport } from './routes/account.items.new'
+import { Route as AccountMessagesIndexRouteImport } from './routes/account.messages.index'
+import { Route as AccountMessagesConversationIdRouteImport } from './routes/account.messages.$conversationId'
 import { Route as AccountItemsItemIdEditRouteImport } from './routes/account.items.$itemId.edit'
 
 const IndexRoute = IndexRouteImport.update({
@@ -138,6 +140,17 @@ const AccountItemsNewRoute = AccountItemsNewRouteImport.update({
   path: '/new',
   getParentRoute: () => AccountItemsRoute,
 } as any)
+const AccountMessagesIndexRoute = AccountMessagesIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AccountMessagesRoute,
+} as any)
+const AccountMessagesConversationIdRoute =
+  AccountMessagesConversationIdRouteImport.update({
+    id: '/$conversationId',
+    path: '/$conversationId',
+    getParentRoute: () => AccountMessagesRoute,
+  } as any)
 const AccountItemsItemIdEditRoute = AccountItemsItemIdEditRouteImport.update({
   id: '/$itemId/edit',
   path: '/$itemId/edit',
@@ -159,13 +172,15 @@ export interface FileRoutesByFullPath {
   '/account/bookings': typeof AccountBookingsRouteWithChildren
   '/account/favorites': typeof AccountFavoritesRoute
   '/account/items': typeof AccountItemsRouteWithChildren
-  '/account/messages': typeof AccountMessagesRoute
+  '/account/messages': typeof AccountMessagesRouteWithChildren
   '/account/profile': typeof AccountProfileRoute
   '/items/$itemId': typeof ItemsItemIdRoute
   '/account/bookings/incoming': typeof AccountBookingsIncomingRoute
   '/account/bookings/my-rentals': typeof AccountBookingsMyRentalsRoute
   '/account/items/new': typeof AccountItemsNewRoute
+  '/account/messages/$conversationId': typeof AccountMessagesConversationIdRoute
   '/account/items/': typeof AccountItemsIndexRoute
+  '/account/messages/': typeof AccountMessagesIndexRoute
   '/account/items/$itemId/edit': typeof AccountItemsItemIdEditRoute
 }
 export interface FileRoutesByTo {
@@ -182,13 +197,14 @@ export interface FileRoutesByTo {
   '/ueber-uns': typeof UeberUnsRoute
   '/account/bookings': typeof AccountBookingsRouteWithChildren
   '/account/favorites': typeof AccountFavoritesRoute
-  '/account/messages': typeof AccountMessagesRoute
   '/account/profile': typeof AccountProfileRoute
   '/items/$itemId': typeof ItemsItemIdRoute
   '/account/bookings/incoming': typeof AccountBookingsIncomingRoute
   '/account/bookings/my-rentals': typeof AccountBookingsMyRentalsRoute
   '/account/items/new': typeof AccountItemsNewRoute
+  '/account/messages/$conversationId': typeof AccountMessagesConversationIdRoute
   '/account/items': typeof AccountItemsIndexRoute
+  '/account/messages': typeof AccountMessagesIndexRoute
   '/account/items/$itemId/edit': typeof AccountItemsItemIdEditRoute
 }
 export interface FileRoutesById {
@@ -207,13 +223,15 @@ export interface FileRoutesById {
   '/account/bookings': typeof AccountBookingsRouteWithChildren
   '/account/favorites': typeof AccountFavoritesRoute
   '/account/items': typeof AccountItemsRouteWithChildren
-  '/account/messages': typeof AccountMessagesRoute
+  '/account/messages': typeof AccountMessagesRouteWithChildren
   '/account/profile': typeof AccountProfileRoute
   '/items/$itemId': typeof ItemsItemIdRoute
   '/account/bookings/incoming': typeof AccountBookingsIncomingRoute
   '/account/bookings/my-rentals': typeof AccountBookingsMyRentalsRoute
   '/account/items/new': typeof AccountItemsNewRoute
+  '/account/messages/$conversationId': typeof AccountMessagesConversationIdRoute
   '/account/items/': typeof AccountItemsIndexRoute
+  '/account/messages/': typeof AccountMessagesIndexRoute
   '/account/items/$itemId/edit': typeof AccountItemsItemIdEditRoute
 }
 export interface FileRouteTypes {
@@ -239,7 +257,9 @@ export interface FileRouteTypes {
     | '/account/bookings/incoming'
     | '/account/bookings/my-rentals'
     | '/account/items/new'
+    | '/account/messages/$conversationId'
     | '/account/items/'
+    | '/account/messages/'
     | '/account/items/$itemId/edit'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -256,13 +276,14 @@ export interface FileRouteTypes {
     | '/ueber-uns'
     | '/account/bookings'
     | '/account/favorites'
-    | '/account/messages'
     | '/account/profile'
     | '/items/$itemId'
     | '/account/bookings/incoming'
     | '/account/bookings/my-rentals'
     | '/account/items/new'
+    | '/account/messages/$conversationId'
     | '/account/items'
+    | '/account/messages'
     | '/account/items/$itemId/edit'
   id:
     | '__root__'
@@ -286,7 +307,9 @@ export interface FileRouteTypes {
     | '/account/bookings/incoming'
     | '/account/bookings/my-rentals'
     | '/account/items/new'
+    | '/account/messages/$conversationId'
     | '/account/items/'
+    | '/account/messages/'
     | '/account/items/$itemId/edit'
   fileRoutesById: FileRoutesById
 }
@@ -454,6 +477,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AccountItemsNewRouteImport
       parentRoute: typeof AccountItemsRoute
     }
+    '/account/messages/': {
+      id: '/account/messages/'
+      path: '/'
+      fullPath: '/account/messages/'
+      preLoaderRoute: typeof AccountMessagesIndexRouteImport
+      parentRoute: typeof AccountMessagesRoute
+    }
+    '/account/messages/$conversationId': {
+      id: '/account/messages/$conversationId'
+      path: '/$conversationId'
+      fullPath: '/account/messages/$conversationId'
+      preLoaderRoute: typeof AccountMessagesConversationIdRouteImport
+      parentRoute: typeof AccountMessagesRoute
+    }
     '/account/items/$itemId/edit': {
       id: '/account/items/$itemId/edit'
       path: '/$itemId/edit'
@@ -494,11 +531,25 @@ const AccountItemsRouteWithChildren = AccountItemsRoute._addFileChildren(
   AccountItemsRouteChildren,
 )
 
+interface AccountMessagesRouteChildren {
+  AccountMessagesConversationIdRoute: typeof AccountMessagesConversationIdRoute
+  AccountMessagesIndexRoute: typeof AccountMessagesIndexRoute
+}
+
+const AccountMessagesRouteChildren: AccountMessagesRouteChildren = {
+  AccountMessagesConversationIdRoute: AccountMessagesConversationIdRoute,
+  AccountMessagesIndexRoute: AccountMessagesIndexRoute,
+}
+
+const AccountMessagesRouteWithChildren = AccountMessagesRoute._addFileChildren(
+  AccountMessagesRouteChildren,
+)
+
 interface AccountRouteChildren {
   AccountBookingsRoute: typeof AccountBookingsRouteWithChildren
   AccountFavoritesRoute: typeof AccountFavoritesRoute
   AccountItemsRoute: typeof AccountItemsRouteWithChildren
-  AccountMessagesRoute: typeof AccountMessagesRoute
+  AccountMessagesRoute: typeof AccountMessagesRouteWithChildren
   AccountProfileRoute: typeof AccountProfileRoute
 }
 
@@ -506,7 +557,7 @@ const AccountRouteChildren: AccountRouteChildren = {
   AccountBookingsRoute: AccountBookingsRouteWithChildren,
   AccountFavoritesRoute: AccountFavoritesRoute,
   AccountItemsRoute: AccountItemsRouteWithChildren,
-  AccountMessagesRoute: AccountMessagesRoute,
+  AccountMessagesRoute: AccountMessagesRouteWithChildren,
   AccountProfileRoute: AccountProfileRoute,
 }
 

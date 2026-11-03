@@ -1,0 +1,20 @@
+.page {
+  display: grid;
+  gap: 20px;
+  width: 100%;
+  margin: 0 auto;
+  padding-bottom: 48px;
+}
+
+.page h1 {
+  margin: 0;
+  text-align: center;
+}
+
+.page > a {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  min-height: 44px;
+  font-weight: 700;
+}
