@@ -4,6 +4,8 @@ export type ChatMessage = {
   body: string;
   createdAt: string;
   readAt: string | null;
+  editedAt: string | null;
+  replyTo: { id: string; senderId: string; body: string } | null;
 };
 
 export type ConversationPreview = {

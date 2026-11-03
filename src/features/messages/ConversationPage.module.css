@@ -1,14 +1,28 @@
 .page {
   display: grid;
-  gap: 20px;
-  width: 100%;
-  margin: 0 auto;
+  gap: 14px;
+  width: calc(100vw - 32px);
+  margin: 0 0 0 50%;
   padding-bottom: 48px;
+  transform: translateX(-50%);
 }
 
-.page h1 {
+.heading {
+  display: grid;
+  gap: 4px;
+  padding: 4px 8px 10px;
+  text-align: left;
+}
+
+.heading h1,
+.heading p {
   margin: 0;
-  text-align: center;
+}
+
+.heading p {
+  color: var(--color-muted);
+  font-size: 0.875rem;
+  font-weight: 700;
 }
 
 .page > a {
@@ -17,4 +31,10 @@
   width: fit-content;
   min-height: 44px;
   font-weight: 700;
+}
+
+@media (min-width: 768px) {
+  .page {
+    width: clamp(580px, 53.3333vw, 900px);
+  }
 }

@@ -14,6 +14,41 @@ const participantBookingSelect = {
   item: { select: { ownerId: true, title: true } },
 } satisfies Prisma.BookingSelect;
 
+const writableStatuses = ['PENDING', 'APPROVED', 'ACTIVE'];
+const messageSelect = {
+  id: true,
+  senderId: true,
+  body: true,
+  createdAt: true,
+  readAt: true,
+  editedAt: true,
+  replyTo: { select: { id: true, senderId: true, body: true } },
+} satisfies Prisma.MessageSelect;
+
+type SelectedMessage = Prisma.MessageGetPayload<{ select: typeof messageSelect }>;
+
+function toPublicMessage(message: SelectedMessage) {
+  return {
+    id: message.id,
+    senderId: message.senderId,
+    body: message.body,
+    createdAt: message.createdAt.toISOString(),
+    readAt: message.readAt?.toISOString() ?? null,
+    editedAt: message.editedAt?.toISOString() ?? null,
+    replyTo: message.replyTo
+      ? {
+          id: message.replyTo.id,
+          senderId: message.replyTo.senderId,
+          body: message.replyTo.body,
+        }
+      : null,
+  };
+}
+
+function canChangeMessage(createdAt: Date) {
+  return Date.now() - createdAt.getTime() <= 15 * 60_000;
+}
+
 function assertParticipant(
   booking: Prisma.BookingGetPayload<{ select: typeof participantBookingSelect }>,
   userId: string,
@@ -87,6 +122,7 @@ export function createMessagesService(prisma: MessagesDatabase) {
             lastMessage: conversation.messages[0]
               ? {
                   ...conversation.messages[0],
+                  body: conversation.messages[0].body,
                   createdAt: conversation.messages[0].createdAt.toISOString(),
                 }
               : null,
@@ -110,22 +146,18 @@ export function createMessagesService(prisma: MessagesDatabase) {
         orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
         take: limit + 1,
         ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
-        select: { id: true, senderId: true, body: true, createdAt: true, readAt: true },
+        select: messageSelect,
       });
       const hasMore = messages.length > limit;
       const page = hasMore ? messages.slice(0, limit) : messages;
       return {
-        canSend: ['PENDING', 'APPROVED', 'ACTIVE'].includes(conversation.booking.status),
-        messages: page.map((message) => ({
-          ...message,
-          createdAt: message.createdAt.toISOString(),
-          readAt: message.readAt?.toISOString() ?? null,
-        })),
+        canSend: writableStatuses.includes(conversation.booking.status),
+        messages: page.map(toPublicMessage),
         nextCursor: hasMore ? (page.at(-1)?.id ?? null) : null,
       };
     },
 
-    async send(userId: string, conversationId: string, body: string) {
+    async send(userId: string, conversationId: string, body: string, replyToMessageId?: string) {
       return prisma.$transaction(async (tx) => {
         let conversation = await tx.conversation.findUnique({
           where: { id: conversationId },
@@ -149,21 +181,119 @@ export function createMessagesService(prisma: MessagesDatabase) {
         if (!booking)
           throw new ApiError(404, 'BOOKING_NOT_FOUND', 'Die Anfrage wurde nicht gefunden.');
         assertParticipant(booking, userId);
-        if (!['PENDING', 'APPROVED', 'ACTIVE'].includes(booking.status))
+        if (!writableStatuses.includes(booking.status))
           throw new ApiError(
             409,
             'CHAT_CLOSED',
             'Für diese abgeschlossene Anfrage sind keine neuen Nachrichten möglich.',
           );
+        if (replyToMessageId) {
+          const replyTo = await tx.message.findFirst({
+            where: { id: replyToMessageId, conversationId },
+            select: { id: true },
+          });
+          if (!replyTo)
+            throw new ApiError(
+              400,
+              'MESSAGE_REPLY_INVALID',
+              'Die Antwort gehört nicht zu diesem Chat.',
+            );
+        }
         const message = await tx.message.create({
-          data: { conversationId, senderId: userId, body },
-          select: { id: true, senderId: true, body: true, createdAt: true, readAt: true },
+          data: { conversationId, senderId: userId, body, replyToMessageId },
+          select: messageSelect,
         });
         await tx.conversation.update({
           where: { id: conversationId },
           data: { updatedAt: new Date() },
         });
-        return { ...message, createdAt: message.createdAt.toISOString(), readAt: null };
+        return toPublicMessage(message);
+      });
+    },
+
+    async edit(userId: string, conversationId: string, messageId: string, body: string) {
+      return prisma.$transaction(async (tx) => {
+        const conversation = await tx.conversation.findUnique({
+          where: { id: conversationId },
+          select: { bookingId: true },
+        });
+        if (!conversation)
+          throw new ApiError(404, 'CONVERSATION_NOT_FOUND', 'Der Chat wurde nicht gefunden.');
+        await tx.$queryRaw(
+          Prisma.sql`SELECT "id" FROM "Item" WHERE "id" = (SELECT "itemId" FROM "Booking" WHERE "id" = ${conversation.bookingId}::uuid) FOR UPDATE`,
+        );
+        const booking = await tx.booking.findUnique({
+          where: { id: conversation.bookingId },
+          select: participantBookingSelect,
+        });
+        if (!booking)
+          throw new ApiError(404, 'BOOKING_NOT_FOUND', 'Die Anfrage wurde nicht gefunden.');
+        assertParticipant(booking, userId);
+        if (!writableStatuses.includes(booking.status))
+          throw new ApiError(409, 'CHAT_CLOSED', 'Dieser Chat ist nur lesbar.');
+        const message = await tx.message.findFirst({
+          where: { id: messageId, conversationId },
+          select: { senderId: true, createdAt: true },
+        });
+        if (!message)
+          throw new ApiError(404, 'MESSAGE_NOT_FOUND', 'Die Nachricht wurde nicht gefunden.');
+        if (message.senderId !== userId)
+          throw new ApiError(403, 'FORBIDDEN', 'Du darfst nur eigene Nachrichten bearbeiten.');
+        if (!canChangeMessage(message.createdAt))
+          throw new ApiError(
+            409,
+            'MESSAGE_EDIT_EXPIRED',
+            'Diese Nachricht kann nicht mehr bearbeitet werden.',
+          );
+        const updated = await tx.message.update({
+          where: { id: messageId },
+          data: { body, editedAt: new Date() },
+          select: messageSelect,
+        });
+        await tx.conversation.update({
+          where: { id: conversationId },
+          data: { updatedAt: new Date() },
+        });
+        return toPublicMessage(updated);
+      });
+    },
+
+    async remove(userId: string, conversationId: string, messageId: string) {
+      return prisma.$transaction(async (tx) => {
+        const conversation = await tx.conversation.findUnique({
+          where: { id: conversationId },
+          select: { bookingId: true },
+        });
+        if (!conversation)
+          throw new ApiError(404, 'CONVERSATION_NOT_FOUND', 'Der Chat wurde nicht gefunden.');
+        await tx.$queryRaw(
+          Prisma.sql`SELECT "id" FROM "Item" WHERE "id" = (SELECT "itemId" FROM "Booking" WHERE "id" = ${conversation.bookingId}::uuid) FOR UPDATE`,
+        );
+        const booking = await tx.booking.findUnique({
+          where: { id: conversation.bookingId },
+          select: participantBookingSelect,
+        });
+        if (!booking)
+          throw new ApiError(404, 'BOOKING_NOT_FOUND', 'Die Anfrage wurde nicht gefunden.');
+        assertParticipant(booking, userId);
+        if (!writableStatuses.includes(booking.status))
+          throw new ApiError(409, 'CHAT_CLOSED', 'Dieser Chat ist nur lesbar.');
+        const message = await tx.message.findFirst({
+          where: { id: messageId, conversationId },
+          select: { senderId: true },
+        });
+        if (!message)
+          throw new ApiError(404, 'MESSAGE_NOT_FOUND', 'Die Nachricht wurde nicht gefunden.');
+        if (message.senderId !== userId)
+          throw new ApiError(403, 'FORBIDDEN', 'Du darfst nur eigene Nachrichten löschen.');
+        await tx.message.delete({
+          where: { id: messageId },
+        });
+        await tx.conversation.update({
+          where: { id: conversationId },
+          data: { updatedAt: new Date() },
+        });
+        return { id: messageId };
       });
     },
 

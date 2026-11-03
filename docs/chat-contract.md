@@ -4,7 +4,7 @@
 
 - One conversation belongs to exactly one `Booking`.
 - Only the booking renter and the item owner can read or write in that conversation.
-- Messages are plain text only. Files, reactions, deletion and online presence are out of scope.
+- Messages are plain text only. Files, reactions and online presence are out of scope.
 - The application shows unread-message badges inside the site. It does not send push notifications.
 
 ## Booking status rules
@@ -12,7 +12,7 @@
 Writing is allowed while a booking is `PENDING`, `APPROVED` or `ACTIVE`.
 
 For `REJECTED`, `CANCELLED` and `COMPLETED`, both participants can read the existing history, but
-cannot send new messages.
+cannot send, edit or delete messages.
 
 ## Prisma model draft
 
@@ -30,6 +30,8 @@ Message
 - body: String (after trim: 1–2000 characters)
 - createdAt
 - readAt: DateTime | null
+- replyToMessageId: UUID | null
+- editedAt: DateTime | null
 ```
 
 `senderId` always comes from the authenticated server user. Because a conversation has exactly two
@@ -40,13 +42,28 @@ participants, `readAt` is sufficient: every message has one recipient.
 - `POST /api/bookings/:bookingId/conversation` — create or return the existing conversation.
 - `GET /api/conversations` — the current user's conversations, last message and `unreadCount`.
 - `GET /api/conversations/:id/messages` — paginated messages in a stable order.
-- `POST /api/conversations/:id/messages` — send `{ "body": "..." }`.
+- `POST /api/conversations/:id/messages` — send `{ "body": "...", "replyToMessageId": "uuid?" }`.
+- `PATCH /api/conversations/:id/messages/:messageId` — edit the author's message.
+- `DELETE /api/conversations/:id/messages/:messageId` — permanently delete the author's message for
+  both participants.
 - `PATCH /api/conversations/:id/read` — mark incoming messages up to `lastReadMessageId` as read.
 - `GET /api/conversations/unread-count` — count for the navigation badge.
 
 Every route verifies that the current user participates in the associated booking. Conversation
 creation must be idempotent, including concurrent requests. Sending a message must atomically check
 the current booking status.
+
+## Editing, replies and deletion
+
+- Only the author may edit a message, and only during the first 15 minutes after sending.
+- Editing sets `editedAt`; the UI displays `Bearbeitet`.
+- A reply points only to a message in the same conversation. The UI shows its author and a short
+  quote.
+- The author may permanently delete their message for both participants at any time while the Booking
+  is active. There is no placeholder text. Existing replies remain, but their `replyToMessageId` is
+  cleared, so the quote disappears.
+- When deletion removes the most recent message, the conversation preview uses the next most recent
+  remaining message. With no remaining messages, it is an empty conversation.
 
 ## Frontend integration
 
