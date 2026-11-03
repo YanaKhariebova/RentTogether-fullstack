@@ -5,6 +5,7 @@ import {
   conversationParamsSchema,
   markReadSchema,
   messageBodySchema,
+  messageParamsSchema,
   pageQuerySchema,
 } from './schemas.js';
 import type { MessagesDatabase } from './service.js';
@@ -27,8 +28,19 @@ export function createMessagesRoutes(prisma: MessagesDatabase, authenticate: Req
   });
   router.post('/:id/messages', authenticate, async (req, res) => {
     const { id } = conversationParamsSchema.parse(req.params);
+    const { body, replyToMessageId } = messageBodySchema.parse(req.body);
+    res
+      .status(201)
+      .json({ message: await service.send(res.locals.currentUser.id, id, body, replyToMessageId) });
+  });
+  router.patch('/:id/messages/:messageId', authenticate, async (req, res) => {
+    const { id, messageId } = messageParamsSchema.parse(req.params);
     const { body } = messageBodySchema.parse(req.body);
-    res.status(201).json({ message: await service.send(res.locals.currentUser.id, id, body) });
+    res.json({ message: await service.edit(res.locals.currentUser.id, id, messageId, body) });
+  });
+  router.delete('/:id/messages/:messageId', authenticate, async (req, res) => {
+    const { id, messageId } = messageParamsSchema.parse(req.params);
+    res.json({ message: await service.remove(res.locals.currentUser.id, id, messageId) });
   });
   router.patch('/:id/read', authenticate, async (req, res) => {
     const { id } = conversationParamsSchema.parse(req.params);

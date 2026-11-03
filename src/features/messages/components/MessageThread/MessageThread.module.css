@@ -1,27 +1,84 @@
 .list {
   display: grid;
   align-content: start;
-  gap: 12px;
-  min-height: clamp(320px, 52vh, 620px);
+  gap: 14px;
+  height: clamp(320px, 52vh, 620px);
   margin: 0;
-  padding: 20px;
+  padding: 20px clamp(14px, 3vw, 32px);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   background: var(--color-surface);
+  box-shadow: var(--shadow-card);
   list-style: none;
+  overflow-y: auto;
 }
 
-.list li {
+.messageGroup {
+  display: grid;
+  gap: 10px;
+}
+
+.ownRow,
+.otherRow {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.ownRow {
+  justify-content: flex-end;
+}
+
+.otherRow {
+  justify-content: flex-start;
+}
+
+.list article {
+  position: relative;
   width: fit-content;
-  max-width: min(82%, 620px);
+  max-width: min(80%, 580px);
   padding: 12px 14px;
-  border-radius: 16px;
+  border-radius: 15px;
+  box-shadow: 0 4px 12px #20352d12;
+}
+
+.dateDivider {
+  justify-self: center;
+  padding: 4px 11px;
+  border-radius: 999px;
+  background: var(--color-primary-soft);
+  color: var(--color-muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.avatar {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
+  place-items: center;
+  border: 2px solid var(--color-surface);
+  border-radius: 50%;
+  background: var(--color-accent);
+  box-shadow: 0 2px 8px #20352d1a;
+  color: var(--color-text);
+  font-size: 0.8125rem;
+  font-weight: 800;
 }
 
 .list p {
   margin: 0;
   overflow-wrap: anywhere;
   white-space: pre-wrap;
+}
+
+.author {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--color-muted);
+  font-size: 0.75rem;
+  font-weight: 800;
 }
 
 .list time {
@@ -32,19 +89,95 @@
   opacity: 0.72;
 }
 
+.edited {
+  display: block;
+  margin-top: 3px;
+  font-size: 0.7rem;
+  opacity: 0.72;
+}
+
+.editForm button {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font-size: 0.75rem;
+  text-decoration: underline;
+}
+
+.contextMenu {
+  position: absolute;
+  z-index: 1;
+  top: calc(100% + 6px);
+  right: 0;
+  display: grid;
+  min-width: 132px;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+}
+
+.contextMenu button {
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 0;
+  background: transparent;
+  color: var(--color-text);
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.contextMenu button:hover {
+  background: var(--color-primary-soft);
+}
+
+.reply {
+  margin: 0 0 8px;
+  padding-left: 8px;
+  border-left: 2px solid currentColor;
+  font-size: 0.8125rem;
+  opacity: 0.8;
+}
+
+.editForm textarea {
+  width: 100%;
+  min-height: 72px;
+  resize: vertical;
+  border: 1px solid color-mix(in srgb, var(--color-text) 20%, transparent);
+  border-radius: var(--radius-sm);
+  background: inherit;
+  color: inherit;
+}
+
 .own {
-  justify-self: end;
-  border-bottom-right-radius: 4px;
-  background: var(--color-primary);
-  color: white;
+  border-bottom-right-radius: 5px;
+  background: color-mix(in srgb, var(--color-primary) 22%, white);
+  color: var(--color-text);
 }
 
 .other {
-  justify-self: start;
-  border: 1px solid var(--color-border);
-  border-bottom-left-radius: 4px;
-  background: var(--color-surface);
+  border-bottom-left-radius: 5px;
+  background: color-mix(in srgb, var(--color-accent) 42%, white);
   color: var(--color-text);
+}
+
+:global(:root[data-theme='dark']) .own {
+  background: #3d6654;
+  color: #f3f4ef;
+}
+
+:global(:root[data-theme='dark']) .other {
+  background: #756238;
+  color: #f3f4ef;
+}
+
+:global(:root[data-theme='dark']) .avatar {
+  border-color: var(--color-surface);
+  background: #756238;
+  color: #f3f4ef;
 }
 
 .empty {
@@ -55,6 +188,18 @@
   padding: 24px;
   border: 1px dashed var(--color-border);
   border-radius: var(--radius-lg);
+  background: var(--color-primary-soft);
   color: var(--color-muted);
+  text-align: center;
+}
+
+.actionError {
+  justify-self: center;
+  max-width: 480px;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--color-danger) 12%, var(--color-surface));
+  color: var(--color-error-text);
+  font-size: 0.8125rem;
   text-align: center;
 }
