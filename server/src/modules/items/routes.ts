@@ -1,4 +1,7 @@
 import express, { Router } from 'express';
+import { ApiError } from '../../lib/errors.js';
+import { createLocationService } from '../locations/service.js';
+import type { LocationService } from '../locations/service.js';
 import { validateImage, MAX_IMAGE_BYTES } from './imageValidation.js';
 import type { ImageStorage } from './storage/ImageStorage.js';
 import type { RequestHandler } from 'express';
@@ -16,6 +19,7 @@ export function createItemsRoutes(
   prisma: ItemsDatabase,
   authenticate: RequestHandler,
   storage?: ImageStorage,
+  locations: LocationService = createLocationService(),
 ) {
   const service = createItemsService(prisma, storage);
   const itemsRouter = Router();
@@ -36,17 +40,25 @@ export function createItemsRoutes(
 
   // Auth на отдельных методах: публичные GET Яны в /api/items остаются независимыми.
   itemsRouter.post('/', authenticate, async (req, res) => {
-    const item = await service.create(res.locals.currentUser.id, createItemSchema.parse(req.body));
+    const data = createItemSchema.parse(req.body);
+    data.city = await locations.normalize(data.city);
+    const item = await service.create(res.locals.currentUser.id, data);
     res.status(201).json({ item });
   });
 
   itemsRouter.patch('/:id', authenticate, async (req, res) => {
     const { id } = itemParamsSchema.parse(req.params);
-    const item = await service.update(
-      res.locals.currentUser.id,
-      id,
-      updateItemSchema.parse(req.body),
-    );
+    const data = updateItemSchema.parse(req.body);
+    if (data.city !== undefined) {
+      const current = await prisma.item.findFirst({
+        where: { id, ownerId: res.locals.currentUser.id },
+        select: { city: true },
+      });
+      if (!current) throw new ApiError(404, 'ITEM_NOT_FOUND', 'Die Anzeige wurde nicht gefunden.');
+      // Old saved locations can stay unchanged; changing a city requires validation.
+      if (data.city !== current.city) data.city = await locations.normalize(data.city);
+    }
+    const item = await service.update(res.locals.currentUser.id, id, data);
     res.json({ item });
   });
 

@@ -16,6 +16,40 @@
   font-size: 0.875rem;
 }
 
+.successNotice {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid color-mix(in srgb, var(--color-emphasis) 45%, var(--color-border));
+  border-radius: var(--radius-md);
+  background: var(--color-primary-soft);
+  color: var(--color-text);
+}
+
+.successNotice svg {
+  flex: 0 0 auto;
+  width: 24px;
+  height: 24px;
+  padding: 4px;
+  border-radius: 50%;
+  background: var(--color-emphasis);
+  stroke: var(--color-on-primary);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2.5;
+}
+
+.successNotice div {
+  display: grid;
+  gap: 2px;
+}
+
+.successNotice span {
+  color: var(--color-muted);
+  font-size: 0.875rem;
+}
+
 .calendar {
   --rdp-accent-color: var(--color-primary);
   --rdp-accent-background-color: var(--color-primary-soft);

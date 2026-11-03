@@ -1,5 +1,6 @@
 import { Button, Input, Textarea } from '@/shared/ui/atoms';
 import { useEffect, useId, useRef } from 'react';
+import type { ReactNode } from 'react';
 import { CategorySelect } from '../../molecules/CategorySelect/CategorySelect';
 import { PriceField } from '../../molecules/PriceField/PriceField';
 import { ImageUploader } from '../../molecules/ImageUploader/ImageUploader';
@@ -15,6 +16,7 @@ interface FormFields {
 }
 
 interface ItemFormProps {
+  cityField?: ReactNode;
   values: FormFields;
   errors: Partial<Record<keyof FormFields | 'images', string>>;
   categories: { id: string; name: string }[];
@@ -86,17 +88,19 @@ export function ItemForm(props: ItemFormProps) {
           onChange={(event) => props.onFieldChange('description', event.currentTarget.value)}
         />
         <div className={styles.row}>
-          <Input
-            label="Ort *"
-            name="city"
-            required
-            maxLength={100}
-            autoComplete="address-level2"
-            value={values.city}
-            placeholder="Berlin"
-            error={errors.city}
-            onChange={(event) => props.onFieldChange('city', event.currentTarget.value)}
-          />
+          {props.cityField ?? (
+            <Input
+              label="Ort *"
+              name="city"
+              required
+              maxLength={100}
+              autoComplete="address-level2"
+              value={values.city}
+              placeholder="Berlin"
+              error={errors.city}
+              onChange={(event) => props.onFieldChange('city', event.currentTarget.value)}
+            />
+          )}
           <CategorySelect
             categories={props.categories}
             value={values.categoryId}

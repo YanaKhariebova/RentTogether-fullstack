@@ -64,7 +64,17 @@ export function MessageThread({
     setPressTimer(null);
   }
   if (messages.length === 0) {
-    return <p className={styles.empty}>Noch keine Nachrichten. Schreibe die erste Nachricht.</p>;
+    return (
+      <div className={styles.empty}>
+        <svg viewBox="0 0 64 64" aria-hidden="true">
+          <path d="M12 14h29a7 7 0 0 1 7 7v15a7 7 0 0 1-7 7H27l-9 8v-8h-6a7 7 0 0 1-7-7V21a7 7 0 0 1 7-7Z" />
+          <path d="M22 28h1m9 0h1m9 0h1" />
+          <path d="M43 27h9a7 7 0 0 1 7 7v12a7 7 0 0 1-7 7h-3v6l-7-6h-9a7 7 0 0 1-6.7-5" />
+        </svg>
+        <strong>Noch keine Nachrichten</strong>
+        <span>Schreibe die erste Nachricht.</span>
+      </div>
+    );
   }
 
   return (

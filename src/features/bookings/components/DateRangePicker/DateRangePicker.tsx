@@ -89,10 +89,10 @@ export function DateRangePicker({
   }).format(totalPrice);
   const formattedSelectedRange =
     selectedRange?.from && selectedRange.to
-      ? `Abholung: ${selectedRange.from.toLocaleDateString('de-DE', {
+      ? `${selectedRange.from.toLocaleDateString('de-DE', {
           day: '2-digit',
           month: 'short',
-        })} · Rückgabe: ${selectedRange.to.toLocaleDateString('de-DE', {
+        })} – ${selectedRange.to.toLocaleDateString('de-DE', {
           day: '2-digit',
           month: 'short',
         })}`
@@ -175,7 +175,17 @@ export function DateRangePicker({
         </div>
       )}
 
-      {isSubmitted && <p role="status">Deine Anfrage wurde gesendet.</p>}
+      {isSubmitted && (
+        <div className={styles.successNotice} role="status">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="m5 12 4.2 4.2L19 6.5" />
+          </svg>
+          <div>
+            <strong>Anfrage gesendet</strong>
+            <span>Du findest sie jetzt unter „Meine Mieten“.</span>
+          </div>
+        </div>
+      )}
       {errorMessage && <p role="alert">{errorMessage}</p>}
     </section>
   );
