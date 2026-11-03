@@ -17,21 +17,31 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  color: var(--color-emphasis);
+  color: var(--color-brand);
   text-decoration: none;
   font-size: 1.25rem;
   font-weight: 800;
   letter-spacing: -0.04em;
 }
-.brand img {
+.brandMark {
+  display: block;
   flex-shrink: 0;
+  width: 40px;
+  height: 34px;
+  background-color: currentColor;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
 }
 .tagline {
   display: block;
   font-size: 14px;
   font-weight: 500;
   letter-spacing: 0;
-  color: var(--color-text);
+  color: var(--color-brand-tagline);
 }
 .desktop {
   display: none;
@@ -53,7 +63,7 @@
     gap: 6px;
     font-size: 1rem;
   }
-  .brand img {
+  .brandMark {
     width: 32px;
     height: 28px;
   }
@@ -244,16 +254,43 @@
 }
 .panelSettings {
   contain: inline-size;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
+  display: grid;
   gap: 12px;
   border-top: 1px solid var(--color-border);
   padding-top: 16px;
 }
-.panelSettings > a {
-  flex-basis: 100%;
-  font-weight: 700;
+.accountActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.panel .accountButton {
+  flex: 1;
+  justify-content: center;
+  min-width: 0;
+  padding: 10px 6px;
+  border: 1px solid var(--color-button-border);
+  background: var(--color-button-surface);
+  color: var(--color-button-text);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+.panel .panelAvatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: 50%;
+  background: var(--color-primary-soft);
+}
+.panelAvatar img {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
 }
 @media (max-width: 1023px) {
   .inner {
@@ -329,4 +366,9 @@
   overflow: hidden;
   clip-path: inset(50%);
   white-space: nowrap;
+}
+
+.rent,
+.together {
+  color: var(--color-brand);
 }

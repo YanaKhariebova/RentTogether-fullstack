@@ -8,10 +8,17 @@ export function Footer() {
       <div className={styles.inner}>
         <div className={styles.intro}>
           <Link to="/" className={styles.brand} aria-label="RentTogether – Startseite">
-            <img src={logo} alt="" width={40} height={34} />
-            <span>RentTogether</span>
+            <span
+              className={styles.brandMark}
+              aria-hidden="true"
+              style={{ maskImage: 'url(' + logo + ')', WebkitMaskImage: 'url(' + logo + ')' }}
+            />
+            <span>
+              <span className={styles.rent}>Rent</span>
+              <span className={styles.together}>Together</span>
+              <span className={styles.tagline}>Weniger kaufen. Mehr teilen.</span>
+            </span>
           </Link>
-          <p className={styles.tagline}>Weniger kaufen. Mehr teilen.</p>
           <p className={styles.description}>
             Was du brauchst, gibt es vielleicht gleich nebenan. Entdecke Dinge in deiner Nähe und
             gib deinen eigenen neue Möglichkeiten.
