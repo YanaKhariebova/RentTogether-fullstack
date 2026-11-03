@@ -1,24 +1,31 @@
 import { ApiError } from '@/shared/api/client';
-import { Button, IconButton, Spinner } from '@/shared/ui/atoms';
+import { Button, IconButton, Spinner, Textarea } from '@/shared/ui/atoms';
 import { useAuth } from '@clerk/react';
-import { Link, useParams } from '@tanstack/react-router';
+import { Link, useNavigate, useParams } from '@tanstack/react-router';
 import { useState } from 'react';
 import { DateRangePicker } from '../bookings/components/DateRangePicker/DateRangePicker';
 import { useCreateBookingMutation } from '../bookings/api/useCreateBookingMutation';
 import { useUnavailableDatesQuery } from '../bookings/api/useUnavailableDatesQuery';
 import { useItemDetailQuery } from './api/useItemDetailQuery';
 import { useFavoriteMutation, useFavoritesQuery } from '../favorites/api/useFavorites';
+import { useCurrentUser } from '../profile/api/useCurrentUser';
+import { useSendItemInquiryMutation } from '../messages/api/useConversations';
 import styles from './ItemDetailPage.module.css';
 
 export function ItemDetailPage() {
   const { isLoaded, isSignedIn } = useAuth();
+  const navigate = useNavigate();
   const { itemId } = useParams({ from: '/items/$itemId' });
   const { data, isPending, isError, error, refetch } = useItemDetailQuery(itemId);
   const createBooking = useCreateBookingMutation();
   const unavailableDates = useUnavailableDatesQuery(itemId);
   const favoritesQuery = useFavoritesQuery();
   const favoriteMutation = useFavoriteMutation();
+  const currentUser = useCurrentUser();
+  const inquiry = useSendItemInquiryMutation(itemId);
   const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
+  const [inquiryOpen, setInquiryOpen] = useState(false);
+  const [inquiryBody, setInquiryBody] = useState('');
 
   if (isPending) {
     return (
@@ -63,6 +70,7 @@ export function ItemDetailPage() {
   }).format(Number(item.pricePerDay));
   const unavailableRanges = unavailableDates.data?.ranges ?? [];
   const isFavorite = (favoritesQuery.data?.items ?? []).some((favorite) => favorite.id === item.id);
+  const isOwnItem = currentUser.data?.user.id === item.owner.id;
 
   return (
     <section className={styles.page}>
@@ -127,6 +135,51 @@ export function ItemDetailPage() {
             <p className={styles.price}>{formattedPrice} / Tag</p>
             <p className={styles.description}>{item.description}</p>
             <p className={styles.owner}>Angeboten von {item.owner.name}</p>
+            {isLoaded && isSignedIn && !isOwnItem && (
+              <div className={styles.inquiry}>
+                <Button
+                  variant="secondary"
+                  className={styles.inquiryButton}
+                  onClick={() => setInquiryOpen((open) => !open)}
+                >
+                  <span aria-hidden="true">✉</span> Nachricht schreiben
+                </Button>
+                {inquiryOpen && (
+                  <form
+                    className={styles.inquiryForm}
+                    onSubmit={(event) => {
+                      event.preventDefault();
+                      const body = inquiryBody.trim();
+                      if (!body) return;
+                      void inquiry.mutateAsync(body).then(({ conversation }) =>
+                        navigate({
+                          to: '/account/messages/$conversationId',
+                          params: { conversationId: conversation.id },
+                        }),
+                      );
+                    }}
+                  >
+                    <Textarea
+                      label="Nachricht an den Anbieter"
+                      value={inquiryBody}
+                      maxLength={2000}
+                      placeholder={`Frage ${item.owner.name} etwas zu diesem Artikel …`}
+                      onChange={(event) => setInquiryBody(event.target.value)}
+                    />
+                    {inquiry.isError && (
+                      <p role="alert">Die Nachricht konnte nicht gesendet werden.</p>
+                    )}
+                    <Button
+                      type="submit"
+                      loading={inquiry.isPending}
+                      disabled={!inquiryBody.trim()}
+                    >
+                      Nachricht senden
+                    </Button>
+                  </form>
+                )}
+              </div>
+            )}
 
             {unavailableDates.isPending ? (
               <Spinner label="Verfügbarkeit wird geladen …" />

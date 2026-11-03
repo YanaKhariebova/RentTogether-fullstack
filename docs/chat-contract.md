@@ -14,6 +14,61 @@ Writing is allowed while a booking is `PENDING`, `APPROVED` or `ACTIVE`.
 For `REJECTED`, `CANCELLED` and `COMPLETED`, both participants can read the existing history, but
 cannot send, edit or delete messages.
 
+## Proposal: questions about an item before booking
+
+> Confirmed by Olga on 2026-11-03. The implementation uses this model and API.
+
+An authenticated user may ask the owner a question about a published item before choosing dates.
+The item owner never sees this action on their own item. A direct inquiry is separate from the
+existing Booking conversation and does not change its rules.
+
+### Conversation model proposal
+
+```text
+enum ConversationKind
+- BOOKING
+- ITEM_INQUIRY
+
+Conversation
+- id: UUID
+- kind: ConversationKind
+- itemId: UUID                     # required for both kinds
+- bookingId: UUID | null, unique   # required by backend only for BOOKING
+- participantId: UUID | null       # interested user; required only for ITEM_INQUIRY
+- createdAt
+- updatedAt
+
+constraints
+- @@unique([itemId, participantId])
+```
+
+For `ITEM_INQUIRY`, the owner is derived from `item.ownerId`; `participantId` is the other
+participant. The unique pair makes repeated requests return one direct dialog. For `BOOKING`,
+`bookingId` remains unique and `participantId` is `null`, so existing Booking dialogs are not
+merged or deduplicated by item.
+
+### Proposed API
+
+- `POST /api/items/:itemId/conversation/messages` — validates that the item is still published,
+  then atomically creates the first `ITEM_INQUIRY` conversation and its first message. Repeated
+  requests reuse the existing direct dialog. It returns `{ conversation, message }`.
+- Existing `GET /api/conversations`, `GET /api/conversations/:id/messages`,
+  `POST /api/conversations/:id/messages`, edit, delete and read routes support both kinds.
+
+The button opens a frontend compose screen for the item. It has no conversation ID and does not
+write to the database until the user submits a non-empty first message to the endpoint above.
+
+Only the owner and `participantId` may read a direct dialog. Direct inquiry messages are allowed
+while the item is published. The backend derives the recipient from the item and never accepts an
+owner or participant ID in a request body.
+
+### Decisions still needed
+
+1. When a Booking is created after a direct inquiry, the proposal keeps both dialogs separate;
+   messages are not copied or moved.
+2. When an item is hidden, the proposal makes a direct dialog read-only but keeps its history.
+   When an item is permanently deleted, the direct dialog and messages are deleted by cascade.
+
 ## Prisma model draft
 
 ```text
@@ -72,6 +127,26 @@ the current booking status.
 - Desktop Header: `Nachrichten` with unread badge.
 - Mobile: `Nachrichten` lives in the hamburger menu. The closed menu button has a small indicator
   when unread count is greater than zero. The badge is hidden for zero and displays `99+` over 99.
+
+## Hiding a conversation for one participant
+
+`HiddenConversation` is a personal list preference, not deletion of chat history:
+
+```text
+HiddenConversation
+- conversationId: UUID
+- userId: UUID
+- hiddenAt: DateTime
+- @@unique([conversationId, userId])
+```
+
+- `DELETE /api/conversations/:id` hides the dialog only for the current participant. The action is
+  idempotent and is available for open chats and closed Booking chats.
+- The API never deletes messages or changes the other participant's list.
+- Existing unread messages in a hidden dialog do not contribute to the unread badge.
+- A new incoming message removes that participant's `HiddenConversation` row atomically with the
+  message creation. The dialog returns to the list and its new unread count is shown.
+- The UI asks for confirmation before hiding a conversation.
 
 As of 2026-11-03, Yana takes over Header, hamburger menu and mobile navigation from Vlad,
 including Nachrichten and its unread badge. Olga owns deployment, Cloudinary and common

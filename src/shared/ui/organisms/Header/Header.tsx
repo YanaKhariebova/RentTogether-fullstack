@@ -8,6 +8,7 @@ import styles from './Header.module.css';
 import { NavigationIcon } from './NavigationIcon';
 import { useBookingNotificationCount } from '@/features/notifications/api/useBookingNotifications';
 import { NotificationBadge } from '@/features/notifications/components/NotificationBadge';
+import { useMessageUnreadCount } from '@/features/messages/api/useConversations';
 
 const navigation = [
   { to: '/catalog', label: 'Entdecken', icon: 'search' },
@@ -31,6 +32,7 @@ export function Header() {
   const { isLoaded, isSignedIn } = useAuth();
   const { signOut } = useClerk();
   const bookingNotifications = useBookingNotificationCount();
+  const messageNotifications = useMessageUnreadCount();
   return (
     <HeaderView
       auth={
@@ -47,6 +49,9 @@ export function Header() {
       bookingUnreadCount={
         bookingNotifications.isError ? undefined : bookingNotifications.data?.unreadCount
       }
+      messageUnreadCount={
+        messageNotifications.isError ? undefined : messageNotifications.data?.count
+      }
       signedIn={Boolean(isSignedIn)}
       authLoaded={isLoaded}
       onSignOut={() => {
@@ -62,12 +67,14 @@ export function HeaderView({
   authLoaded = true,
   onSignOut,
   bookingUnreadCount,
+  messageUnreadCount,
 }: {
   auth: ReactNode;
   signedIn?: boolean;
   authLoaded?: boolean;
   onSignOut?: () => void;
   bookingUnreadCount?: number;
+  messageUnreadCount?: number;
 }) {
   const panel = useRef<HTMLDialogElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
@@ -75,11 +82,19 @@ export function HeaderView({
   const id = useId();
   const bookingCount = signedIn ? bookingUnreadCount : undefined;
   const hasBookingUpdates = typeof bookingCount === 'number' && bookingCount > 0;
+  const messageCount = signedIn ? messageUnreadCount : undefined;
+  const hasMessageUpdates = typeof messageCount === 'number' && messageCount > 0;
   const bookingDescription = `${id}-booking-updates`;
   const bookingBadge = (to: string) =>
     to === '/account/bookings' && hasBookingUpdates ? (
       <span className={styles.bookingBadge}>
         <NotificationBadge count={bookingCount} />
+      </span>
+    ) : null;
+  const messageBadge = (to: string) =>
+    to === '/account/messages' && hasMessageUpdates ? (
+      <span className={styles.bookingBadge}>
+        <NotificationBadge count={messageCount} />
       </span>
     ) : null;
   const pathname = useRouterState({ select: (state) => state.location.pathname });
@@ -128,6 +143,7 @@ export function HeaderView({
                 <NavigationIcon name={icon} />
                 <span className={styles.navLabel}>{label}</span>
                 {bookingBadge(to)}
+                {messageBadge(to)}
               </Link>
             ))}
           </nav>
@@ -165,6 +181,7 @@ export function HeaderView({
                 <NotificationBadge count={bookingCount} />
               </span>
             )}
+            {hasMessageUpdates && <span className={styles.messageDot} />}
           </button>
         </div>
       </header>
@@ -231,6 +248,7 @@ export function HeaderView({
               <NavigationIcon name={icon} />
               <span>{label}</span>
               {bookingBadge(to)}
+              {messageBadge(to)}
             </Link>
           ))}
           <Link to="/account/items/new">Etwas verleihen</Link>

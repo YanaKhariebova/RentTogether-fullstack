@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { ChatMessage } from '../../types/message';
 import styles from './MessageThread.module.css';
 
@@ -50,6 +50,14 @@ export function MessageThread({
   const [menuMessageId, setMenuMessageId] = useState<string | null>(null);
   const [pressTimer, setPressTimer] = useState<ReturnType<typeof setTimeout> | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
+  const listRef = useRef<HTMLOListElement>(null);
+  const lastMessageId = messages.at(-1)?.id;
+
+  useEffect(() => {
+    const list = listRef.current;
+    if (!list) return;
+    list.scrollTo({ top: list.scrollHeight, behavior: 'smooth' });
+  }, [lastMessageId]);
 
   function clearPressTimer() {
     if (pressTimer) clearTimeout(pressTimer);
@@ -60,7 +68,7 @@ export function MessageThread({
   }
 
   return (
-    <ol className={styles.list} aria-label="Nachrichtenverlauf" aria-live="polite">
+    <ol ref={listRef} className={styles.list} aria-label="Nachrichtenverlauf" aria-live="polite">
       {messages.map((message, index) => {
         const isOwnMessage = message.senderId === currentUserId;
         const isEditing = editingId === message.id;

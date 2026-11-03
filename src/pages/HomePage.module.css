@@ -55,7 +55,6 @@
   line-height: 1.5;
   letter-spacing: 0.06em;
   font-weight: 700;
-  animation: hero-headline-reveal 900ms cubic-bezier(0.16, 1, 0.3, 1) 2900ms both;
 }
 .hero h1 {
   font-size: clamp(2rem, 4.1vw, 3.25rem);
@@ -91,7 +90,6 @@
   line-height: 1.6;
   max-width: 440px;
   margin: 0;
-  animation: hero-headline-reveal 900ms cubic-bezier(0.16, 1, 0.3, 1) 2900ms both;
 }
 .actions {
   display: flex;

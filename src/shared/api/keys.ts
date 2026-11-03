@@ -14,6 +14,7 @@ export const apiKeys = {
   unavailableDates: (itemId: string) => ['bookings', 'unavailable-dates', itemId] as const,
   favorites: (userId: string) => ['favorites', userId] as const,
   conversations: (userId: string) => ['conversations', userId] as const,
+  conversationUnread: (userId: string) => ['conversations', userId, 'unread-count'] as const,
   conversationMessages: (userId: string, conversationId: string) =>
     ['conversations', userId, conversationId, 'messages'] as const,
 };

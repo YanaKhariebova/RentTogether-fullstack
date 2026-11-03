@@ -1,6 +1,8 @@
 import { Link } from '@tanstack/react-router';
+import { useAuth } from '@clerk/react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { Button, Spinner } from '@/shared/ui/atoms';
-import { useConversationsQuery } from './api/useConversations';
+import { useConversationsQuery, useHideConversationMutation } from './api/useConversations';
 import styles from './MessagesPage.module.css';
 
 function formatUpdatedAt(value: string) {
@@ -10,7 +12,20 @@ function formatUpdatedAt(value: string) {
 }
 
 export function MessagesPage() {
+  const { userId } = useAuth();
   const conversations = useConversationsQuery();
+  const hideConversation = useHideConversationMutation();
+  const [conversationToHide, setConversationToHide] = useState<{
+    id: string;
+    itemTitle: string;
+  } | null>(null);
+  const dialog = useRef<HTMLDialogElement>(null);
+  const dialogId = useId();
+
+  useEffect(() => {
+    if (conversationToHide && !dialog.current?.open) dialog.current?.showModal();
+    if (!conversationToHide && dialog.current?.open) dialog.current.close();
+  }, [conversationToHide]);
   return (
     <section className={styles.page} aria-labelledby="messages-title">
       <div className={styles.content}>
@@ -29,7 +44,12 @@ export function MessagesPage() {
         ) : conversations.data?.conversations.length ? (
           <ul className={styles.list} aria-label="Unterhaltungen">
             {conversations.data.conversations.map((conversation) => (
-              <li key={conversation.id}>
+              <li
+                key={conversation.id}
+                className={`${styles.conversationItem} ${
+                  conversation.unreadCount > 0 ? styles.unread : ''
+                }`}
+              >
                 <Link
                   className={styles.conversation}
                   to="/account/messages/$conversationId"
@@ -45,8 +65,18 @@ export function MessagesPage() {
                         {formatUpdatedAt(conversation.updatedAt)}
                       </time>
                     </span>
-                    <span className={styles.itemTitle}>{conversation.itemTitle}</span>
-                    <span className={styles.preview}>
+                    <span className={styles.itemTitle}>
+                      <span className={styles.itemName}>{conversation.itemTitle}</span> ·{' '}
+                      {conversation.kind === 'ITEM_INQUIRY'
+                        ? 'Frage zum Artikel'
+                        : 'Chat zur Buchung'}
+                    </span>
+                    <span
+                      className={`${styles.preview} ${
+                        conversation.unreadCount > 0 ? styles.unreadPreview : ''
+                      }`}
+                    >
+                      {conversation.lastMessage?.senderId === userId ? 'Du: ' : ''}
                       {conversation.lastMessage?.body ?? 'Noch keine Nachrichten'}
                     </span>
                   </span>
@@ -59,6 +89,27 @@ export function MessagesPage() {
                     </span>
                   )}
                 </Link>
+                <details className={styles.actionsMenu}>
+                  <summary aria-label={`Aktionen für ${conversation.itemTitle}`}>⋯</summary>
+                  <div className={styles.actionsPopup}>
+                    <button
+                      type="button"
+                      disabled={hideConversation.isPending}
+                      onClick={(event) => {
+                        event.currentTarget.closest('details')?.removeAttribute('open');
+                        setConversationToHide({
+                          id: conversation.id,
+                          itemTitle: conversation.itemTitle,
+                        });
+                      }}
+                    >
+                      <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M4 7h16M10 11v6m4-6v6M9 7l1-2h4l1 2m-9 0 1 13h10l1-13" />
+                      </svg>
+                      Unterhaltung löschen
+                    </button>
+                  </div>
+                </details>
               </li>
             ))}
           </ul>
@@ -70,6 +121,45 @@ export function MessagesPage() {
           </div>
         )}
       </div>
+      <dialog
+        ref={dialog}
+        className={styles.hideDialog}
+        aria-labelledby={`${dialogId}-title`}
+        aria-describedby={`${dialogId}-description`}
+        onCancel={(event) => {
+          event.preventDefault();
+          if (!hideConversation.isPending) setConversationToHide(null);
+        }}
+      >
+        <h2 id={`${dialogId}-title`}>Unterhaltung ausblenden?</h2>
+        <p id={`${dialogId}-description`}>
+          {conversationToHide
+            ? `„${conversationToHide.itemTitle}“ wird nur aus deiner Liste entfernt. Die Nachrichten bleiben für die andere Person erhalten.`
+            : ''}
+        </p>
+        <div className={styles.dialogActions}>
+          <Button
+            type="button"
+            disabled={hideConversation.isPending}
+            onClick={() => setConversationToHide(null)}
+          >
+            Abbrechen
+          </Button>
+          <Button
+            type="button"
+            className={styles.deleteConfirm}
+            loading={hideConversation.isPending}
+            onClick={() => {
+              if (!conversationToHide) return;
+              void hideConversation
+                .mutateAsync(conversationToHide.id)
+                .then(() => setConversationToHide(null));
+            }}
+          >
+            Unterhaltung löschen
+          </Button>
+        </div>
+      </dialog>
     </section>
   );
 }
