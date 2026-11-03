@@ -33,6 +33,53 @@ export function Header() {
   const { signOut } = useClerk();
   const bookingNotifications = useBookingNotificationCount();
   const messageNotifications = useMessageUnreadCount();
+  const messageAudio = useRef<AudioContext | null>(null);
+  const previousMessageCount = useRef<number | null>(null);
+
+  useEffect(() => {
+    const enableMessageAudio = () => {
+      if (!messageAudio.current) messageAudio.current = new AudioContext();
+      void messageAudio.current.resume();
+      window.removeEventListener('pointerdown', enableMessageAudio);
+      window.removeEventListener('keydown', enableMessageAudio);
+    };
+
+    window.addEventListener('pointerdown', enableMessageAudio, { once: true });
+    window.addEventListener('keydown', enableMessageAudio, { once: true });
+    return () => {
+      window.removeEventListener('pointerdown', enableMessageAudio);
+      window.removeEventListener('keydown', enableMessageAudio);
+      void messageAudio.current?.close();
+    };
+  }, []);
+
+  useEffect(() => {
+    const unreadCount = messageNotifications.data?.count;
+    if (typeof unreadCount !== 'number') return;
+
+    const previousCount = previousMessageCount.current;
+    previousMessageCount.current = unreadCount;
+    if (
+      previousCount === null ||
+      unreadCount <= previousCount ||
+      document.visibilityState !== 'visible' ||
+      messageAudio.current?.state !== 'running'
+    )
+      return;
+
+    const tone = messageAudio.current;
+    const oscillator = tone.createOscillator();
+    const gain = tone.createGain();
+    oscillator.type = 'sine';
+    oscillator.frequency.setValueAtTime(740, tone.currentTime);
+    gain.gain.setValueAtTime(0.0001, tone.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.055, tone.currentTime + 0.015);
+    gain.gain.exponentialRampToValueAtTime(0.0001, tone.currentTime + 0.22);
+    oscillator.connect(gain).connect(tone.destination);
+    oscillator.start();
+    oscillator.stop(tone.currentTime + 0.23);
+  }, [messageNotifications.data?.count]);
+
   return (
     <HeaderView
       auth={

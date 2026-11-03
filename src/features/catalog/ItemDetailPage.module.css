@@ -76,7 +76,8 @@
   background: var(--color-surface);
 }
 
-.titleRow {
+.titleRow,
+.categoryRow {
   display: flex;
   align-items: start;
   justify-content: space-between;
@@ -89,7 +90,6 @@
 }
 
 .favorite {
-  margin-top: 6px;
   border: 0;
   background: transparent;
   color: var(--color-muted);

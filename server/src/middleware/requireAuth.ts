@@ -10,7 +10,7 @@ declare global {
   }
 }
 
-export type Identity = { clerkUserId: string; name: string; email: string };
+export type Identity = { clerkUserId: string; name: string; email: string; avatarUrl?: string };
 export type AuthDependencies = {
   getSubject: (req: Parameters<RequestHandler>[0]) => string | null;
   loadIdentity: (clerkUserId: string) => Promise<Identity>;

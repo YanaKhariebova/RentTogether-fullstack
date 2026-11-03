@@ -14,6 +14,7 @@ const user: User = {
   city: 'Berlin',
   email: 'vlad@example.test',
   phone: '',
+  avatarUrl: '',
   createdAt: new Date(),
   updatedAt: new Date(),
 };
@@ -93,7 +94,14 @@ test('current user response excludes Clerk ID and internal timestamps', async ()
   const response = await fetch(`${base}/api/me`, { headers });
   assert.equal(response.status, 200);
   assert.deepEqual(await response.json(), {
-    user: { id: user.id, name: user.name, city: user.city, email: user.email, phone: '' },
+    user: {
+      id: user.id,
+      name: user.name,
+      city: user.city,
+      email: user.email,
+      phone: '',
+      avatarUrl: '',
+    },
   });
 });
 test('all owner item endpoints require authentication', async () => {

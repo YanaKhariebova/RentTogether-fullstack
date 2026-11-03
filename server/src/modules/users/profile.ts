@@ -13,5 +13,12 @@ export const profilePatchSchema = z
   .refine((value) => Object.keys(value).length > 0, 'Bitte ändere mindestens ein Feld.');
 
 export function toCurrentUser(user: User) {
-  return { id: user.id, name: user.name, city: user.city, email: user.email, phone: user.phone };
+  return {
+    id: user.id,
+    name: user.name,
+    city: user.city,
+    email: user.email,
+    phone: user.phone,
+    avatarUrl: user.avatarUrl,
+  };
 }

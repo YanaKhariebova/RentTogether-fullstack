@@ -30,10 +30,10 @@ const conversationSelect = {
       ownerId: true,
       title: true,
       isPublished: true,
-      owner: { select: { id: true, name: true } },
+      owner: { select: { id: true, name: true, avatarUrl: true } },
     },
   },
-  participant: { select: { id: true, name: true } },
+  participant: { select: { id: true, name: true, avatarUrl: true } },
 } satisfies Prisma.ConversationSelect;
 type SelectedConversation = Prisma.ConversationGetPayload<{ select: typeof conversationSelect }>;
 type SelectedMessage = Prisma.MessageGetPayload<{ select: typeof messageSelect }>;
@@ -182,20 +182,23 @@ export function createMessagesService(prisma: MessagesDatabase) {
       });
       const page = rows.length > limit ? rows.slice(0, limit) : rows;
       return {
-        conversations: page.map((c) => ({
-          id: c.id,
-          kind: c.kind,
-          bookingId: c.bookingId,
-          itemTitle: c.item.title,
-          otherParticipantName:
-            (c.item.ownerId === userId ? c.participant : c.item.owner)?.name ?? 'Kontakt',
-          bookingStatus: c.booking?.status ?? null,
-          updatedAt: c.updatedAt.toISOString(),
-          lastMessage: c.messages[0]
-            ? { ...c.messages[0], createdAt: c.messages[0].createdAt.toISOString() }
-            : null,
-          unreadCount: c._count.messages,
-        })),
+        conversations: page.map((c) => {
+          const otherParticipant = c.item.ownerId === userId ? c.participant : c.item.owner;
+          return {
+            id: c.id,
+            kind: c.kind,
+            bookingId: c.bookingId,
+            itemTitle: c.item.title,
+            otherParticipantName: otherParticipant?.name ?? 'Kontakt',
+            otherParticipantAvatarUrl: otherParticipant?.avatarUrl || null,
+            bookingStatus: c.booking?.status ?? null,
+            updatedAt: c.updatedAt.toISOString(),
+            lastMessage: c.messages[0]
+              ? { ...c.messages[0], createdAt: c.messages[0].createdAt.toISOString() }
+              : null,
+            unreadCount: c._count.messages,
+          };
+        }),
         nextCursor: rows.length > limit ? (page.at(-1)?.id ?? null) : null,
       };
     },
