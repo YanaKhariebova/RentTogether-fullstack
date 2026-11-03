@@ -1342,6 +1342,7 @@ test('personal booking history only hides terminal bookings for the caller and p
       const conversation = await prisma.conversation.create({
         data: {
           bookingId: booking.id,
+          itemId: item.id,
           messages: {
             create: { senderId: renter.ownerId, body: 'History must remain available.' },
           },
