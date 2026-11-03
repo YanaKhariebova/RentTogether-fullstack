@@ -3,6 +3,7 @@ import type { RequestHandler } from 'express';
 import {
   bookingConversationParamsSchema,
   conversationParamsSchema,
+  itemConversationParamsSchema,
   markReadSchema,
   messageBodySchema,
   messageParamsSchema,
@@ -42,6 +43,11 @@ export function createMessagesRoutes(prisma: MessagesDatabase, authenticate: Req
     const { id, messageId } = messageParamsSchema.parse(req.params);
     res.json({ message: await service.remove(res.locals.currentUser.id, id, messageId) });
   });
+  router.delete('/:id', authenticate, async (req, res) => {
+    const { id } = conversationParamsSchema.parse(req.params);
+    await service.hide(res.locals.currentUser.id, id);
+    res.status(204).end();
+  });
   router.patch('/:id/read', authenticate, async (req, res) => {
     const { id } = conversationParamsSchema.parse(req.params);
     const { lastReadMessageId } = markReadSchema.parse(req.body);
@@ -67,6 +73,17 @@ export function createBookingConversationRoutes(
         updatedAt: conversation.updatedAt.toISOString(),
       },
     });
+  });
+  return router;
+}
+
+export function createItemInquiryRoutes(prisma: MessagesDatabase, authenticate: RequestHandler) {
+  const router = Router();
+  const service = createMessagesService(prisma);
+  router.post('/:itemId/conversation/messages', authenticate, async (req, res) => {
+    const { itemId } = itemConversationParamsSchema.parse(req.params);
+    const { body } = messageBodySchema.parse(req.body);
+    res.status(201).json(await service.sendItemInquiry(res.locals.currentUser.id, itemId, body));
   });
   return router;
 }

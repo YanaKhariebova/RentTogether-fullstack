@@ -21,6 +21,8 @@ model User {
   favorites     Favorite[]
   messages      Message[]
   notifications Notification[]
+  inquiries     Conversation[] @relation("InquiryParticipant")
+  hiddenConversations HiddenConversation[]
 }
 
 model Category {
@@ -45,6 +47,7 @@ model Item {
   images      ItemImage[]
   bookings    Booking[]
   favorites   Favorite[]
+  conversations Conversation[]
 
   @@index([ownerId, createdAt, id])
   @@index([isPublished, createdAt, id])
@@ -83,14 +86,37 @@ model Booking {
 }
 
 model Conversation {
-  id        String    @id @default(uuid()) @db.Uuid
-  bookingId String    @unique @db.Uuid
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  booking   Booking   @relation(fields: [bookingId], references: [id], onDelete: Cascade)
-  messages  Message[]
+  id            String           @id @default(uuid()) @db.Uuid
+  kind          ConversationKind @default(BOOKING)
+  bookingId     String?          @unique @db.Uuid
+  itemId        String           @db.Uuid
+  participantId String?          @db.Uuid
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  booking       Booking?         @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  item          Item             @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  participant   User?            @relation("InquiryParticipant", fields: [participantId], references: [id], onDelete: Cascade)
+  messages      Message[]
+  hiddenBy      HiddenConversation[]
 
   @@index([updatedAt, id])
+  @@unique([itemId, participantId])
+}
+
+enum ConversationKind {
+  BOOKING
+  ITEM_INQUIRY
+}
+
+model HiddenConversation {
+  conversationId String       @db.Uuid
+  userId         String       @db.Uuid
+  hiddenAt       DateTime     @default(now())
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([conversationId, userId])
+  @@index([userId, hiddenAt])
 }
 
 model Message {

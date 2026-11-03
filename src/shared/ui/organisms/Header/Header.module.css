@@ -72,10 +72,10 @@
 .auth .signInLink {
   gap: 8px;
   padding: 6px 10px;
-  border: 1px solid var(--color-primary);
+  border: 1px solid var(--color-emphasis);
   border-radius: var(--radius-sm);
   background: var(--color-surface);
-  color: var(--color-primary);
+  color: var(--color-emphasis);
   font-size: 0.875rem;
   font-weight: 700;
   text-decoration: none;
@@ -309,6 +309,17 @@
   top: -5px;
   right: -5px;
   pointer-events: none;
+}
+
+.messageDot {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 9px;
+  height: 9px;
+  border: 2px solid var(--color-header);
+  border-radius: 50%;
+  background: var(--color-danger);
 }
 .srOnly {
   position: absolute;

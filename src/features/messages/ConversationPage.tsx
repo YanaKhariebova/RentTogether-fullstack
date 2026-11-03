@@ -1,5 +1,5 @@
 import { Link, useParams } from '@tanstack/react-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button, Spinner } from '@/shared/ui/atoms';
 import { useCurrentUser } from '@/features/profile/api/useCurrentUser';
 import { MessageComposer } from './components/MessageComposer/MessageComposer';
@@ -9,6 +9,7 @@ import {
   useConversationsQuery,
   useDeleteMessageMutation,
   useEditMessageMutation,
+  useMarkConversationReadMutation,
   useSendMessageMutation,
 } from './api/useConversations';
 import type { ChatMessage } from './types/message';
@@ -22,10 +23,19 @@ export function ConversationPage() {
   const sendMessage = useSendMessageMutation(conversationId);
   const editMessage = useEditMessageMutation(conversationId);
   const deleteMessage = useDeleteMessageMutation(conversationId);
+  const markRead = useMarkConversationReadMutation(conversationId);
   const [replyTo, setReplyTo] = useState<ChatMessage | null>(null);
   const conversation = conversations.data?.conversations.find(
     (entry) => entry.id === conversationId,
   );
+
+  useEffect(() => {
+    if (!messages.data || !currentUser.data || markRead.isPending) return;
+    const latestUnreadIncoming = messages.data.messages.find(
+      (message) => message.senderId !== currentUser.data.user.id && !message.readAt,
+    );
+    if (latestUnreadIncoming) markRead.mutate(latestUnreadIncoming.id);
+  }, [currentUser.data, markRead, messages.data]);
 
   if (messages.isPending || currentUser.isPending) {
     return <Spinner label="Chat wird geladen …" />;
@@ -43,9 +53,17 @@ export function ConversationPage() {
     <section className={styles.page} aria-labelledby="conversation-title">
       <Link to="/account/messages">← Alle Nachrichten</Link>
       <header className={styles.heading}>
-        <p>{conversation?.itemTitle ?? 'Nachrichten'}</p>
+        <p>
+          {conversation?.kind === 'ITEM_INQUIRY'
+            ? 'Frage zum Artikel'
+            : conversation
+              ? 'Chat zur Buchung'
+              : 'Nachrichten'}
+        </p>
         <h1 id="conversation-title">
-          {conversation ? `Chat mit ${conversation.otherParticipantName}` : 'Nachrichten'}
+          {conversation
+            ? `${conversation.itemTitle} · ${conversation.otherParticipantName}`
+            : 'Nachrichten'}
         </h1>
       </header>
       <MessageThread

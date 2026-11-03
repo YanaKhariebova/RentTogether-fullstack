@@ -10,10 +10,11 @@ export type ChatMessage = {
 
 export type ConversationPreview = {
   id: string;
-  bookingId: string;
+  kind: 'BOOKING' | 'ITEM_INQUIRY';
+  bookingId: string | null;
   itemTitle: string;
   otherParticipantName: string;
-  bookingStatus: 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED' | 'ACTIVE' | 'COMPLETED';
+  bookingStatus: 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED' | 'ACTIVE' | 'COMPLETED' | null;
   lastMessage: ChatMessage | null;
   unreadCount: number;
   updatedAt: string;

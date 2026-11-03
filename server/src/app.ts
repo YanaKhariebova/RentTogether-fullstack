@@ -11,6 +11,7 @@ import { createFavoritesRoutes } from './modules/favorites/routes.js';
 import { createNotificationsRoutes } from './modules/notifications/routes.js';
 import {
   createBookingConversationRoutes,
+  createItemInquiryRoutes,
   createMessagesRoutes,
 } from './modules/messages/routes.js';
 
@@ -22,6 +23,7 @@ export function createApp(deps: {
     | 'item'
     | 'booking'
     | 'favorite'
+    | 'hiddenConversation'
     | 'notification'
     | 'conversation'
     | 'message'
@@ -75,6 +77,7 @@ export function createApp(deps: {
     deps.imageStorage,
   );
   app.use('/api/items', itemsRouter);
+  app.use('/api/items', createItemInquiryRoutes(deps.prisma, deps.authenticate));
   app.use('/api/my', myRouter);
   app.use('/api/bookings', createBookingsRoutes(deps.prisma, deps.authenticate));
   app.use('/api/bookings', createBookingConversationRoutes(deps.prisma, deps.authenticate));

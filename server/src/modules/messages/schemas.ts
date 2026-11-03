@@ -5,6 +5,7 @@ const uuid = z.uuid('Ungültige ID.');
 export const conversationParamsSchema = z.object({ id: uuid });
 export const messageParamsSchema = z.object({ id: uuid, messageId: uuid });
 export const bookingConversationParamsSchema = z.object({ bookingId: uuid });
+export const itemConversationParamsSchema = z.object({ itemId: uuid });
 export const pageQuerySchema = z.object({
   cursor: uuid.optional(),
   limit: z.coerce.number().int().min(1).max(50).default(20),
