@@ -56,6 +56,10 @@
   --color-emphasis: #79d3ab;
   --color-emphasis-hover: #a0e5c6;
   --color-error-text: #edaaa7;
+  --color-button-surface: #1c2423;
+  --color-button-text: #79d3ab;
+  --color-button-border: #343d40;
+  --color-button-hover: #25372e;
   --shadow-card: 0 4px 20px #00000030;
 }
 * {

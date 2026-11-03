@@ -9,6 +9,7 @@ import type { ValidatedItemForm } from '../model/itemFormSchema';
 import type { ItemCategory, OwnerItem } from '../types/item';
 import { ItemForm } from '../../../shared/ui/organisms/ItemForm/ItemForm';
 import styles from './ItemEditor.module.css';
+import { CitySearch } from '@/features/locations/CitySearch';
 
 interface ItemEditorProps {
   item?: OwnerItem;
@@ -62,6 +63,17 @@ export function ItemEditor({
       </header>
       <ItemForm
         values={form.values}
+        cityField={
+          <CitySearch
+            value={form.values.city}
+            error={form.errors.city}
+            disabled={form.isSubmitting || isSaving}
+            onChange={(city) => {
+              invalidatePreview();
+              form.changeField('city', city);
+            }}
+          />
+        }
         errors={form.errors}
         categories={categories}
         images={form.images}

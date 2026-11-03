@@ -135,7 +135,9 @@ test('real owner creates, reloads, publishes and edits photos; another account c
   await page
     .getByLabel('Beschreibung *', { exact: true })
     .fill('Beamer mit Kabel für einen Testfilmabend.');
-  await page.getByLabel('Ort *', { exact: true }).fill('Berlin');
+  await page.getByLabel('Ort *', { exact: true }).fill('39104');
+  await page.getByRole('option', { name: /^Magdeburg/ }).click();
+  await expect(page.getByLabel('Ort *', { exact: true })).toHaveValue('Magdeburg');
   await page.getByLabel('Kategorie *', { exact: true }).selectOption({ label: 'Elektronik' });
   await page.getByLabel('Preis pro Tag', { exact: false }).fill('15,50');
   await page.getByLabel('Fotos auswählen', { exact: true }).setInputFiles([
@@ -403,7 +405,7 @@ test('two real accounts book a published item, preserve snapshot after edit and 
   await page.locator(`[data-day="${month}-10"]:not([data-outside]) button`).click();
   await page.locator(`[data-day="${month}-13"]:not([data-outside]) button`).click();
   await page.getByRole('button', { name: 'Anfrage senden', exact: true }).click();
-  await expect(page.getByText('Deine Anfrage wurde gesendet.', { exact: true })).toBeVisible();
+  await expect(page.getByRole('status').filter({ hasText: 'Anfrage gesendet' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Anfrage gesendet', exact: true })).toBeDisabled();
   await page.goto('/account/bookings/my-rentals');
   await expect(page.getByRole('heading', { name: title, exact: true })).toBeVisible();
