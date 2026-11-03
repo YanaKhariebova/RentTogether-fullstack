@@ -1,6 +1,6 @@
 import { useAuth } from '@clerk/react';
 import { useMemo, useState } from 'react';
-import { Button, Spinner } from '@/shared/ui/atoms';
+import { Button, Input, Spinner } from '@/shared/ui/atoms';
 import { useCategoriesQuery } from '../items/api/useCategoriesQuery';
 import { ItemGrid } from './components/ItemGrid/ItemGrid';
 import { useCatalogItemsQuery } from './api/useCatalogItemsQuery';
@@ -20,8 +20,16 @@ export function CatalogPage() {
   const [maxPrice, setMaxPrice] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [areFiltersOpen, setAreFiltersOpen] = useState(false);
+  const [areCategoriesExpanded, setAreCategoriesExpanded] = useState(false);
+  const [areCitiesExpanded, setAreCitiesExpanded] = useState(false);
+  const [citySearch, setCitySearch] = useState('');
   const { data: categoriesData } = useCategoriesQuery();
-  const { data: citiesData } = useCatalogCitiesQuery();
+  const {
+    data: citiesData,
+    isPending: areCitiesLoading,
+    isError: citiesFailed,
+    refetch: reloadCities,
+  } = useCatalogCitiesQuery();
   const normalizedMin = catalogPrice(minPrice);
   const normalizedMax = catalogPrice(maxPrice);
   const priceError =
@@ -74,6 +82,17 @@ export function CatalogPage() {
     ],
     [categoriesData],
   );
+
+  const categories = categoryOptions.slice(1);
+  const visibleCategories = areCategoriesExpanded ? categories : categories.slice(0, 4);
+  const matchingCities = cityOptions
+    .slice(1)
+    .filter((option) =>
+      option.label
+        .toLocaleLowerCase('de-DE')
+        .includes(citySearch.trim().toLocaleLowerCase('de-DE')),
+    );
+  const visibleCities = areCitiesExpanded ? matchingCities : matchingCities.slice(0, 4);
 
   function changeFilter(setter: (value: string) => void, value: string) {
     setter(value);
@@ -206,7 +225,7 @@ export function CatalogPage() {
           <aside className={styles.sidebar} aria-label="Katalogfilter">
             <section className={styles.filterGroup}>
               <h2>Kategorie</h2>
-              <div className={styles.categoryList}>
+              <div id="catalog-category-list" className={styles.categoryList}>
                 <button
                   type="button"
                   className={!category ? styles.isSelected : ''}
@@ -215,7 +234,7 @@ export function CatalogPage() {
                 >
                   Alle Kategorien
                 </button>
-                {categoryOptions.slice(1).map((option) => (
+                {visibleCategories.map((option) => (
                   <button
                     key={option.value}
                     type="button"
@@ -229,6 +248,23 @@ export function CatalogPage() {
                   </button>
                 ))}
               </div>
+              {categories.length > 4 && (
+                <Button
+                  variant="secondary"
+                  className={styles.expandButton}
+                  aria-label={
+                    areCategoriesExpanded
+                      ? 'Weniger Kategorien anzeigen'
+                      : 'Alle Kategorien anzeigen'
+                  }
+                  aria-expanded={areCategoriesExpanded}
+                  aria-controls="catalog-category-list"
+                  onClick={() => setAreCategoriesExpanded((expanded) => !expanded)}
+                >
+                  {areCategoriesExpanded ? 'Weniger anzeigen' : 'Alle anzeigen'}
+                  <span aria-hidden="true">{areCategoriesExpanded ? '−' : '+'}</span>
+                </Button>
+              )}
             </section>
 
             <section className={styles.filterGroup}>
@@ -242,18 +278,66 @@ export function CatalogPage() {
                 >
                   Alle Städte
                 </button>
-                {cityOptions.slice(1).map((option) => (
-                  <label key={option.value}>
-                    <input
-                      type="radio"
-                      name="catalog-city"
-                      checked={city === option.value}
-                      onChange={() => changeFilter(setCity, option.value)}
-                    />
-                    <span>{option.label}</span>
-                  </label>
-                ))}
+                <div className={styles.citySearch}>
+                  <Input
+                    type="search"
+                    label="Stadt suchen"
+                    placeholder="Stadt eingeben …"
+                    value={citySearch}
+                    disabled={!citiesData}
+                    onChange={(event) => {
+                      setCitySearch(event.target.value);
+                      setAreCitiesExpanded(false);
+                    }}
+                  />
+                </div>
+                <div id="catalog-city-list" className={styles.cityOptions}>
+                  {visibleCities.map((option) => (
+                    <label key={option.value}>
+                      <input
+                        type="radio"
+                        name="catalog-city"
+                        checked={city === option.value}
+                        onChange={() => changeFilter(setCity, option.value)}
+                      />
+                      <span>{option.label}</span>
+                    </label>
+                  ))}
+                  {areCitiesLoading ? (
+                    <p className={styles.noCities} role="status">
+                      Städte werden geladen …
+                    </p>
+                  ) : citiesFailed ? (
+                    <div>
+                      <p className={styles.noCities} role="alert">
+                        Städte konnten nicht geladen werden.
+                      </p>
+                      <Button variant="secondary" onClick={() => void reloadCities()}>
+                        Städte erneut laden
+                      </Button>
+                    </div>
+                  ) : matchingCities.length === 0 ? (
+                    <p className={styles.noCities} role="status">
+                      Keine Stadt gefunden.
+                    </p>
+                  ) : null}
+                </div>
               </div>
+              {matchingCities.length > 4 && (
+                <Button
+                  variant="secondary"
+                  className={styles.expandButton}
+                  aria-label={
+                    areCitiesExpanded ? 'Weniger Städte anzeigen' : 'Alle Städte anzeigen'
+                  }
+                  aria-expanded={areCitiesExpanded}
+                  aria-controls="catalog-city-list"
+                  onClick={() => setAreCitiesExpanded((expanded) => !expanded)}
+                >
+                  {areCitiesExpanded ? 'Weniger anzeigen' : 'Alle anzeigen'}
+                  <span aria-hidden="true">{areCitiesExpanded ? '−' : '+'}</span>
+                </Button>
+              )}
             </section>
 
             <section className={styles.filterGroup}>

@@ -20,10 +20,10 @@
   --rdp-accent-color: var(--color-primary);
   --rdp-accent-background-color: var(--color-primary-soft);
   --rdp-day_button-border-radius: var(--radius-sm);
-  --rdp-day_button-height: 38px;
-  --rdp-day_button-width: 38px;
-  --rdp-day-height: 38px;
-  --rdp-day-width: 38px;
+  --rdp-day_button-height: 44px;
+  --rdp-day_button-width: 44px;
+  --rdp-day-height: 44px;
+  --rdp-day-width: 44px;
   --rdp-disabled-opacity: 0.35;
   --rdp-range_middle-background-color: var(--color-primary-soft);
   --rdp-range_start-date-background-color: var(--color-primary);
@@ -160,8 +160,8 @@
   max-width: 100%;
   overflow-x: auto;
   overscroll-behavior-inline: contain;
-  --rdp-nav_button-height: 40px;
-  --rdp-nav_button-width: 40px;
+  --rdp-nav_button-height: 44px;
+  --rdp-nav_button-width: 44px;
 }
 .calendar :global(.rdp-months) {
   justify-content: flex-start;
@@ -171,11 +171,6 @@
 
 @media (max-width: 767px) {
   .calendar {
-    --rdp-day_button-height: 36px;
-    --rdp-day_button-width: 36px;
-    --rdp-day-height: 36px;
-    --rdp-day-width: 36px;
-    --rdp-nav_button-height: 40px;
-    --rdp-nav_button-width: 40px;
+    padding: 0;
   }
 }

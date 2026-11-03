@@ -398,6 +398,7 @@ test('two real accounts book a published item, preserve snapshot after edit and 
   const nextMonth = new Date();
   nextMonth.setMonth(nextMonth.getMonth() + 1, 10);
   const month = `${nextMonth.getFullYear()}-${String(nextMonth.getMonth() + 1).padStart(2, '0')}`;
+  await page.getByRole('button', { name: 'Zeitraum auswählen', exact: true }).click();
   await page.getByRole('button', { name: 'Zum nächsten Monat', exact: true }).click();
   await page.locator(`[data-day="${month}-10"]:not([data-outside]) button`).click();
   await page.locator(`[data-day="${month}-13"]:not([data-outside]) button`).click();

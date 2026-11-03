@@ -172,3 +172,17 @@
     padding: 12px;
   }
 }
+
+@media (max-width: 767px) {
+  .details :global(#booking-calendar) {
+    width: calc(100% + 24px);
+    max-width: none;
+    margin-inline: -12px;
+  }
+}
+@media (max-width: 359px) {
+  .details :global(#booking-calendar) {
+    width: calc(100% + 48px);
+    margin-inline: -24px;
+  }
+}

@@ -56,6 +56,15 @@ the current booking status.
 - Mobile: `Nachrichten` lives in the hamburger menu. The closed menu button has a small indicator
   when unread count is greater than zero. The badge is hidden for zero and displays `99+` over 99.
 
+As of 2026-11-03, Yana takes over Header, hamburger menu and mobile navigation from Vlad,
+including Nachrichten and its unread badge. Olga owns deployment, Cloudinary and common
+integration. PWA ownership still needs explicit coordination. See [team status](team-status.md).
+
+The shared demo deployment and the two-user Booking scenario have been completed according to
+Olga. Chat and Booking notifications are additional work, not an unfulfilled original MVP item.
+This document is a contract: it does not claim the Conversation/Message backend or migration is
+already implemented. Preserve separate read state for messages and general notifications.
+
 Header, mobile navigation and the integration of `Nachrichten` are owned by Yana. Chat API
 integration starts only after this contract has been reviewed and the database migration has been
 approved.
@@ -149,7 +158,7 @@ API accepts a bounded `limit` and returns a next cursor where more rows exist.
 
 ## Delivery order
 
-1. Olya reviews this schema and API contract.
+1. Olya approved this schema and API contract on 2026-11-03; update the feature branch from main before the migration.
 2. Add Prisma relations and one migration for Conversation, Message and Notification.
 3. Implement and test transactional Booking notifications before connecting Header badges.
 4. Implement Chat API and then connect `/account/messages`, Header and mobile navigation.

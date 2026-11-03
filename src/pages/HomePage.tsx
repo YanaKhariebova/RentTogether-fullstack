@@ -30,7 +30,7 @@ export function HomePage() {
       <div className={styles.content}>
         <span className={styles.eyebrow}>DEINE NACHBARSCHAFT. DEINE MÖGLICHKEITEN.</span>
         <h1>
-          <span className={styles.headlineLead}>Leihen, was du brauchst.</span>
+          <span className={styles.headlineLead}>Leihen, was du brauchst.</span>{' '}
           <span className={styles.promise}>Teilen, was du hast.</span>
         </h1>
         <p>
