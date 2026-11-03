@@ -1,6 +1,15 @@
 .form {
   display: grid;
+  width: 100%;
   gap: 12px;
+}
+
+.form > * {
+  width: 100%;
+}
+
+.form :global(textarea) {
+  min-height: 180px;
 }
 
 .actions {

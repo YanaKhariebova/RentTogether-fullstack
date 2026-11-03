@@ -29,7 +29,16 @@ const prisma = {
   },
 } as unknown as Pick<
   PrismaClient,
-  'user' | 'category' | 'item' | 'booking' | 'favorite' | '$transaction' | 'imageCleanup'
+  | 'user'
+  | 'category'
+  | 'item'
+  | 'booking'
+  | 'favorite'
+  | 'notification'
+  | 'conversation'
+  | 'message'
+  | '$transaction'
+  | 'imageCleanup'
 >;
 let server: Server;
 let base: string;
@@ -97,9 +106,18 @@ test('all owner item endpoints require authentication', async () => {
     ['POST', `/api/items/${user.id}/images`],
     ['DELETE', `/api/items/${user.id}/images/${user.id}`],
     ['POST', '/api/bookings'],
+    ['POST', `/api/bookings/${user.id}/conversation`],
+    ['GET', '/api/conversations'],
+    ['GET', '/api/conversations/unread-count'],
+    ['GET', `/api/conversations/${user.id}/messages`],
+    ['POST', `/api/conversations/${user.id}/messages`],
+    ['PATCH', `/api/conversations/${user.id}/read`],
     ['GET', '/api/me/favorites'],
     ['PUT', `/api/me/favorites/${user.id}`],
     ['DELETE', `/api/me/favorites/${user.id}`],
+    ['GET', '/api/me/notifications'],
+    ['GET', '/api/me/notifications/unread-count'],
+    ['PATCH', '/api/me/notifications/read'],
   ]) {
     const response = await fetch(`${base}${path}`, { method });
     assert.equal(response.status, 401);

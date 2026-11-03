@@ -1,4 +1,3 @@
-import { createFileRoute } from '@tanstack/react-router';
-import { MessagesPage } from '../features/messages/MessagesPage';
+import { createFileRoute, Outlet } from '@tanstack/react-router';
 
-export const Route = createFileRoute('/account/messages')({ component: MessagesPage });
+export const Route = createFileRoute('/account/messages')({ component: Outlet });

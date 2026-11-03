@@ -1,8 +1,10 @@
 import { Badge, Button, Spinner } from '@/shared/ui/atoms';
+import { useNavigate } from '@tanstack/react-router';
 import { useMyRentalsQuery } from '../../api/useMyRentalsQuery';
 import { useIncomingBookingsQuery } from '../../api/useIncomingBookingsQuery';
 import { useOwnerBookingStatusMutation } from '../../api/useOwnerBookingStatusMutation';
 import { useCancelBookingMutation } from '../../api/useCancelBookingMutation';
+import { useCreateConversationMutation } from '@/features/messages/api/useConversations';
 import type { BookingStatus } from '../../types/booking';
 import styles from './BookingList.module.css';
 
@@ -52,11 +54,15 @@ export function BookingList({ view }: BookingListProps) {
   const incomingQuery = useIncomingBookingsQuery(!isRentals);
   const ownerStatus = useOwnerBookingStatusMutation();
   const cancelBooking = useCancelBookingMutation();
+  const createConversation = useCreateConversationMutation();
+  const navigate = useNavigate();
   const sourceBookings = isRentals
     ? (rentalsQuery.data?.bookings ?? [])
     : (incomingQuery.data?.bookings ?? []);
   // The authenticated API already separates rentals from incoming requests.
-  const actionError = isRentals ? cancelBooking.error : ownerStatus.error;
+  const actionError = isRentals
+    ? (cancelBooking.error ?? createConversation.error)
+    : (ownerStatus.error ?? createConversation.error);
 
   return (
     <section className={styles.section} aria-labelledby={`${view}-title`}>
@@ -116,6 +122,21 @@ export function BookingList({ view }: BookingListProps) {
                   <dd>{formatPrice(booking.totalPrice)}</dd>
                 </div>
               </dl>
+
+              <Button
+                variant="secondary"
+                disabled={createConversation.isPending}
+                onClick={() =>
+                  void createConversation.mutateAsync(booking.id).then(({ conversation }) =>
+                    navigate({
+                      to: '/account/messages/$conversationId',
+                      params: { conversationId: conversation.id },
+                    }),
+                  )
+                }
+              >
+                Nachrichten
+              </Button>
 
               {isRentals && booking.status === 'PENDING' && (
                 <Button

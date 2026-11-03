@@ -10,4 +10,7 @@ export const apiKeys = {
   incomingBookings: (userId: string) => ['bookings', 'incoming', userId] as const,
   unavailableDates: (itemId: string) => ['bookings', 'unavailable-dates', itemId] as const,
   favorites: (userId: string) => ['favorites', userId] as const,
+  conversations: (userId: string) => ['conversations', userId] as const,
+  conversationMessages: (userId: string, conversationId: string) =>
+    ['conversations', userId, conversationId, 'messages'] as const,
 };
