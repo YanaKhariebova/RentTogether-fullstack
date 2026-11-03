@@ -50,6 +50,8 @@ export function ConversationPage() {
       </header>
       <MessageThread
         currentUserId={currentUser.data.user.id}
+        currentUserName={currentUser.data.user.name}
+        otherParticipantName={conversation?.otherParticipantName ?? 'Kontakt'}
         messages={[...messages.data.messages].reverse()}
         onReply={setReplyTo}
         onEdit={async (messageId, body) => {

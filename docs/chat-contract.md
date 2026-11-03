@@ -32,7 +32,6 @@ Message
 - readAt: DateTime | null
 - replyToMessageId: UUID | null
 - editedAt: DateTime | null
-- deletedAt: DateTime | null
 ```
 
 `senderId` always comes from the authenticated server user. Because a conversation has exactly two
@@ -45,8 +44,8 @@ participants, `readAt` is sufficient: every message has one recipient.
 - `GET /api/conversations/:id/messages` — paginated messages in a stable order.
 - `POST /api/conversations/:id/messages` — send `{ "body": "...", "replyToMessageId": "uuid?" }`.
 - `PATCH /api/conversations/:id/messages/:messageId` — edit the author's message.
-- `DELETE /api/conversations/:id/messages/:messageId` — soft-delete the author's message for both
-  participants.
+- `DELETE /api/conversations/:id/messages/:messageId` — permanently delete the author's message for
+  both participants.
 - `PATCH /api/conversations/:id/read` — mark incoming messages up to `lastReadMessageId` as read.
 - `GET /api/conversations/unread-count` — count for the navigation badge.
 
@@ -56,13 +55,15 @@ the current booking status.
 
 ## Editing, replies and deletion
 
-- Only the author may edit or delete a message, and only during the first 15 minutes after sending.
+- Only the author may edit a message, and only during the first 15 minutes after sending.
 - Editing sets `editedAt`; the UI displays `Bearbeitet`.
 - A reply points only to a message in the same conversation. The UI shows its author and a short
   quote.
-- Deletion sets `deletedAt`, clears the stored body and returns only `Diese Nachricht wurde gelöscht.`
-  to both participants. The original text is never returned in lists, previews or quotes.
-- A deleted message cannot be edited. Replies to it stay visible.
+- The author may permanently delete their message for both participants at any time while the Booking
+  is active. There is no placeholder text. Existing replies remain, but their `replyToMessageId` is
+  cleared, so the quote disappears.
+- When deletion removes the most recent message, the conversation preview uses the next most recent
+  remaining message. With no remaining messages, it is an empty conversation.
 
 ## Frontend integration
 

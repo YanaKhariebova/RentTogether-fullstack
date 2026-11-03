@@ -14,7 +14,6 @@ const participantBookingSelect = {
   item: { select: { ownerId: true, title: true } },
 } satisfies Prisma.BookingSelect;
 
-const deletedMessageText = 'Diese Nachricht wurde gelöscht.';
 const writableStatuses = ['PENDING', 'APPROVED', 'ACTIVE'];
 const messageSelect = {
   id: true,
@@ -23,8 +22,7 @@ const messageSelect = {
   createdAt: true,
   readAt: true,
   editedAt: true,
-  deletedAt: true,
-  replyTo: { select: { id: true, senderId: true, body: true, deletedAt: true } },
+  replyTo: { select: { id: true, senderId: true, body: true } },
 } satisfies Prisma.MessageSelect;
 
 type SelectedMessage = Prisma.MessageGetPayload<{ select: typeof messageSelect }>;
@@ -33,17 +31,15 @@ function toPublicMessage(message: SelectedMessage) {
   return {
     id: message.id,
     senderId: message.senderId,
-    body: message.deletedAt ? deletedMessageText : message.body,
+    body: message.body,
     createdAt: message.createdAt.toISOString(),
     readAt: message.readAt?.toISOString() ?? null,
     editedAt: message.editedAt?.toISOString() ?? null,
-    deletedAt: message.deletedAt?.toISOString() ?? null,
     replyTo: message.replyTo
       ? {
           id: message.replyTo.id,
           senderId: message.replyTo.senderId,
-          body: message.replyTo.deletedAt ? deletedMessageText : message.replyTo.body,
-          deletedAt: message.replyTo.deletedAt?.toISOString() ?? null,
+          body: message.replyTo.body,
         }
       : null,
   };
@@ -103,7 +99,7 @@ export function createMessagesService(prisma: MessagesDatabase) {
           messages: {
             take: 1,
             orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
-            select: { body: true, createdAt: true, senderId: true, deletedAt: true },
+            select: { body: true, createdAt: true, senderId: true },
           },
           _count: { select: { messages: { where: { senderId: { not: userId }, readAt: null } } } },
         },
@@ -126,9 +122,7 @@ export function createMessagesService(prisma: MessagesDatabase) {
             lastMessage: conversation.messages[0]
               ? {
                   ...conversation.messages[0],
-                  body: conversation.messages[0].deletedAt
-                    ? deletedMessageText
-                    : conversation.messages[0].body,
+                  body: conversation.messages[0].body,
                   createdAt: conversation.messages[0].createdAt.toISOString(),
                 }
               : null,
@@ -239,13 +233,12 @@ export function createMessagesService(prisma: MessagesDatabase) {
           throw new ApiError(409, 'CHAT_CLOSED', 'Dieser Chat ist nur lesbar.');
         const message = await tx.message.findFirst({
           where: { id: messageId, conversationId },
-          select: { senderId: true, createdAt: true, deletedAt: true },
+          select: { senderId: true, createdAt: true },
         });
         if (!message)
           throw new ApiError(404, 'MESSAGE_NOT_FOUND', 'Die Nachricht wurde nicht gefunden.');
         if (message.senderId !== userId)
           throw new ApiError(403, 'FORBIDDEN', 'Du darfst nur eigene Nachrichten bearbeiten.');
-        if (message.deletedAt) throw new ApiError(409, 'MESSAGE_DELETED', deletedMessageText);
         if (!canChangeMessage(message.createdAt))
           throw new ApiError(
             409,
@@ -287,29 +280,20 @@ export function createMessagesService(prisma: MessagesDatabase) {
           throw new ApiError(409, 'CHAT_CLOSED', 'Dieser Chat ist nur lesbar.');
         const message = await tx.message.findFirst({
           where: { id: messageId, conversationId },
-          select: { senderId: true, createdAt: true, deletedAt: true },
+          select: { senderId: true },
         });
         if (!message)
           throw new ApiError(404, 'MESSAGE_NOT_FOUND', 'Die Nachricht wurde nicht gefunden.');
         if (message.senderId !== userId)
           throw new ApiError(403, 'FORBIDDEN', 'Du darfst nur eigene Nachrichten löschen.');
-        if (message.deletedAt) throw new ApiError(409, 'MESSAGE_DELETED', deletedMessageText);
-        if (!canChangeMessage(message.createdAt))
-          throw new ApiError(
-            409,
-            'MESSAGE_DELETE_EXPIRED',
-            'Diese Nachricht kann nicht mehr gelöscht werden.',
-          );
-        const updated = await tx.message.update({
+        await tx.message.delete({
           where: { id: messageId },
-          data: { body: '', deletedAt: new Date() },
-          select: messageSelect,
         });
         await tx.conversation.update({
           where: { id: conversationId },
           data: { updatedAt: new Date() },
         });
-        return toPublicMessage(updated);
+        return { id: messageId };
       });
     },
 

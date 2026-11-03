@@ -1,6 +1,6 @@
 .page {
   display: grid;
-  gap: 20px;
+  gap: 14px;
   width: calc(100vw - 32px);
   margin: 0 0 0 50%;
   padding-bottom: 48px;
@@ -10,7 +10,8 @@
 .heading {
   display: grid;
   gap: 4px;
-  text-align: center;
+  padding: 4px 8px 10px;
+  text-align: left;
 }
 
 .heading h1,
@@ -20,6 +21,7 @@
 
 .heading p {
   color: var(--color-muted);
+  font-size: 0.875rem;
   font-weight: 700;
 }
 

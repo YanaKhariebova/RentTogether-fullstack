@@ -4,6 +4,8 @@ import styles from './MessageThread.module.css';
 
 type MessageThreadProps = {
   currentUserId: string;
+  currentUserName: string;
+  otherParticipantName: string;
   messages: ChatMessage[];
   onReply: (message: ChatMessage) => void;
   onEdit: (messageId: string, body: string) => Promise<void>;
@@ -17,8 +19,26 @@ function formatTime(value: string) {
   );
 }
 
+function dateLabel(value: string) {
+  const date = new Date(value);
+  const today = new Date();
+  const yesterday = new Date();
+  yesterday.setDate(today.getDate() - 1);
+
+  if (date.toDateString() === today.toDateString()) return 'Heute';
+  if (date.toDateString() === yesterday.toDateString()) return 'Gestern';
+
+  return new Intl.DateTimeFormat('de-DE', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  }).format(date);
+}
+
 export function MessageThread({
   currentUserId,
+  currentUserName,
+  otherParticipantName,
   messages,
   onReply,
   onEdit,
@@ -29,6 +49,7 @@ export function MessageThread({
   const [editBody, setEditBody] = useState('');
   const [menuMessageId, setMenuMessageId] = useState<string | null>(null);
   const [pressTimer, setPressTimer] = useState<ReturnType<typeof setTimeout> | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   function clearPressTimer() {
     if (pressTimer) clearTimeout(pressTimer);
@@ -40,92 +61,130 @@ export function MessageThread({
 
   return (
     <ol className={styles.list} aria-label="Nachrichtenverlauf" aria-live="polite">
-      {messages.map((message) => {
+      {messages.map((message, index) => {
         const isOwnMessage = message.senderId === currentUserId;
         const isEditing = editingId === message.id;
+        const previousMessage = messages[index - 1];
+        const showDate =
+          !previousMessage ||
+          new Date(previousMessage.createdAt).toDateString() !==
+            new Date(message.createdAt).toDateString();
 
         return (
-          <li
-            key={message.id}
-            className={isOwnMessage ? styles.own : styles.other}
-            onContextMenu={(event) => {
-              if (readOnly || message.deletedAt) return;
-              event.preventDefault();
-              setMenuMessageId(message.id);
-            }}
-            onPointerDown={(event) => {
-              if (readOnly || message.deletedAt || event.pointerType !== 'touch') return;
-              setPressTimer(setTimeout(() => setMenuMessageId(message.id), 550));
-            }}
-            onPointerUp={clearPressTimer}
-            onPointerCancel={clearPressTimer}
-            onPointerLeave={clearPressTimer}
-          >
-            {message.replyTo && (
-              <blockquote className={styles.reply}>{message.replyTo.body}</blockquote>
-            )}
-            {isEditing ? (
-              <form
-                className={styles.editForm}
-                onSubmit={(event) => {
+          <li key={message.id} className={styles.messageGroup}>
+            {showDate && <span className={styles.dateDivider}>{dateLabel(message.createdAt)}</span>}
+            <div className={isOwnMessage ? styles.ownRow : styles.otherRow}>
+              {!isOwnMessage && (
+                <span className={styles.avatar} aria-hidden="true">
+                  {otherParticipantName.slice(0, 1).toUpperCase()}
+                </span>
+              )}
+              <article
+                className={isOwnMessage ? styles.own : styles.other}
+                onContextMenu={(event) => {
+                  if (readOnly) return;
                   event.preventDefault();
-                  void onEdit(message.id, editBody.trim()).then(() => setEditingId(null));
+                  setMenuMessageId(message.id);
                 }}
+                onPointerDown={(event) => {
+                  if (readOnly || event.pointerType !== 'touch') return;
+                  setPressTimer(setTimeout(() => setMenuMessageId(message.id), 550));
+                }}
+                onPointerUp={clearPressTimer}
+                onPointerCancel={clearPressTimer}
+                onPointerLeave={clearPressTimer}
               >
-                <textarea value={editBody} onChange={(event) => setEditBody(event.target.value)} />
-                <button type="submit" disabled={!editBody.trim()}>
-                  Speichern
-                </button>
-              </form>
-            ) : (
-              <p>{message.body}</p>
-            )}
-            <time dateTime={message.createdAt}>{formatTime(message.createdAt)}</time>
-            {message.editedAt && !message.deletedAt && (
-              <span className={styles.edited}>Bearbeitet</span>
-            )}
-            {menuMessageId === message.id && !readOnly && !message.deletedAt && !isEditing && (
-              <div className={styles.contextMenu} role="menu">
-                <button
-                  type="button"
-                  role="menuitem"
-                  onClick={() => {
-                    onReply(message);
-                    setMenuMessageId(null);
-                  }}
-                >
-                  Antworten
-                </button>
-                {isOwnMessage && (
-                  <>
-                    <button
-                      type="button"
-                      role="menuitem"
-                      onClick={() => {
-                        setEditingId(message.id);
-                        setEditBody(message.body);
-                        setMenuMessageId(null);
-                      }}
-                    >
-                      Bearbeiten
-                    </button>
-                    <button
-                      type="button"
-                      role="menuitem"
-                      onClick={() => {
-                        void onDelete(message.id);
-                        setMenuMessageId(null);
-                      }}
-                    >
-                      Löschen
-                    </button>
-                  </>
+                <span className={styles.author}>
+                  {isOwnMessage ? currentUserName || 'Du' : otherParticipantName}
+                </span>
+                {message.replyTo && (
+                  <blockquote className={styles.reply}>{message.replyTo.body}</blockquote>
                 )}
-              </div>
-            )}
+                {isEditing ? (
+                  <form
+                    className={styles.editForm}
+                    onSubmit={(event) => {
+                      event.preventDefault();
+                      void onEdit(message.id, editBody.trim())
+                        .then(() => {
+                          setEditingId(null);
+                          setActionError(null);
+                        })
+                        .catch(() => {
+                          setActionError(
+                            'Die Nachricht konnte nicht bearbeitet werden. Sie muss deine eigene, höchstens 15 Minuten alte Nachricht in einer aktiven Anfrage sein.',
+                          );
+                        });
+                    }}
+                  >
+                    <textarea
+                      value={editBody}
+                      onChange={(event) => setEditBody(event.target.value)}
+                    />
+                    <button type="submit" disabled={!editBody.trim()}>
+                      Speichern
+                    </button>
+                  </form>
+                ) : (
+                  <p>{message.body}</p>
+                )}
+                <time dateTime={message.createdAt}>{formatTime(message.createdAt)}</time>
+                {message.editedAt && <span className={styles.edited}>Bearbeitet</span>}
+                {menuMessageId === message.id && !readOnly && !isEditing && (
+                  <div className={styles.contextMenu} role="menu">
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={() => {
+                        onReply(message);
+                        setMenuMessageId(null);
+                      }}
+                    >
+                      Antworten
+                    </button>
+                    {isOwnMessage && (
+                      <>
+                        <button
+                          type="button"
+                          role="menuitem"
+                          onClick={() => {
+                            setEditingId(message.id);
+                            setEditBody(message.body);
+                            setMenuMessageId(null);
+                          }}
+                        >
+                          Bearbeiten
+                        </button>
+                        <button
+                          type="button"
+                          role="menuitem"
+                          onClick={() => {
+                            void onDelete(message.id)
+                              .then(() => setActionError(null))
+                              .catch(() => {
+                                setActionError(
+                                  'Die Nachricht konnte nicht gelöscht werden. Sie muss deine eigene Nachricht in einer aktiven Anfrage sein.',
+                                );
+                              });
+                            setMenuMessageId(null);
+                          }}
+                        >
+                          Löschen
+                        </button>
+                      </>
+                    )}
+                  </div>
+                )}
+              </article>
+            </div>
           </li>
         );
       })}
+      {actionError && (
+        <li className={styles.actionError} role="alert">
+          {actionError}
+        </li>
+      )}
     </ol>
   );
 }

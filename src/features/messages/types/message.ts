@@ -5,8 +5,7 @@ export type ChatMessage = {
   createdAt: string;
   readAt: string | null;
   editedAt: string | null;
-  deletedAt: string | null;
-  replyTo: { id: string; senderId: string; body: string; deletedAt: string | null } | null;
+  replyTo: { id: string; senderId: string; body: string } | null;
 };
 
 export type ConversationPreview = {

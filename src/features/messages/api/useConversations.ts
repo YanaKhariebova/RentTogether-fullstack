@@ -86,7 +86,7 @@ export function useDeleteMessageMutation(conversationId: string) {
   const client = useQueryClient();
   return useMutation({
     mutationFn: (messageId: string) =>
-      api<{ message: ChatMessage }>(`/conversations/${conversationId}/messages/${messageId}`, {
+      api<{ message: { id: string } }>(`/conversations/${conversationId}/messages/${messageId}`, {
         method: 'DELETE',
       }),
     onSuccess: () => {
