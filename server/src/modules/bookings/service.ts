@@ -147,9 +147,34 @@ export function createBookingsService(prisma: BookingsDatabase) {
         return updated;
       });
     },
+    async archiveHistory(userId: string, id: string) {
+      const booking = await prisma.booking.findFirst({
+        where: { id, OR: [{ renterId: userId }, { item: { ownerId: userId } }] },
+        select: { renterId: true, status: true },
+      });
+      if (!booking)
+        throw new ApiError(404, 'BOOKING_NOT_FOUND', 'Die Anfrage wurde nicht gefunden.');
+      if (booking.status !== 'COMPLETED' && booking.status !== 'CANCELLED')
+        throw new ApiError(
+          409,
+          'BOOKING_STATUS_INVALID',
+          'Nur abgeschlossene oder stornierte Anfragen können aus dem Verlauf entfernt werden.',
+        );
+      const isRenter = booking.renterId === userId;
+      await prisma.booking.updateMany({
+        where: {
+          id,
+          status: { in: ['COMPLETED', 'CANCELLED'] },
+          ...(isRenter
+            ? { renterId: userId, renterArchivedAt: null }
+            : { item: { ownerId: userId }, ownerArchivedAt: null }),
+        },
+        data: isRenter ? { renterArchivedAt: new Date() } : { ownerArchivedAt: new Date() },
+      });
+    },
     async listIncoming(ownerId: string) {
       const bookings = await prisma.booking.findMany({
-        where: { item: { ownerId } },
+        where: { item: { ownerId }, ownerArchivedAt: null },
         orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
         select: {
           id: true,
@@ -178,7 +203,7 @@ export function createBookingsService(prisma: BookingsDatabase) {
 
     async listRentals(renterId: string) {
       const bookings = await prisma.booking.findMany({
-        where: { renterId },
+        where: { renterId, renterArchivedAt: null },
         orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
         select: {
           id: true,

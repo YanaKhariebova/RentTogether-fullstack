@@ -73,6 +73,8 @@ model Booking {
   updatedAt           DateTime       @updatedAt
   item                Item           @relation(fields: [itemId], references: [id], onDelete: Restrict)
   renter              User           @relation("RenterBookings", fields: [renterId], references: [id], onDelete: Restrict)
+  renterArchivedAt    DateTime?
+  ownerArchivedAt     DateTime?
   conversation        Conversation?
   notifications       Notification[]
 

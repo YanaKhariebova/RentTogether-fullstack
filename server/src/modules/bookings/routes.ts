@@ -41,5 +41,10 @@ export function createBookingsRoutes(prisma: BookingsDatabase, authenticate: Req
     const { id } = bookingParamsSchema.parse(req.params);
     res.json({ booking: await service.cancel(res.locals.currentUser.id, id) });
   });
+  router.delete('/:id/history', authenticate, async (req, res) => {
+    const { id } = bookingParamsSchema.parse(req.params);
+    await service.archiveHistory(res.locals.currentUser.id, id);
+    res.status(204).end();
+  });
   return router;
 }
