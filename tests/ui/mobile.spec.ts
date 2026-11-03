@@ -129,7 +129,7 @@ test.describe('mobile drawer', () => {
       expect(panelBox!.x).toBeCloseTo(page.viewportSize()!.width / 2, 0);
       expect(await page.evaluate(() => document.body.style.overflow)).toBe('hidden');
       await page.keyboard.press('Shift+Tab');
-      await expect(dialog.getByRole('link', { name: 'Anmelden', exact: true })).toBeFocused();
+      await expect(dialog.getByRole('button', { name: /Design aktivieren$/ })).toBeFocused();
       await page.keyboard.press('Tab');
       await expect(close).toBeFocused();
       if (method === 'escape') await page.keyboard.press('Escape');
@@ -138,7 +138,7 @@ test.describe('mobile drawer', () => {
       await expect(dialog).not.toBeVisible();
       await expect(trigger).toHaveAttribute('aria-expanded', 'false');
       await expect(trigger).toBeFocused();
-      expect(await page.evaluate(() => document.body.style.overflow)).toBe('');
+      await expect.poll(() => page.evaluate(() => document.body.style.overflow)).toBe('');
     }
   });
 
@@ -146,10 +146,19 @@ test.describe('mobile drawer', () => {
     await page.goto('/tests/fixtures/ui.html?signedIn=1');
     await page.getByRole('button', { name: 'Menü öffnen' }).tap();
     const dialog = page.getByRole('dialog');
-    await expect(dialog.getByRole('link', { name: 'Mein Profil', exact: true })).toHaveAttribute(
-      'href',
-      '/account/profile',
-    );
+    const avatar = dialog.getByRole('link', { name: 'Profil öffnen', exact: true });
+    await expect(avatar).toHaveAttribute('href', '/account/profile');
+    await expect(avatar.locator('img')).toBeVisible();
+    await expect(dialog.getByText('Mein Profil', { exact: true })).toHaveCount(0);
+    await expect(dialog.getByText('Darstellung', { exact: true })).toHaveCount(0);
+    const signOutBox = await dialog
+      .getByRole('button', { name: 'Abmelden', exact: true })
+      .boundingBox();
+    const toggleBox = await dialog
+      .getByRole('button', { name: 'Dunkles Design aktivieren', exact: true })
+      .boundingBox();
+    expect(toggleBox!.x).toBeGreaterThan(signOutBox!.x);
+    expect(toggleBox!.y).toBeCloseTo(signOutBox!.y, 0);
     await expect(dialog.getByRole('link', { name: 'Anmelden', exact: true })).toHaveCount(0);
     await dialog.getByRole('button', { name: 'Dunkles Design aktivieren' }).tap();
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
@@ -164,7 +173,7 @@ test.describe('mobile drawer', () => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await expect(page.getByRole('dialog')).not.toBeVisible();
     await expect(page.getByRole('navigation', { name: 'Hauptnavigation' })).toBeVisible();
-    expect(await page.evaluate(() => document.body.style.overflow)).toBe('');
+    await expect.poll(() => page.evaluate(() => document.body.style.overflow)).toBe('');
   });
 });
 

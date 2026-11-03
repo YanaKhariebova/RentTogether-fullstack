@@ -19,6 +19,11 @@ const root = createRootRoute({
       <HeaderView
         auth={<a href="/sign-in">Anmelden</a>}
         signedIn={new URLSearchParams(location.search).has('signedIn')}
+        avatarUrl="/icons/icon-192.png"
+        avatarName="Test user"
+        onSignOut={() => {
+          window.location.href = '/sign-in';
+        }}
       />
       <main id="main-content" className={layout.main}>
         <HomePage />

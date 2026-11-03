@@ -344,7 +344,7 @@ test('mobile authenticated profile, favorites and booking views fit both themes'
   await page.setViewportSize({ width: 390, height: 844 });
   await page.getByRole('button', { name: 'Menü öffnen' }).click();
   await expect(
-    page.getByRole('dialog').getByRole('link', { name: 'Mein Profil', exact: true }),
+    page.getByRole('dialog').getByRole('link', { name: 'Profil öffnen', exact: true }),
   ).toBeVisible();
   await page.getByRole('button', { name: 'Abmelden', exact: true }).click();
   await expect(page).toHaveURL('/');
@@ -369,7 +369,7 @@ test('real Clerk sessions persist profiles and isolate two accounts across sign-
   await page.getByLabel('Stadt', { exact: true }).fill('Berlin');
   await page.getByLabel('Telefonnummer', { exact: true }).fill('+4912345678');
   await page.getByRole('button', { name: 'Änderungen speichern' }).click();
-  await expect(page.getByRole('status')).toHaveText('Dein Profil wurde gespeichert.');
+  await expect(page.getByText('Dein Profil wurde gespeichert.', { exact: true })).toBeVisible();
   await page.reload();
   await expect(page.getByLabel('Name', { exact: true })).toHaveValue('Owner Profile');
   await expect(page.getByLabel('Stadt', { exact: true })).toHaveValue('Berlin');
@@ -377,6 +377,10 @@ test('real Clerk sessions persist profiles and isolate two accounts across sign-
   expect(owner.status).toBe(200);
   expect(owner.body.user.id).toMatch(/^[0-9a-f-]{36}$/i);
   expect(owner.body.user).not.toHaveProperty('clerkUserId');
+  const clerkAvatar = await page.evaluate(
+    () => (window as unknown as { Clerk: { user: { imageUrl: string } } }).Clerk.user.imageUrl,
+  );
+  expect(owner.body.user.avatarUrl).toBe(clerkAvatar);
 
   await clerk.signOut({ page });
   await page.goto('/account/profile');
@@ -392,7 +396,7 @@ test('real Clerk sessions persist profiles and isolate two accounts across sign-
   await page.getByLabel('Name', { exact: true }).fill('Renter Profile');
   await page.getByLabel('Stadt', { exact: true }).fill('Hamburg');
   await page.getByRole('button', { name: 'Änderungen speichern' }).click();
-  await expect(page.getByRole('status')).toHaveText('Dein Profil wurde gespeichert.');
+  await expect(page.getByText('Dein Profil wurde gespeichert.', { exact: true })).toBeVisible();
   const renter = await currentUser(page);
   expect(renter.status).toBe(200);
   expect(renter.body.user.id).not.toBe(owner.body.user.id);
@@ -405,4 +409,44 @@ test('real Clerk sessions persist profiles and isolate two accounts across sign-
   await expect(page.getByLabel('Stadt', { exact: true })).toHaveValue('Berlin');
   await expect(page.getByLabel('Telefonnummer', { exact: true })).toHaveValue('+4912345678');
   await clerk.signOut({ page });
+});
+
+test('mobile account menu shows the real Clerk avatar, aligns theme beside logout and restores guest login', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/');
+  await clerk.loaded({ page });
+  await clerk.signIn({ page, emailAddress: ownerEmail });
+  await page.goto('/account/profile');
+  await expect(page.getByRole('heading', { name: 'Mein Profil', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Menü öffnen', exact: true }).click();
+  const dialog = page.getByRole('dialog');
+  const avatar = dialog.getByRole('link', { name: 'Profil öffnen', exact: true });
+  const image = avatar.locator('img');
+  await expect(image).toBeVisible();
+  const clerkImage = await page.evaluate(
+    () => (window as unknown as { Clerk: { user: { imageUrl: string } } }).Clerk.user.imageUrl,
+  );
+  await expect(image).toHaveAttribute('src', clerkImage);
+  await expect
+    .poll(() => image.evaluate((img) => (img as HTMLImageElement).naturalWidth > 0))
+    .toBe(true);
+  await expect(image).toHaveCSS('border-radius', '50%');
+  await expect(dialog.getByText('Darstellung', { exact: true })).toHaveCount(0);
+  await expect(dialog.getByText('Mein Profil', { exact: true })).toHaveCount(0);
+  const signOutBox = await dialog
+    .getByRole('button', { name: 'Abmelden', exact: true })
+    .boundingBox();
+  const themeBox = await dialog.getByRole('button', { name: /Design aktivieren$/ }).boundingBox();
+  expect(themeBox!.x).toBeGreaterThan(signOutBox!.x);
+  expect(themeBox!.y).toBeCloseTo(signOutBox!.y, 0);
+  await avatar.click();
+  await expect(dialog).not.toBeVisible();
+  await page.getByRole('button', { name: 'Menü öffnen', exact: true }).click();
+  await dialog.getByRole('button', { name: 'Abmelden', exact: true }).click();
+  await expect(page).toHaveURL('/');
+  await page.getByRole('button', { name: 'Menü öffnen', exact: true }).click();
+  await expect(dialog.getByRole('link', { name: 'Anmelden', exact: true })).toBeVisible();
+  await expect(dialog.getByRole('link', { name: 'Profil öffnen', exact: true })).toHaveCount(0);
 });

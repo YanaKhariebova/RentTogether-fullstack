@@ -17,6 +17,8 @@
   --color-primary: #245c3c;
   --color-primary-hover: #1c4b32;
   --color-accent: #f2c66d;
+  --color-brand: #2c9670;
+  --color-brand-tagline: #946718;
   --color-background: #f5f8f4;
   --color-primary-soft: #e8f2ee;
   --color-danger: #984b48;
@@ -45,6 +47,8 @@
 }
 
 :root[data-theme='dark'] {
+  --color-brand: #79d3ab;
+  --color-brand-tagline: #f2c66d;
   color-scheme: dark;
   --color-text: #f3f4ef;
   --color-muted: #aab4b4;
