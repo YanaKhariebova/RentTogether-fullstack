@@ -16,6 +16,7 @@ import { createPrisma } from '../src/lib/prisma.js';
 import { createApp } from '../src/app.js';
 import { createRequireAuth } from '../src/middleware/requireAuth.js';
 import { syncUser } from '../src/modules/users/syncUser.js';
+import { ApiError } from '../src/lib/errors.js';
 import { seedDemoItem } from '../prisma/seedItems.js';
 
 const prisma = createPrisma();
@@ -51,6 +52,14 @@ before(async () => {
     .png()
     .toBuffer();
   const app = createApp({
+    locationService: {
+      search: async () => [],
+      normalize: async (city) => {
+        if (city === 'Berln')
+          throw new ApiError(422, 'CITY_NOT_FOUND', 'Bitte wähle einen gültigen Ort.');
+        return city === 'berlin' ? 'Berlin' : city;
+      },
+    },
     prisma,
     imageStorage: storage,
     localUploadsDirectory: uploads,
@@ -1423,4 +1432,44 @@ test('personal booking history only hides terminal bookings for the caller and p
   } finally {
     await prisma.booking.deleteMany({ where: { id: { in: ids } } });
   }
+});
+
+test('item writes validate a changed city, persist its canonical name and keep unchanged legacy cities editable', async () => {
+  const item = await createItemFixture();
+  const input = {
+    title: 'Validated location',
+    description: 'An item with a verified location.',
+    city: 'Berln',
+    categoryId: item.categoryId,
+    pricePerDay: '15.50',
+  };
+  const beforeCount = await prisma.item.count({ where: { ownerId: item.ownerId } });
+  const invalid = await fetch(base + '/api/items', {
+    method: 'POST',
+    headers: headersFor(item),
+    body: JSON.stringify(input),
+  });
+  assert.equal(invalid.status, 422);
+  assert.equal(await prisma.item.count({ where: { ownerId: item.ownerId } }), beforeCount);
+  const invalidPatch = await fetch(base + '/api/items/' + item.id, {
+    method: 'PATCH',
+    headers: headersFor(item),
+    body: JSON.stringify({ city: 'Berln' }),
+  });
+  assert.equal(invalidPatch.status, 422);
+  assert.equal((await prisma.item.findUniqueOrThrow({ where: { id: item.id } })).city, 'Berlin');
+  const canonical = await fetch(base + '/api/items/' + item.id, {
+    method: 'PATCH',
+    headers: headersFor(item),
+    body: JSON.stringify({ city: 'berlin' }),
+  });
+  assert.equal(canonical.status, 200);
+  assert.equal((await canonical.json()).item.city, 'Berlin');
+  await prisma.item.update({ where: { id: item.id }, data: { city: 'Berln' } });
+  const unchanged = await fetch(base + '/api/items/' + item.id, {
+    method: 'PATCH',
+    headers: headersFor(item),
+    body: JSON.stringify({ city: 'Berln', title: 'Edited legacy item' }),
+  });
+  assert.equal(unchanged.status, 200);
 });

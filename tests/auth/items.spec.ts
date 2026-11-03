@@ -135,7 +135,9 @@ test('real owner creates, reloads, publishes and edits photos; another account c
   await page
     .getByLabel('Beschreibung *', { exact: true })
     .fill('Beamer mit Kabel für einen Testfilmabend.');
-  await page.getByLabel('Ort *', { exact: true }).fill('Berlin');
+  await page.getByLabel('Ort *', { exact: true }).fill('39104');
+  await page.getByRole('option', { name: /^Magdeburg/ }).click();
+  await expect(page.getByLabel('Ort *', { exact: true })).toHaveValue('Magdeburg');
   await page.getByLabel('Kategorie *', { exact: true }).selectOption({ label: 'Elektronik' });
   await page.getByLabel('Preis pro Tag', { exact: false }).fill('15,50');
   await page.getByLabel('Fotos auswählen', { exact: true }).setInputFiles([

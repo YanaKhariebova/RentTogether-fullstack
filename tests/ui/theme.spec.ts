@@ -24,7 +24,7 @@ async function buttonColors(page: Page) {
 }
 
 for (const width of [320, 390, 1440]) {
-  test(`theme switches both ways, persists and preserves button colors at ${width}px`, async ({
+  test(`theme switches both ways, persists and adapts secondary buttons at ${width}px`, async ({
     page,
   }) => {
     await page.setViewportSize({ width, height: 1000 });
@@ -43,9 +43,12 @@ for (const width of [320, 390, 1440]) {
       'true',
     );
     if (width < 1024) await page.getByRole('button', { name: 'Menü schließen' }).click();
-    expect((await buttonColors(page)).filter((_, i) => i !== 1)).toEqual(
-      originalColors.filter((_, i) => i !== 1),
-    );
+    const darkColors = await buttonColors(page);
+    for (const index of [0, 2, 4]) expect(darkColors[index]).toEqual(originalColors[index]);
+    for (const index of [3, 5]) {
+      expect(darkColors[index].background).toBe('rgb(28, 36, 35)');
+      expect(darkColors[index].text).toBe('rgb(121, 211, 171)');
+    }
     expect(
       await page.locator('html').evaluate((element) => getComputedStyle(element).backgroundColor),
     ).toBe('rgb(20, 23, 25)');

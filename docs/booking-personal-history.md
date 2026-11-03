@@ -58,4 +58,4 @@ npm --prefix server run db:generate
   видимость у второго участника и независимая очистка с его стороны.
   Тестовые данные удалены штатным afterAll.
 
-Пакет пока локальный, без commit/push.
+Пакет отправлен в ветку feat/items-owner-dashboard коммитом ce0030c.

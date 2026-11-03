@@ -44,6 +44,7 @@ let server: Server;
 let base: string;
 before(async () => {
   const app = createApp({
+    locationService: { search: async () => [], normalize: async (city) => city },
     prisma,
     authenticate: createRequireAuth({
       // Test double for verified Clerk identity, never enabled by the real server.

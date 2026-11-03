@@ -17,6 +17,7 @@ let server: Server;
 let base: string;
 before(async () => {
   const app = createApp({
+    locationService: { search: async () => [], normalize: async (city) => city },
     prisma,
     authenticate: createRequireAuth({
       getSubject: (req) => req.get('x-test-subject') ?? null,

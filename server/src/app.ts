@@ -1,4 +1,7 @@
 import cors from 'cors';
+import { createLocationService } from './modules/locations/service.js';
+import type { LocationService } from './modules/locations/service.js';
+import { createLocationRoutes } from './modules/locations/routes.js';
 import type { ImageStorage } from './modules/items/storage/ImageStorage.js';
 import express from 'express';
 import type { RequestHandler } from 'express';
@@ -33,8 +36,10 @@ export function createApp(deps: {
   clientUrl?: string;
   imageStorage?: ImageStorage;
   localUploadsDirectory?: string;
+  locationService?: LocationService;
 }) {
   const app = express();
+  const locations = deps.locationService ?? createLocationService();
   app.disable('x-powered-by');
   app.use(cors({ origin: deps.clientUrl ?? 'http://localhost:5173' }));
   app.use(express.json({ limit: '32kb' }));
@@ -53,6 +58,7 @@ export function createApp(deps: {
   app.get('/api/health', (_req, res) => {
     res.json({ status: 'ok' });
   });
+  app.use('/api/locations', createLocationRoutes(locations));
   app.get('/api/categories', async (_req, res) => {
     const categories = await deps.prisma.category.findMany({
       orderBy: { name: 'asc' },
@@ -73,6 +79,7 @@ export function createApp(deps: {
     deps.prisma,
     deps.authenticate,
     deps.imageStorage,
+    locations,
   );
   app.use('/api/items', itemsRouter);
   app.use('/api/my', myRouter);
