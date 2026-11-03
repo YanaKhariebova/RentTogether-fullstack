@@ -56,5 +56,100 @@ the current booking status.
 - Mobile: `Nachrichten` lives in the hamburger menu. The closed menu button has a small indicator
   when unread count is greater than zero. The badge is hidden for zero and displays `99+` over 99.
 
-Header and mobile navigation are owned by Vlad. Chat API integration starts after the mobile work,
-deployment and final MVP verification are complete.
+Header, mobile navigation and the integration of `Nachrichten` are owned by Yana. Chat API
+integration starts only after this contract has been reviewed and the database migration has been
+approved.
+
+## Booking notifications: agreed contract
+
+Notifications are separate from chat messages. Opening a notification must not mark messages as
+read, and reading a chat message must not change `Notification.readAt`.
+
+### Prisma model draft
+
+```text
+enum NotificationType
+- BOOKING_REQUEST_CREATED
+- BOOKING_APPROVED
+- BOOKING_REJECTED
+- BOOKING_CANCELLED
+- BOOKING_ACTIVE
+- BOOKING_COMPLETED
+
+Notification
+- id: UUID
+- userId: UUID                    # recipient; set only by the server
+- bookingId: UUID
+- type: NotificationType
+- createdAt: DateTime
+- readAt: DateTime | null
+
+relations
+- User.notifications: Notification[]
+- Booking.notifications: Notification[]
+
+constraints and indexes
+- @@unique([bookingId, userId, type])
+- @@index([userId, createdAt, id])
+```
+
+The unique constraint makes a repeated status request idempotent: the same booking event cannot
+create a second notification for the same recipient. Deleting a user or booking cascades to its
+notifications.
+
+### Events and recipients
+
+| Event                            | `type`                    | Recipient  |
+| -------------------------------- | ------------------------- | ---------- |
+| Renter creates a booking         | `BOOKING_REQUEST_CREATED` | item owner |
+| Owner approves                   | `BOOKING_APPROVED`        | renter     |
+| Owner rejects                    | `BOOKING_REJECTED`        | renter     |
+| Renter cancels a pending booking | `BOOKING_CANCELLED`       | item owner |
+| Owner starts handover            | `BOOKING_ACTIVE`          | renter     |
+| Owner completes the booking      | `BOOKING_COMPLETED`       | renter     |
+
+The booking service creates the notification in the same database transaction as the corresponding
+Booking create or status transition. If the transaction is rolled back, no notification exists.
+The recipient is never accepted from an HTTP request body.
+
+### Planned API
+
+- `GET /api/me/notifications?cursor=&limit=` — current user's notifications, with booking/item
+  summary and pagination. Stable order: `createdAt DESC`, then `id DESC`.
+- `GET /api/me/notifications/unread-count` — unread count for the current user.
+- `PATCH /api/me/notifications/read` — mark selected notifications as read:
+
+  ```json
+  { "ids": ["notification-uuid-1", "notification-uuid-2"] }
+  ```
+
+  The endpoint updates only notifications belonging to the current user and only where `readAt` is
+  still `null`. A repeated request succeeds and preserves the first `readAt` timestamp. Opening the
+  notification's booking or using an explicit read action can call this endpoint; opening the menu
+  must not mark every notification as read.
+
+Conversation lists use `updatedAt DESC`, then `id DESC`. Message pages use a cursor and stable
+`createdAt DESC`, then `id DESC` order; the client renders the received page chronologically. The
+API accepts a bounded `limit` and returns a next cursor where more rows exist.
+
+### Transaction, access and cache rules
+
+- Every notification route scopes queries and updates to `res.locals.currentUser.id`.
+- Every conversation route verifies that the current user is the booking renter or current item
+  owner.
+- Creating a conversation is idempotent, including concurrent requests; `bookingId` is unique.
+- Sending a message locks and rereads the Booking in the same transaction before checking whether
+  its status allows writing. This prevents a message from being sent concurrently with cancellation
+  or completion.
+- Query keys for conversations, unread-message count, notifications and unread-notification count
+  include the authenticated user ID. Mutations invalidate only that user's affected data.
+- The client refreshes counts after relevant actions and by periodic polling. There is no promise
+  of real-time delivery, browser push, email or SMS in the first version.
+- A badge is hidden for zero, and displays `99+` when the count is above 99.
+
+## Delivery order
+
+1. Olya reviews this schema and API contract.
+2. Add Prisma relations and one migration for Conversation, Message and Notification.
+3. Implement and test transactional Booking notifications before connecting Header badges.
+4. Implement Chat API and then connect `/account/messages`, Header and mobile navigation.
