@@ -1,17 +1,22 @@
 import { useState } from 'react';
 import { Button, Textarea } from '@/shared/ui/atoms';
 import styles from './MessageComposer.module.css';
+import type { ChatMessage } from '../../types/message';
 
 type MessageComposerProps = {
   disabled?: boolean;
   isSending?: boolean;
   onSend: (body: string) => Promise<void>;
+  replyTo?: ChatMessage | null;
+  onCancelReply?: () => void;
 };
 
 export function MessageComposer({
   disabled = false,
   isSending = false,
   onSend,
+  replyTo = null,
+  onCancelReply,
 }: MessageComposerProps) {
   const [body, setBody] = useState('');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -38,6 +43,14 @@ export function MessageComposer({
         void submitMessage();
       }}
     >
+      {replyTo && (
+        <div className={styles.replyPreview}>
+          <span>Antwort auf: {replyTo.body}</span>
+          <button type="button" onClick={onCancelReply} aria-label="Antwort entfernen">
+            ×
+          </button>
+        </div>
+      )}
       <Textarea
         label="Nachricht schreiben"
         maxLength={2000}

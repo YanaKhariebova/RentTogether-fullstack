@@ -47,10 +47,47 @@ export function useSendMessageMutation(conversationId: string) {
   const api = useApi();
   const client = useQueryClient();
   return useMutation({
-    mutationFn: (body: string) =>
+    mutationFn: ({ body, replyToMessageId }: { body: string; replyToMessageId?: string }) =>
       api<{ message: ChatMessage }>(`/conversations/${conversationId}/messages`, {
         method: 'POST',
+        body: JSON.stringify({ body, ...(replyToMessageId ? { replyToMessageId } : {}) }),
+      }),
+    onSuccess: () => {
+      client.invalidateQueries({ queryKey: apiKeys.conversations(userId ?? '') });
+      client.invalidateQueries({
+        queryKey: apiKeys.conversationMessages(userId ?? '', conversationId),
+      });
+    },
+  });
+}
+
+export function useEditMessageMutation(conversationId: string) {
+  const { userId } = useAuth();
+  const api = useApi();
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: ({ messageId, body }: { messageId: string; body: string }) =>
+      api<{ message: ChatMessage }>(`/conversations/${conversationId}/messages/${messageId}`, {
+        method: 'PATCH',
         body: JSON.stringify({ body }),
+      }),
+    onSuccess: () => {
+      client.invalidateQueries({ queryKey: apiKeys.conversations(userId ?? '') });
+      client.invalidateQueries({
+        queryKey: apiKeys.conversationMessages(userId ?? '', conversationId),
+      });
+    },
+  });
+}
+
+export function useDeleteMessageMutation(conversationId: string) {
+  const { userId } = useAuth();
+  const api = useApi();
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (messageId: string) =>
+      api<{ message: ChatMessage }>(`/conversations/${conversationId}/messages/${messageId}`, {
+        method: 'DELETE',
       }),
     onSuccess: () => {
       client.invalidateQueries({ queryKey: apiKeys.conversations(userId ?? '') });

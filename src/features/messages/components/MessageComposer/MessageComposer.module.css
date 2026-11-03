@@ -10,6 +10,7 @@
 
 .form :global(textarea) {
   min-height: 180px;
+  background: var(--color-primary-soft);
 }
 
 .actions {
@@ -27,4 +28,29 @@
 .form > p {
   margin: 0;
   color: var(--color-danger);
+}
+
+.replyPreview {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 12px;
+  border-left: 3px solid var(--color-accent);
+  background: var(--color-primary-soft);
+  color: var(--color-muted);
+  font-size: 0.875rem;
+}
+
+.replyPreview span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.replyPreview button {
+  border: 0;
+  background: transparent;
+  color: var(--color-text);
+  font-size: 1.25rem;
 }
