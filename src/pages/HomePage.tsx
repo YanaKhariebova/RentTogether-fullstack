@@ -21,7 +21,7 @@ export function HomePage() {
         <picture>
           <source
             media="(max-width: 767px)"
-            srcSet="/media/hero-mobile-640.webp 640w, /media/hero-mobile-960.webp 960w"
+            srcSet="/media/hero-mobile-golden-640.webp 640w, /media/hero-mobile-golden-960.webp 960w"
             sizes="100vw"
           />
           <img src="/media/hero-brownstone.webp" alt="" fetchPriority="high" />

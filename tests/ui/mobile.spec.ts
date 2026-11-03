@@ -80,7 +80,15 @@ for (const theme of ['light', 'dark']) {
         expect(requests.some((url) => url.endsWith('/hero-brownstone.webp'))).toBe(false);
         const photoBox = await photo.boundingBox();
         const titleBox = await page.getByRole('heading', { level: 1 }).boundingBox();
-        expect(photoBox!.y + photoBox!.height).toBeLessThanOrEqual(titleBox!.y);
+        expect(photoBox!.y).toBeLessThan(titleBox!.y);
+        expect(photoBox!.y + photoBox!.height).toBeGreaterThan(titleBox!.y + titleBox!.height);
+        const glass = page
+          .locator('main picture')
+          .locator('..')
+          .locator('..')
+          .locator('> div')
+          .last();
+        await expect(glass).toHaveCSS('border-radius', '22px');
       }
       await page.getByRole('button', { name: 'Zeitraum auswählen', exact: true }).click();
       const nextMonth = page.getByRole('button', { name: /nächsten Monat/i });
@@ -116,6 +124,9 @@ test.describe('mobile drawer', () => {
       await trigger.tap();
       await expect(trigger).toHaveAttribute('aria-expanded', 'true');
       await expect(close).toBeFocused();
+      const panelBox = await dialog.boundingBox();
+      expect(panelBox!.width).toBeCloseTo(page.viewportSize()!.width / 2, 0);
+      expect(panelBox!.x).toBeCloseTo(page.viewportSize()!.width / 2, 0);
       expect(await page.evaluate(() => document.body.style.overflow)).toBe('hidden');
       await page.keyboard.press('Shift+Tab');
       await expect(dialog.getByRole('link', { name: 'Anmelden', exact: true })).toBeFocused();
