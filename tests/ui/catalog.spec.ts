@@ -127,3 +127,76 @@ test('invalid price range shows validation instead of an API failure', async ({ 
   await expect(page.getByRole('heading', { name: item.title })).toBeVisible();
   await expect(page.getByRole('main')).toHaveCount(1);
 });
+
+test('sidebar limits categories and cities, expands them and searches the full city list', async ({
+  page,
+}) => {
+  const categories = [
+    category,
+    ...['Haushalt & Garten', 'Sport & Freizeit', 'Werkzeug', 'Musik', 'Sonstiges'].map(
+      (name, index) => ({
+        id: `10000000-0000-4000-8000-00000000000${index + 2}`,
+        name,
+      }),
+    ),
+  ];
+  await page.route('**/api/categories', (route) => route.fulfill({ json: { categories } }));
+  await page.route('**/api/items/cities', (route) =>
+    route.fulfill({
+      json: {
+        cities: ['Berlin', 'Bremen', 'Dresden', 'Frankfurt', 'Hamburg', 'Magdeburg'],
+      },
+    }),
+  );
+  await page.route('**/api/items?**', (route) =>
+    route.fulfill({
+      json: {
+        items: [item],
+        pagination: { page: 1, limit: 9, total: 1, totalPages: 1 },
+      },
+    }),
+  );
+  await page.goto('/catalog');
+  const filters = page.getByRole('complementary', { name: 'Katalogfilter' });
+  await expect(filters.getByRole('button', { name: 'Werkzeug', exact: true })).toBeVisible();
+  await expect(filters.getByRole('button', { name: 'Musik', exact: true })).toHaveCount(0);
+  const expandCategories = filters.getByRole('button', {
+    name: 'Alle Kategorien anzeigen',
+    exact: true,
+  });
+  await expect(expandCategories).toHaveAttribute('aria-expanded', 'false');
+  await expandCategories.press('Enter');
+  await expect(filters.getByRole('button', { name: 'Sonstiges', exact: true })).toBeVisible();
+  await filters.getByRole('button', { name: 'Weniger Kategorien anzeigen', exact: true }).click();
+  await expect(filters.getByRole('button', { name: 'Musik', exact: true })).toHaveCount(0);
+
+  await expect(filters.getByRole('radio')).toHaveCount(4);
+  await expect(filters.getByRole('radio', { name: 'Hamburg', exact: true })).toHaveCount(0);
+  await filters.getByRole('button', { name: 'Alle Städte anzeigen', exact: true }).click();
+  await expect(filters.getByRole('radio')).toHaveCount(6);
+  await filters.getByRole('button', { name: 'Weniger Städte anzeigen', exact: true }).click();
+  await expect(filters.getByRole('radio')).toHaveCount(4);
+
+  const searchCity = filters.getByRole('searchbox', { name: 'Stadt suchen', exact: true });
+  await searchCity.fill('  HAMB  ');
+  const hamburg = filters.getByRole('radio', { name: 'Hamburg', exact: true });
+  await expect(hamburg).toBeVisible();
+  await expect(filters.getByRole('radio')).toHaveCount(1);
+  await expect(hamburg).toHaveCSS('width', '14px');
+  await expect(hamburg).toHaveCSS('height', '14px');
+  const selectedCityRequest = page.waitForRequest(
+    (request) =>
+      request.url().includes('/api/items?') &&
+      new URL(request.url()).searchParams.get('city') === 'Hamburg',
+  );
+  await hamburg.check();
+  expect(new URL((await selectedCityRequest).url()).searchParams.get('page')).toBe('1');
+  await expect(hamburg).toBeChecked();
+  await expect(page.getByRole('combobox', { name: 'Stadt', exact: true })).toHaveValue('Hamburg');
+
+  await searchCity.fill('keine-solche-stadt');
+  await expect(filters.getByRole('status')).toHaveText('Keine Stadt gefunden.');
+  await expect(page.getByRole('combobox', { name: 'Stadt', exact: true })).toHaveValue('Hamburg');
+  await searchCity.fill('');
+  await expect(filters.getByRole('radio')).toHaveCount(4);
+});

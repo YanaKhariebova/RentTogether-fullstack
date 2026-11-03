@@ -56,5 +56,11 @@ the current booking status.
 - Mobile: `Nachrichten` lives in the hamburger menu. The closed menu button has a small indicator
   when unread count is greater than zero. The badge is hidden for zero and displays `99+` over 99.
 
-Header and mobile navigation are owned by Vlad. Chat API integration starts after the mobile work,
-deployment and final MVP verification are complete.
+As of 2026-11-03, Yana takes over Header, hamburger menu and mobile navigation from Vlad,
+including Nachrichten and its unread badge. Olga owns deployment, Cloudinary and common
+integration. PWA ownership still needs explicit coordination. See [team status](team-status.md).
+
+The shared demo deployment and the two-user Booking scenario have been completed according to
+Olga. Chat and Booking notifications are additional work, not an unfulfilled original MVP item.
+This document is a contract: it does not claim the Conversation/Message backend or migration is
+already implemented. Preserve separate read state for messages and general notifications.

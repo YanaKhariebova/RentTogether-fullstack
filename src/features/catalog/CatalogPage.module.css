@@ -322,18 +322,26 @@
     font-weight: 600;
   }
 
+  .cityOptions {
+    display: grid;
+    gap: 4px;
+  }
+
   .cityList label {
     display: flex;
     align-items: center;
-    gap: 10px;
-    min-height: 28px;
+    gap: 8px;
+    min-height: 44px;
+    line-height: 1.35;
     color: var(--color-text);
     cursor: pointer;
   }
 
-  .cityList input {
-    width: 20px;
-    height: 20px;
+  .cityList input[type='radio'] {
+    flex: 0 0 14px;
+    width: 14px;
+    height: 14px;
+    min-height: 0;
     margin: 0;
     accent-color: var(--color-primary);
   }
@@ -355,4 +363,30 @@
 .selectField:focus-within {
   outline: 3px solid var(--color-emphasis);
   outline-offset: 2px;
+}
+
+.citySearch {
+  margin: 8px 0;
+  font-size: 0.8125rem;
+}
+.citySearch label {
+  min-height: 0;
+  cursor: default;
+}
+.expandButton {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  margin-top: 10px;
+  padding: 10px 12px;
+  color: var(--color-emphasis);
+  font-size: 0.8125rem;
+}
+.noCities {
+  margin: 8px 0;
+  color: var(--color-muted);
+  font-size: 0.875rem;
+  line-height: 1.5;
 }
