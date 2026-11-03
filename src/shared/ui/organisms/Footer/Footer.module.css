@@ -1,6 +1,6 @@
 .footer {
   border-top: 1px solid var(--color-border);
-  background: var(--color-primary-soft);
+  background: var(--color-header);
   color: var(--color-text);
 }
 .inner {
@@ -38,6 +38,16 @@
   font-size: 0.75rem;
   font-weight: 600;
 }
+.intro {
+  text-align: center;
+}
+.intro .brand {
+  justify-content: center;
+}
+.intro .description {
+  margin-left: auto;
+  margin-right: auto;
+}
 .navigation {
   display: grid;
   gap: 24px;
@@ -45,6 +55,7 @@
 }
 .group h2 {
   margin: 0 0 12px;
+  text-align: center;
   font-size: 0.9375rem;
   font-weight: 700;
 }
@@ -57,6 +68,7 @@
   display: flex;
   align-items: center;
   width: fit-content;
+  margin: 0 auto;
   min-height: 44px;
   color: var(--color-muted);
   font-size: 0.875rem;
@@ -94,10 +106,6 @@
 }
 
 @media (max-width: 599px) {
-  .footer {
-    background: var(--color-surface);
-  }
-
   .inner {
     padding-top: 28px;
     padding-bottom: calc(88px + env(safe-area-inset-bottom));

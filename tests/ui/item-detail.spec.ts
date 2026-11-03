@@ -47,6 +47,9 @@ test('failed availability does not expose an unverified calendar and can be retr
   await expect(page.getByRole('button', { name: 'Anfrage senden', exact: true })).toHaveCount(0);
   failed = false;
   await page.getByRole('button', { name: 'Verfügbarkeit erneut laden' }).click();
+  const openCalendar = page.getByRole('button', { name: 'Zeitraum auswählen', exact: true });
+  await expect(openCalendar).toHaveAttribute('aria-expanded', 'false');
+  await openCalendar.click();
   await expect(page.getByRole('grid')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Anfrage senden', exact: true })).toBeDisabled();
 });
@@ -61,6 +64,7 @@ test('item detail renders the item received from the public API', async ({ page 
   await expect(page.getByText('📍 Berlin')).toBeVisible();
   await expect(page.getByText('15,50 € / Tag')).toBeVisible();
   await expect(page.getByText('Angeboten von Olga')).toBeVisible();
+  await page.getByRole('button', { name: 'Zeitraum auswählen', exact: true }).click();
   await expect(
     page.getByRole('grid', {
       name: new Intl.DateTimeFormat('de-DE', { month: 'long', year: 'numeric' }).format(new Date()),

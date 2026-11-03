@@ -45,6 +45,7 @@ export function DateRangePicker({
   isSubmitted = false,
 }: DateRangePickerProps) {
   const [selectedRange, setSelectedRange] = useState<DateRange>();
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const pickupDate = selectedRange?.from ? toDateString(selectedRange.from) : '';
@@ -65,6 +66,16 @@ export function DateRangePicker({
     style: 'currency',
     currency: 'EUR',
   }).format(totalPrice);
+  const formattedSelectedRange =
+    selectedRange?.from && selectedRange.to
+      ? `Abholung: ${selectedRange.from.toLocaleDateString('de-DE', {
+          day: '2-digit',
+          month: 'short',
+        })} · Rückgabe: ${selectedRange.to.toLocaleDateString('de-DE', {
+          day: '2-digit',
+          month: 'short',
+        })}`
+      : null;
 
   return (
     <section className={styles.picker}>
@@ -73,39 +84,67 @@ export function DateRangePicker({
         <p className={styles.hint}>Wähle Abhol- und Rückgabedatum aus.</p>
       </div>
 
-      <DayPicker
-        mode="range"
-        locale={de}
-        selected={selectedRange}
-        onSelect={(range) => {
-          setSelectedRange(range);
-        }}
-        disabled={[{ before: today }, ...unavailableDateRanges]}
-        excludeDisabled
-        modifiers={{ unavailable: unavailableDateRanges }}
-        modifiersClassNames={{ unavailable: styles.unavailableDay }}
-        weekStartsOn={1}
-        className={styles.calendar}
-      />
+      <div className={styles.selectionActions}>
+        <Button
+          className={styles.selectedPeriod}
+          variant="secondary"
+          aria-expanded={isCalendarOpen}
+          aria-controls="booking-calendar"
+          onClick={() => setIsCalendarOpen((current) => !current)}
+        >
+          <span>
+            {isCalendarOpen
+              ? 'Kalender schließen'
+              : formattedSelectedRange
+                ? 'Zeitraum ändern'
+                : 'Zeitraum auswählen'}
+          </span>
+          {formattedSelectedRange && (
+            <span className={styles.periodSummary}>
+              <span>{formattedSelectedRange}</span>
+              <span>
+                {totalDays} {totalDays === 1 ? 'Tag' : 'Tage'} · Gesamt: {formattedTotalPrice}
+              </span>
+            </span>
+          )}
+        </Button>
+        <Button
+          disabled={!pickupDate || !returnDate || totalDays === 0 || isSubmitting}
+          onClick={() => void onSubmit({ pickupDate, returnDate })}
+        >
+          {isSubmitting ? 'Anfrage wird gesendet…' : 'Anfrage senden'}
+        </Button>
+      </div>
 
-      {unavailableDateRanges.length > 0 && (
-        <p className={styles.legend}>
-          <span aria-hidden="true" /> Bereits vergeben
-        </p>
+      {isCalendarOpen && (
+        <div id="booking-calendar" className={styles.calendarPanel}>
+          <DayPicker
+            mode="range"
+            locale={de}
+            selected={selectedRange}
+            onSelect={(range) => {
+              setSelectedRange(range);
+
+              if (range?.from && range.to && range.to.getTime() > range.from.getTime()) {
+                setIsCalendarOpen(false);
+              }
+            }}
+            disabled={[{ before: today }, ...unavailableDateRanges]}
+            excludeDisabled
+            navLayout="around"
+            modifiers={{ unavailable: unavailableDateRanges }}
+            modifiersClassNames={{ unavailable: styles.unavailableDay }}
+            weekStartsOn={1}
+            className={styles.calendar}
+          />
+
+          {unavailableDateRanges.length > 0 && (
+            <p className={styles.legend}>
+              <span aria-hidden="true" /> Bereits vergeben
+            </p>
+          )}
+        </div>
       )}
-
-      {pickupDate && returnDate && totalDays > 0 && (
-        <p className={styles.total}>
-          {totalDays} {totalDays === 1 ? 'Tag' : 'Tage'} · Gesamt: {formattedTotalPrice}
-        </p>
-      )}
-
-      <Button
-        disabled={!pickupDate || !returnDate || totalDays === 0 || isSubmitting}
-        onClick={() => void onSubmit({ pickupDate, returnDate })}
-      >
-        {isSubmitting ? 'Anfrage wird gesendet…' : 'Anfrage senden'}
-      </Button>
 
       {isSubmitted && <p role="status">Deine Anfrage wurde gesendet.</p>}
       {errorMessage && <p role="alert">{errorMessage}</p>}

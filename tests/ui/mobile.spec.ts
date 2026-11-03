@@ -44,6 +44,7 @@ for (const theme of ['light', 'dark']) {
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
         true,
       );
+      await page.getByRole('button', { name: 'Zeitraum auswählen', exact: true }).click();
       const calendar = page.getByRole('grid');
       await calendar.scrollIntoViewIfNeeded();
       expect(
@@ -81,6 +82,7 @@ for (const theme of ['light', 'dark']) {
         const titleBox = await page.getByRole('heading', { level: 1 }).boundingBox();
         expect(photoBox!.y + photoBox!.height).toBeLessThanOrEqual(titleBox!.y);
       }
+      await page.getByRole('button', { name: 'Zeitraum auswählen', exact: true }).click();
       const nextMonth = page.getByRole('button', { name: /nächsten Monat/i });
       await nextMonth.scrollIntoViewIfNeeded();
       const box = await nextMonth.boundingBox();

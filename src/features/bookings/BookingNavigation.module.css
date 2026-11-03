@@ -1,6 +1,11 @@
+.page > h1 {
+  text-align: center;
+}
+
 .tabs {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   gap: 8px;
   margin-bottom: 24px;
 }

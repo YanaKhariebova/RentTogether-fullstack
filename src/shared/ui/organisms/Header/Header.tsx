@@ -11,7 +11,8 @@ const navigation = [
   { to: '/catalog', label: 'Entdecken', icon: 'search' },
   { to: '/account/items', label: 'Meine Anzeigen', icon: 'grid' },
   { to: '/account/favorites', label: 'Favoriten', icon: 'heart' },
-  { to: '/account/bookings', label: 'Anfragen', icon: 'chat' },
+  { to: '/account/bookings', label: 'Anfragen', icon: 'calendar' },
+  { to: '/account/messages', label: 'Nachrichten', icon: 'chat' },
   { to: '/account/profile', label: 'Profil', icon: 'user' },
 ] as const;
 
