@@ -14,6 +14,7 @@ export type ConversationPreview = {
   bookingId: string | null;
   itemTitle: string;
   otherParticipantName: string;
+  otherParticipantAvatarUrl: string | null;
   bookingStatus: 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED' | 'ACTIVE' | 'COMPLETED' | null;
   lastMessage: ChatMessage | null;
   unreadCount: number;

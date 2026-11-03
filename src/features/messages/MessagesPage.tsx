@@ -56,7 +56,11 @@ export function MessagesPage() {
                   params={{ conversationId: conversation.id }}
                 >
                   <span className={styles.avatar} aria-hidden="true">
-                    {conversation.otherParticipantName.slice(0, 1).toUpperCase()}
+                    {conversation.otherParticipantAvatarUrl ? (
+                      <img src={conversation.otherParticipantAvatarUrl} alt="" />
+                    ) : (
+                      conversation.otherParticipantName.slice(0, 1).toUpperCase()
+                    )}
                   </span>
                   <span className={styles.messageContent}>
                     <span className={styles.conversationHeader}>
@@ -89,27 +93,23 @@ export function MessagesPage() {
                     </span>
                   )}
                 </Link>
-                <details className={styles.actionsMenu}>
-                  <summary aria-label={`Aktionen für ${conversation.itemTitle}`}>⋯</summary>
-                  <div className={styles.actionsPopup}>
-                    <button
-                      type="button"
-                      disabled={hideConversation.isPending}
-                      onClick={(event) => {
-                        event.currentTarget.closest('details')?.removeAttribute('open');
-                        setConversationToHide({
-                          id: conversation.id,
-                          itemTitle: conversation.itemTitle,
-                        });
-                      }}
-                    >
-                      <svg viewBox="0 0 24 24" aria-hidden="true">
-                        <path d="M4 7h16M10 11v6m4-6v6M9 7l1-2h4l1 2m-9 0 1 13h10l1-13" />
-                      </svg>
-                      Unterhaltung löschen
-                    </button>
-                  </div>
-                </details>
+                <button
+                  type="button"
+                  className={styles.hideButton}
+                  disabled={hideConversation.isPending}
+                  aria-label={`Unterhaltung zu ${conversation.itemTitle} löschen`}
+                  title="Unterhaltung löschen"
+                  onClick={() => {
+                    setConversationToHide({
+                      id: conversation.id,
+                      itemTitle: conversation.itemTitle,
+                    });
+                  }}
+                >
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M3 6h18M9 6V4h6v2M5 6l1 14h12l1-14M10 10v6M14 10v6" />
+                  </svg>
+                </button>
               </li>
             ))}
           </ul>

@@ -1,5 +1,12 @@
 export type Category = { id: string; name: string };
-export type CurrentUser = { id: string; name: string; city: string; email: string; phone: string };
+export type CurrentUser = {
+  id: string;
+  name: string;
+  city: string;
+  email: string;
+  phone: string;
+  avatarUrl: string;
+};
 export type ProfilePatch = Partial<Pick<CurrentUser, 'name' | 'city' | 'phone'>>;
 export type Item = {
   id: string;

@@ -70,6 +70,7 @@ export function ConversationPage() {
         currentUserId={currentUser.data.user.id}
         currentUserName={currentUser.data.user.name}
         otherParticipantName={conversation?.otherParticipantName ?? 'Kontakt'}
+        otherParticipantAvatarUrl={conversation?.otherParticipantAvatarUrl ?? null}
         messages={[...messages.data.messages].reverse()}
         onReply={setReplyTo}
         onEdit={async (messageId, body) => {

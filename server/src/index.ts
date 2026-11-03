@@ -22,6 +22,7 @@ const authenticate = createRequireAuth({
       email:
         user.emailAddresses.find((email) => email.id === user.primaryEmailAddressId)
           ?.emailAddress ?? '',
+      avatarUrl: user.imageUrl,
     };
   },
   syncUser: (identity) => syncUser(prisma, identity),

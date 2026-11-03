@@ -124,6 +124,9 @@ the current booking status.
 
 - `/account/messages` — conversation list.
 - `/account/messages/:conversationId` — conversation view.
+- Conversation responses include `otherParticipantAvatarUrl`. The URL comes from the participant's
+  Clerk profile and is stored locally during authenticated user synchronisation. The UI falls back
+  to the first letter of the name when no profile image is available.
 - Desktop Header: `Nachrichten` with unread badge.
 - Mobile: `Nachrichten` lives in the hamburger menu. The closed menu button has a small indicator
   when unread count is greater than zero. The badge is hidden for zero and displays `99+` over 99.

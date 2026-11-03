@@ -6,6 +6,7 @@ type MessageThreadProps = {
   currentUserId: string;
   currentUserName: string;
   otherParticipantName: string;
+  otherParticipantAvatarUrl: string | null;
   messages: ChatMessage[];
   onReply: (message: ChatMessage) => void;
   onEdit: (messageId: string, body: string) => Promise<void>;
@@ -39,6 +40,7 @@ export function MessageThread({
   currentUserId,
   currentUserName,
   otherParticipantName,
+  otherParticipantAvatarUrl,
   messages,
   onReply,
   onEdit,
@@ -94,7 +96,11 @@ export function MessageThread({
             <div className={isOwnMessage ? styles.ownRow : styles.otherRow}>
               {!isOwnMessage && (
                 <span className={styles.avatar} aria-hidden="true">
-                  {otherParticipantName.slice(0, 1).toUpperCase()}
+                  {otherParticipantAvatarUrl ? (
+                    <img src={otherParticipantAvatarUrl} alt="" />
+                  ) : (
+                    otherParticipantName.slice(0, 1).toUpperCase()
+                  )}
                 </span>
               )}
               <article
@@ -146,7 +152,18 @@ export function MessageThread({
                 ) : (
                   <p>{message.body}</p>
                 )}
-                <time dateTime={message.createdAt}>{formatTime(message.createdAt)}</time>
+                <span className={styles.messageMeta}>
+                  <time dateTime={message.createdAt}>{formatTime(message.createdAt)}</time>
+                  {isOwnMessage && (
+                    <span
+                      className={message.readAt ? styles.readReceipt : styles.sentReceipt}
+                      aria-label={message.readAt ? 'Gelesen' : 'Gesendet'}
+                      title={message.readAt ? 'Gelesen' : 'Gesendet'}
+                    >
+                      {message.readAt ? '✓✓' : '✓'}
+                    </span>
+                  )}
+                </span>
                 {message.editedAt && <span className={styles.edited}>Bearbeitet</span>}
                 {menuMessageId === message.id && !readOnly && !isEditing && (
                   <div className={styles.contextMenu} role="menu">
