@@ -405,7 +405,7 @@ test('two real accounts book a published item, preserve snapshot after edit and 
   await page.locator(`[data-day="${month}-10"]:not([data-outside]) button`).click();
   await page.locator(`[data-day="${month}-13"]:not([data-outside]) button`).click();
   await page.getByRole('button', { name: 'Anfrage senden', exact: true }).click();
-  await expect(page.getByText('Deine Anfrage wurde gesendet.', { exact: true })).toBeVisible();
+  await expect(page.getByRole('status').filter({ hasText: 'Anfrage gesendet' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Anfrage gesendet', exact: true })).toBeDisabled();
   await page.goto('/account/bookings/my-rentals');
   await expect(page.getByRole('heading', { name: title, exact: true })).toBeVisible();

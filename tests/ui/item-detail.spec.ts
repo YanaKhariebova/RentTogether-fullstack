@@ -61,7 +61,7 @@ test('item detail renders the item received from the public API', async ({ page 
 
   await expect(page.getByRole('heading', { name: item.title })).toBeVisible();
   await expect(page.getByText('Elektronik')).toBeVisible();
-  await expect(page.getByText('📍 Berlin')).toBeVisible();
+  await expect(page.getByText('Berlin', { exact: true })).toBeVisible();
   await expect(page.getByText('15,50 € / Tag')).toBeVisible();
   await expect(page.getByText('Angeboten von Olga')).toBeVisible();
   await page.getByRole('button', { name: 'Zeitraum auswählen', exact: true }).click();
