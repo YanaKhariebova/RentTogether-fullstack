@@ -1,17 +1,57 @@
+:global(#main-content):has(> .page) {
+  width: 100%;
+  max-width: none;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+}
+
 .page {
+  position: relative;
+  isolation: isolate;
+  width: 100vw;
+  margin-inline: calc(50% - 50vw);
   display: grid;
-  min-height: min(62vh, 620px);
+  min-height: calc(100svh - 77px);
+  overflow: hidden;
   place-items: center;
-  padding: clamp(32px, 7vw, 72px) var(--space-4);
+  padding: clamp(32px, 7vw, 72px) var(--space-4) calc(32px + env(safe-area-inset-bottom));
+  color: white;
+  background: #0d1915;
+}
+
+.backdrop,
+.backdrop::after,
+.backdrop picture,
+.backdrop img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.backdrop {
+  z-index: -1;
+  pointer-events: none;
+}
+
+.backdrop img {
+  object-fit: cover;
+  object-position: 82% center;
+}
+
+:global(:root[data-theme='dark']) .backdrop::after {
+  content: '';
+  background: rgb(7 14 11 / 38%);
 }
 
 .card {
   width: min(100%, 480px);
   padding: clamp(28px, 6vw, 44px);
-  border: 1px solid var(--color-border);
+  border: 1px solid rgb(255 255 255 / 35%);
   border-radius: var(--radius-lg);
-  background: var(--color-surface);
-  box-shadow: var(--shadow-card);
+  background: rgb(18 35 28 / 76%);
+  box-shadow: 0 16px 48px rgb(10 26 19 / 28%);
   text-align: center;
 }
 
@@ -22,8 +62,8 @@
   margin: 0 auto var(--space-4);
   place-items: center;
   border-radius: 50%;
-  background: var(--color-primary-soft);
-  color: var(--color-primary);
+  background: rgb(121 211 171 / 18%);
+  color: var(--color-accent);
 }
 
 .icon svg {
@@ -33,14 +73,14 @@
 
 .eyebrow {
   margin: 0 0 var(--space-2);
-  color: var(--color-primary);
+  color: var(--color-accent);
   font-size: 0.875rem;
   font-weight: 700;
 }
 
 .card h1 {
   margin: 0;
-  color: var(--color-emphasis);
+  color: white;
   font-size: clamp(1.55rem, 4vw, 2rem);
   letter-spacing: -0.03em;
 }
@@ -48,7 +88,7 @@
 .description {
   max-width: 38ch;
   margin: var(--space-3) auto var(--space-6);
-  color: var(--color-muted);
+  color: #f1f5f2;
   line-height: 1.55;
 }
 
@@ -77,17 +117,40 @@
 
 .signUpHint {
   margin: 0;
-  color: var(--color-muted);
+  color: #f1f5f2;
   font-size: 0.9rem;
 }
 
 .signUpHint a {
-  color: var(--color-primary);
+  color: var(--color-accent);
   font-weight: 700;
 }
 
 .signUpHint a:hover {
-  color: var(--color-primary-hover);
+  color: white;
+}
+
+@supports ((backdrop-filter: blur(14px)) or (-webkit-backdrop-filter: blur(14px))) {
+  .card {
+    background: rgb(18 35 28 / 46%);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+  }
+}
+
+@media (max-width: 767px) {
+  .page {
+    min-height: calc(100svh - 64px - 56px - env(safe-area-inset-bottom));
+    padding-inline: 16px;
+  }
+
+  .backdrop img {
+    object-position: center top;
+  }
+
+  .card {
+    padding: 28px 22px;
+  }
 }
 
 .signInLink:hover {
