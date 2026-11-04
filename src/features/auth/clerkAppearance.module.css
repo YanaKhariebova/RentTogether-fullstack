@@ -2,9 +2,9 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   justify-items: center;
-  align-content: center;
+  align-content: start;
   min-height: 60vh;
-  padding-block: 16px;
+  padding-block: 0;
 }
 
 .authPage > .root {
