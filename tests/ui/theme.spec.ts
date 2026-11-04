@@ -56,7 +56,7 @@ for (const width of [320, 390, 1440]) {
       );
       const tagline = brand.getByText('Weniger kaufen. Mehr teilen.', { exact: true });
       await expect(tagline).toBeVisible();
-      await expect(tagline).toHaveCSS('color', 'rgb(148, 103, 24)');
+      await expect(tagline).toHaveCSS('color', 'rgb(197, 138, 36)');
       const rentBox = await brand.getByText('Rent', { exact: true }).boundingBox();
       const taglineBox = await tagline.boundingBox();
       expect(taglineBox!.x).toBeCloseTo(rentBox!.x, 0);

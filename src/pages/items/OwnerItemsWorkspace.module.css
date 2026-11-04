@@ -1,6 +1,6 @@
 .workspace {
   min-height: 65vh;
-  padding: 20px 0 48px;
+  padding: 0 0 48px;
   color: var(--color-text);
   outline: none;
 }
@@ -20,10 +20,9 @@
   color: var(--color-emphasis);
   line-height: 1.6;
 }
-@media (min-width: 768px) {
-  .workspace {
-    padding-top: 28px;
-  }
+.feedback:empty {
+  min-height: 0;
+  margin: 0;
 }
 
 /* Motion stays inside the owner workspace, including its native dialogs. */

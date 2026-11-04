@@ -43,7 +43,7 @@
 }
 .description {
   max-width: 34ch;
-  margin: 0 0 20px;
+  margin: 0;
   color: var(--color-muted);
   font-size: 0.9375rem;
   line-height: 1.7;
@@ -58,6 +58,10 @@
   font-weight: 600;
 }
 .intro {
+  display: grid;
+  align-content: start;
+  justify-items: center;
+  gap: 20px;
   text-align: center;
 }
 .intro .brand {
@@ -190,6 +194,8 @@
   }
   .inner {
     display: grid;
+    max-width: none;
+    padding-inline: var(--desktop-content-inset);
     grid-template-columns: minmax(240px, 1fr) 2fr;
     gap: 0 64px;
     padding-top: 56px;

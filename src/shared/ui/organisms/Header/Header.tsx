@@ -250,12 +250,7 @@ export function HeaderView({
             >
               <path d="M4 6h16M4 12h16M4 18h16" />
             </svg>
-            {hasBookingUpdates && (
-              <span className={styles.menuBadge}>
-                <NotificationBadge count={bookingCount} />
-              </span>
-            )}
-            {hasMessageUpdates && <span className={styles.messageDot} />}
+            {hasMessageUpdates && <span className={styles.messageDot} aria-hidden="true" />}
           </button>
         </div>
       </header>

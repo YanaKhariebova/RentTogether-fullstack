@@ -113,6 +113,58 @@ for (const theme of ['light', 'dark']) {
 
 test.describe('mobile drawer', () => {
   test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
+  test('account controls stay at the bottom while the menu scrolls on short screens', async ({
+    page,
+  }) => {
+    for (const signedIn of [false, true]) {
+      for (const height of [480, 667, 844]) {
+        await page.setViewportSize({ width: 390, height });
+        await page.goto('/tests/fixtures/ui.html' + (signedIn ? '?signedIn=1' : ''));
+        await page.getByRole('button', { name: 'Menü öffnen' }).tap();
+        const dialog = page.getByRole('dialog');
+        const account = signedIn
+          ? dialog.getByRole('button', { name: 'Abmelden', exact: true })
+          : dialog.getByRole('link', { name: 'Anmelden', exact: true });
+        const accountBox = await account.boundingBox();
+        expect(accountBox!.y + accountBox!.height).toBeCloseTo(height - 24, 0);
+        if (signedIn)
+          await expect(dialog.getByRole('link', { name: 'Profil öffnen' })).toBeInViewport();
+        await dialog.getByRole('link', { name: 'Impressum', exact: true }).scrollIntoViewIfNeeded();
+        await expect(dialog.getByRole('link', { name: 'Impressum', exact: true })).toBeInViewport();
+        expect((await account.boundingBox())!.y).toBeCloseTo(accountBox!.y, 0);
+        await expect(account).toBeInViewport();
+        await expect(dialog.getByRole('button', { name: /Design aktivieren$/ })).toBeInViewport();
+        expect(await dialog.evaluate((el) => el.scrollHeight <= el.clientHeight)).toBe(true);
+      }
+    }
+  });
+  test('drawer stays compact on tablets with balanced padding and readable links', async ({
+    page,
+  }) => {
+    for (const width of [320, 430, 768, 1023]) {
+      await page.setViewportSize({ width, height: 844 });
+      await page.goto('/tests/fixtures/ui.html');
+      await page.getByRole('button', { name: 'Menü öffnen' }).tap();
+      const dialog = page.getByRole('dialog');
+      const box = await dialog.boundingBox();
+      expect(box!.width).toBeLessThanOrEqual(280);
+      expect(box!.x + box!.width).toBeCloseTo(width, 0);
+      const padding = await dialog.evaluate((el) => {
+        const style = getComputedStyle(el);
+        return [style.paddingLeft, style.paddingRight];
+      });
+      expect(padding[0]).toBe(padding[1]);
+      for (const label of ['Meine Anzeigen', 'Nachrichten', 'So funktioniert’s']) {
+        const textHeight = await dialog.getByText(label, { exact: true }).evaluate((el) => {
+          const range = document.createRange();
+          range.selectNodeContents(el);
+          return range.getBoundingClientRect().height;
+        });
+        expect(textHeight).toBeLessThan(30);
+      }
+      expect(await dialog.evaluate((el) => el.scrollWidth <= el.clientWidth)).toBe(true);
+    }
+  });
   test('traps focus, locks scrolling, closes with Escape, button and backdrop, restores focus', async ({
     page,
   }) => {
@@ -125,8 +177,8 @@ test.describe('mobile drawer', () => {
       await expect(trigger).toHaveAttribute('aria-expanded', 'true');
       await expect(close).toBeFocused();
       const panelBox = await dialog.boundingBox();
-      expect(panelBox!.width).toBeCloseTo(page.viewportSize()!.width / 2, 0);
-      expect(panelBox!.x).toBeCloseTo(page.viewportSize()!.width / 2, 0);
+      expect(panelBox!.width).toBeCloseTo(page.viewportSize()!.width * 0.6, 0);
+      expect(panelBox!.x).toBeCloseTo(page.viewportSize()!.width * 0.4, 0);
       expect(await page.evaluate(() => document.body.style.overflow)).toBe('hidden');
       await page.keyboard.press('Shift+Tab');
       await expect(dialog.getByRole('button', { name: /Design aktivieren$/ })).toBeFocused();
