@@ -162,7 +162,7 @@ export function BookingList({ view }: BookingListProps) {
                   <Badge variant={getBadgeVariant(booking.status)}>
                     {statusLabels[booking.status]}
                   </Badge>
-                  {(booking.status === 'COMPLETED' || booking.status === 'CANCELLED') && (
+                  {['COMPLETED', 'CANCELLED', 'REJECTED'].includes(booking.status) && (
                     <IconButton
                       label={booking.itemTitle + ': aus meinem Verlauf entfernen'}
                       className={styles.archiveButton}

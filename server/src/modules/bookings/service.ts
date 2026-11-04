@@ -154,17 +154,17 @@ export function createBookingsService(prisma: BookingsDatabase) {
       });
       if (!booking)
         throw new ApiError(404, 'BOOKING_NOT_FOUND', 'Die Anfrage wurde nicht gefunden.');
-      if (booking.status !== 'COMPLETED' && booking.status !== 'CANCELLED')
+      if (!['COMPLETED', 'CANCELLED', 'REJECTED'].includes(booking.status))
         throw new ApiError(
           409,
           'BOOKING_STATUS_INVALID',
-          'Nur abgeschlossene oder stornierte Anfragen können aus dem Verlauf entfernt werden.',
+          'Nur abgeschlossene, stornierte oder abgelehnte Anfragen können aus dem Verlauf entfernt werden.',
         );
       const isRenter = booking.renterId === userId;
       await prisma.booking.updateMany({
         where: {
           id,
-          status: { in: ['COMPLETED', 'CANCELLED'] },
+          status: { in: ['COMPLETED', 'CANCELLED', 'REJECTED'] },
           ...(isRenter
             ? { renterId: userId, renterArchivedAt: null }
             : { item: { ownerId: userId }, ownerArchivedAt: null }),

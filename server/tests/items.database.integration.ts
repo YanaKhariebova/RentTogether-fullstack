@@ -1340,7 +1340,7 @@ test('personal booking history only hides terminal bookings for the caller and p
         });
       assert.equal((await archive()).status, 401);
       assert.equal((await archive(outsider)).status, 404);
-      if (status !== 'COMPLETED' && status !== 'CANCELLED') {
+      if (!['COMPLETED', 'CANCELLED', 'REJECTED'].includes(status)) {
         assert.equal((await archive(item)).status, 409);
         assert.equal((await archive(renter)).status, 409);
         const saved = await prisma.booking.findUniqueOrThrow({ where: { id: booking.id } });
