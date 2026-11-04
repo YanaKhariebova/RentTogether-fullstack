@@ -63,6 +63,10 @@ export function ItemDetailPage() {
     (firstImage, secondImage) => firstImage.order - secondImage.order,
   );
   const selectedImage = images.find((image) => image.id === selectedImageId) ?? images[0];
+  const selectedImageIndex = Math.max(
+    0,
+    images.findIndex((image) => image.id === selectedImage?.id),
+  );
   const imageUrl = selectedImage?.url ?? 'https://picsum.photos/seed/rent-together/1200/900';
   const formattedPrice = new Intl.NumberFormat('de-DE', {
     style: 'currency',
@@ -72,6 +76,11 @@ export function ItemDetailPage() {
   const isFavorite = (favoritesQuery.data?.items ?? []).some((favorite) => favorite.id === item.id);
   const isOwnItem = currentUser.data?.user.id === item.owner.id;
 
+  function selectAdjacentImage(direction: -1 | 1) {
+    const nextIndex = (selectedImageIndex + direction + images.length) % images.length;
+    setSelectedImageId(images[nextIndex]?.id ?? null);
+  }
+
   return (
     <section className={styles.page}>
       <section className={styles.content} aria-labelledby="item-title">
@@ -80,24 +89,48 @@ export function ItemDetailPage() {
         </Link>
 
         <div className={styles.layout}>
-          <section className={styles.gallery} aria-label={`Fotos: ${item.title}`}>
+          <section
+            className={styles.gallery}
+            aria-label={`Fotos: ${item.title}`}
+            aria-describedby={images.length > 1 ? 'gallery-keyboard-help' : undefined}
+            tabIndex={images.length > 1 ? 0 : undefined}
+            onKeyDown={(event) => {
+              if (images.length < 2) return;
+              if (event.key === 'ArrowLeft') {
+                event.preventDefault();
+                selectAdjacentImage(-1);
+              }
+              if (event.key === 'ArrowRight') {
+                event.preventDefault();
+                selectAdjacentImage(1);
+              }
+            }}
+          >
             <img className={styles.image} src={imageUrl} alt={item.title} />
 
             {images.length > 1 && (
-              <div className={styles.thumbnails}>
-                {images.map((image, index) => (
-                  <button
-                    key={image.id}
-                    type="button"
-                    className={image.id === selectedImage?.id ? styles.selectedThumbnail : ''}
-                    aria-label={`Foto ${index + 1} anzeigen`}
-                    aria-pressed={image.id === selectedImage?.id}
-                    onClick={() => setSelectedImageId(image.id)}
-                  >
-                    <img src={image.url} alt="" />
-                  </button>
-                ))}
-              </div>
+              <>
+                <p id="gallery-keyboard-help" className={styles.srOnly}>
+                  Mit der linken und rechten Pfeiltaste zwischen Fotos wechseln.
+                </p>
+                <p className={styles.srOnly} aria-live="polite" aria-atomic="true">
+                  Foto {selectedImageIndex + 1} von {images.length}
+                </p>
+                <div className={styles.thumbnails}>
+                  {images.map((image, index) => (
+                    <button
+                      key={image.id}
+                      type="button"
+                      className={image.id === selectedImage?.id ? styles.selectedThumbnail : ''}
+                      aria-label={`Foto ${index + 1} anzeigen`}
+                      aria-pressed={image.id === selectedImage?.id}
+                      onClick={() => setSelectedImageId(image.id)}
+                    >
+                      <img src={image.url} alt="" />
+                    </button>
+                  ))}
+                </div>
+              </>
             )}
           </section>
 
