@@ -256,7 +256,7 @@ for (const theme of ['light', 'dark']) {
       await button.hover();
       await expect(button).toHaveCSS(
         'background-color',
-        theme === 'dark' ? 'rgb(20, 23, 25)' : 'rgb(245, 248, 244)',
+        theme === 'dark' ? 'rgb(20, 23, 25)' : 'rgb(231, 238, 230)',
       );
     }
     const citiesButton = filters.getByRole('button', { name: 'Alle Städte anzeigen', exact: true });

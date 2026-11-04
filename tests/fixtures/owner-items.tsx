@@ -29,6 +29,32 @@ async function loadFixtureItems() {
   if (fixtureState === 'error' && loadAttempts++ === 0) throw new Error('Fixture load error');
   if (fixtureState === 'empty') return [];
   const items = structuredClone(mockOwnerItems);
+  if (fixtureState === 'alignment') {
+    return [
+      ['Beamer', 'Berlin', 'Elektronik'],
+      [
+        'Bluetooth-Lautsprecher für deine Feier mit Zubehör und Transporttasche',
+        'Brandenburg an der Havel',
+        'Musikinstrumente & Tontechnik',
+      ],
+      ['Dachbox für deinen nächsten Urlaub', 'Bremen', 'Autozubehör & Anhänger'],
+      ['Zelt', 'Magdeburg', 'Camping & Outdoor'],
+      [
+        'Deutsch-Lernpaket für Niveau B1 und B2 mit Büchern und Übungsmaterial',
+        'Burg (bei Magdeburg)',
+        'Bücher & Lernmaterial',
+      ],
+      ['Reisebett für kleine Übernachtungsgäste', 'Potsdam', 'Baby & Kinder'],
+    ].map(([title, city, category], index) => ({
+      ...items[0],
+      id: `alignment-${index}`,
+      title,
+      city,
+      category: { id: `alignment-category-${index}`, name: category },
+      isPublished: index % 2 === 0,
+      images: [{ id: `alignment-photo-${index}`, url: '/icons/icon-192.png', order: 0 }],
+    }));
+  }
   return fixtureState === 'published'
     ? items.map((item) => ({
         ...item,

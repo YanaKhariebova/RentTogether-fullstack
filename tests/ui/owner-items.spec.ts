@@ -1,5 +1,66 @@
 import { expect, test } from '@playwright/test';
 
+for (const width of [320, 768, 1024, 1440]) {
+  test(`owner card rows align despite different titles and action wrapping at ${width}px`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height: 1000 });
+    await page.goto('/tests/fixtures/owner-items.html?state=alignment&actions=all');
+    await expect(page.getByRole('article')).toHaveCount(6);
+    for (const theme of ['dark', 'light']) {
+      await page
+        .getByRole('button', {
+          name: theme === 'dark' ? 'Dunkles Design aktivieren' : 'Helles Design aktivieren',
+          exact: true,
+        })
+        .click();
+      const cards = await page.getByRole('article').evaluateAll((els) =>
+        els.map((el) => {
+          const box = el.getBoundingClientRect();
+          const title = el.querySelector('h3')!;
+          const city = title.nextElementSibling!;
+          const meta = city.nextElementSibling!;
+          const actions = meta.nextElementSibling!;
+          return {
+            top: box.top,
+            bottom: box.bottom,
+            city: city.getBoundingClientRect().top,
+            meta: meta.getBoundingClientRect().top,
+            category: meta.firstElementChild!.getBoundingClientRect().top,
+            price: meta.lastElementChild!.getBoundingClientRect().top,
+            actions: actions.getBoundingClientRect().top,
+            buttonsBottomGap:
+              box.bottom -
+              Math.max(
+                ...Array.from(
+                  actions.querySelectorAll('button'),
+                  (button) => button.getBoundingClientRect().bottom,
+                ),
+              ),
+            buttonHeights: Array.from(
+              actions.querySelectorAll('button'),
+              (button) => button.getBoundingClientRect().height,
+            ),
+            titleFits: title.scrollHeight <= title.clientHeight,
+          };
+        }),
+      );
+      for (const card of cards) {
+        expect(card.titleFits).toBe(true);
+        expect(card.buttonsBottomGap).toBeCloseTo(19, 0);
+        for (const height of card.buttonHeights) expect(height).toBeCloseTo(44, 0);
+        for (const peer of cards.filter((other) => Math.abs(other.top - card.top) < 1)) {
+          for (const key of ['bottom', 'city', 'meta', 'category', 'price', 'actions'] as const)
+            expect(Math.abs(card[key] - peer[key])).toBeLessThan(1);
+        }
+      }
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
+        true,
+      );
+    }
+  });
+}
+
 for (const theme of ['light', 'dark']) {
   for (const field of ['city', 'images']) {
     test(`server ${field} error marks the field and allows correction in ${theme}`, async ({
