@@ -363,7 +363,9 @@ test('real owner creates, reloads, publishes and edits photos; another account c
   expect((await apiRequest(page, '/my/items')).body.items).toHaveLength(0);
   await clerk.signOut({ page });
   await page.goto('/account/items');
-  await expect(page.getByRole('heading', { name: 'Bitte melde dich an' })).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: 'Melde dich an, um weiterzumachen' }),
+  ).toBeVisible();
 });
 
 test('two real accounts book a published item, preserve snapshot after edit and hide, and complete the rental', async ({

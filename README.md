@@ -45,6 +45,9 @@ npm run test:items
 npm run format:check
 npm --prefix server test
 npm --prefix server run db:check
+npm run test:notifications
+npm run test:messages
+PLAYWRIGHT_CHANNEL=chrome npm run test:ui
 ```
 
 Для проверки настоящих Clerk-сессий и сохранения профиля двумя аккаунтами:
@@ -71,6 +74,7 @@ Die Projektdokumentation liegt in [`docs/`](docs/):
 
 - [Projektplan und Aufgaben](docs/TODO.md)
 - [Originalanforderungen von DCI](docs/final-projekt-info.md)
+- [Abschlussprüfung, ERD und Präsentationsplan — 04.11.2026](docs/final-readiness-2026-11-04.md)
 - [Anforderungen und Design](docs/requirements.md)
 - [Items API Vertrag](docs/items-api.md)
 - [Abhängigkeiten und Abstimmung mit dem Team](docs/integration.md)
