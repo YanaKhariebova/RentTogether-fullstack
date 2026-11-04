@@ -57,15 +57,11 @@ export function HeaderView({
   const bookingDescription = `${id}-booking-updates`;
   const bookingBadge = (to: string) =>
     to === '/account/bookings' && hasBookingUpdates ? (
-      <span className={styles.bookingBadge}>
-        {notificationBadge?.(bookingCount)}
-      </span>
+      <span className={styles.bookingBadge}>{notificationBadge?.(bookingCount)}</span>
     ) : null;
   const messageBadge = (to: string) =>
     to === '/account/messages' && hasMessageUpdates ? (
-      <span className={styles.bookingBadge}>
-        {notificationBadge?.(messageCount)}
-      </span>
+      <span className={styles.bookingBadge}>{notificationBadge?.(messageCount)}</span>
     ) : null;
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const close = () => panel.current?.close();
