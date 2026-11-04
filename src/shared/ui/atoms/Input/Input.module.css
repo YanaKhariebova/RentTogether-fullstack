@@ -13,7 +13,11 @@
   background: var(--color-surface);
 }
 .input[aria-invalid='true'] {
-  border-color: var(--color-danger);
+  border-color: var(--color-error-text);
+  background: color-mix(in srgb, var(--color-error-text) 6%, var(--color-surface));
+}
+.input[aria-invalid='true']:focus-visible {
+  outline-color: var(--color-error-text);
 }
 .error {
   color: var(--color-error-text);

@@ -1,5 +1,103 @@
 import { expect, test } from '@playwright/test';
 
+for (const theme of ['light', 'dark']) {
+  for (const field of ['city', 'images']) {
+    test(`server ${field} error marks the field and allows correction in ${theme}`, async ({
+      page,
+    }) => {
+      await page.addInitScript((value) => localStorage.setItem('renttogether-theme', value), theme);
+      await page.route('**/api/locations?**', (route) =>
+        route.fulfill({
+          json: {
+            places: [
+              {
+                id: 'berlin',
+                name: 'Berlin',
+                region: 'Berlin',
+                country: 'Deutschland',
+                countryCode: 'DE',
+                postcodes: ['10115'],
+              },
+            ],
+          },
+        }),
+      );
+      await page.goto(
+        '/tests/fixtures/owner-items.html?saveError=' + (field === 'city' ? 'city' : 'images'),
+      );
+      if (theme === 'dark')
+        await page.getByRole('button', { name: 'Dunkles Design aktivieren', exact: true }).click();
+      if (theme === 'dark')
+        await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+      await page.getByRole('button', { name: '+ Neue Anzeige', exact: true }).click();
+      await page.getByLabel('Titel *', { exact: true }).fill('Testangebot mit Foto');
+      await page
+        .getByLabel('Beschreibung *', { exact: true })
+        .fill('Ein vollständiges Angebot für die Prüfung.');
+      await page
+        .getByRole('combobox', { name: 'Ort *', exact: true })
+        .fill(field === 'city' ? 'Berln' : 'Berlin');
+      await page.getByLabel('Kategorie *', { exact: true }).selectOption({ label: 'Elektronik' });
+      await page.getByLabel('Preis pro Tag', { exact: false }).fill('12,50');
+      const upload = page.getByLabel('Fotos auswählen', { exact: true });
+      await upload.setInputFiles('public/icons/icon-192.png');
+      await page.getByRole('button', { name: 'Vorschau anzeigen', exact: true }).click();
+      await page.getByRole('button', { name: 'Anzeige speichern', exact: true }).click();
+      const invalid =
+        field === 'city' ? page.getByRole('combobox', { name: 'Ort *', exact: true }) : upload;
+      await expect(invalid).toHaveAttribute('aria-invalid', 'true');
+      await expect(invalid).toBeFocused();
+      await expect(invalid).toHaveAccessibleDescription(
+        field === 'city' ? /Ortsname oder Postleitzahl/ : /gültiges Foto/,
+      );
+      await expect(invalid).toHaveCSS(
+        'border-top-color',
+        theme === 'dark' ? 'rgb(237, 170, 167)' : 'rgb(152, 75, 72)',
+      );
+      await expect(
+        page.getByRole('button', { name: 'Anzeige speichern', exact: true }),
+      ).toHaveCount(0);
+      await expect(page.getByLabel('Titel *', { exact: true })).toHaveValue('Testangebot mit Foto');
+      if (field === 'city') {
+        await invalid.fill('Berlin');
+      } else {
+        await page.getByRole('button', { name: 'Foto 1 entfernen', exact: true }).click();
+        await upload.setInputFiles('public/icons/icon-192.png');
+      }
+      await expect(invalid).toHaveAttribute('aria-invalid', 'false');
+      await page.getByRole('button', { name: 'Vorschau anzeigen', exact: true }).click();
+      await page.getByRole('button', { name: 'Anzeige speichern', exact: true }).click();
+      await expect(
+        page.getByRole('heading', { name: 'Meine Anzeigen', exact: true }),
+      ).toBeVisible();
+    });
+  }
+  test(`unsupported photo marks upload red and explains supported formats in ${theme}`, async ({
+    page,
+  }) => {
+    await page.addInitScript((value) => localStorage.setItem('renttogether-theme', value), theme);
+    await page.goto('/tests/fixtures/owner-items.html');
+    if (theme === 'dark')
+      await page.getByRole('button', { name: 'Dunkles Design aktivieren', exact: true }).click();
+    await page.getByRole('button', { name: '+ Neue Anzeige', exact: true }).click();
+    const upload = page.getByLabel('Fotos auswählen', { exact: true });
+    await upload.setInputFiles({
+      name: 'photo.heic',
+      mimeType: 'image/heic',
+      buffer: Buffer.from('unsupported'),
+    });
+    await expect(upload).toHaveAttribute('aria-invalid', 'true');
+    await expect(page.getByRole('alert')).toContainText(
+      'photo.heic: Erlaubt sind JPEG, PNG und WebP.',
+    );
+    await expect(page.getByText(/Erlaubte Formate: JPG\/JPEG/)).toBeVisible();
+    await expect(page.getByRole('status').filter({ hasText: '0 von 8 Fotos' })).toBeVisible();
+    await upload.setInputFiles('public/icons/icon-192.png');
+    await expect(upload).toHaveAttribute('aria-invalid', 'false');
+    await expect(page.getByRole('alert')).toHaveCount(0);
+  });
+}
+
 test('owner workspace renders loading and empty states', async ({ page }) => {
   await page.goto('/tests/fixtures/owner-items.html?state=loading');
   await expect(
@@ -40,7 +138,7 @@ test('invalid owner form announces errors and focuses the first invalid field af
 for (const width of [320, 360, 390, 430, 768, 1024, 1440]) {
   test(`owner cards and form fit both themes at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
-    await page.goto('/tests/fixtures/owner-items.html');
+    await page.goto('/tests/fixtures/owner-items.html?actions=all');
     await expect(
       page.getByRole('heading', { name: 'Beamer für einen Filmabend', exact: true }),
     ).toBeVisible();
@@ -54,6 +152,27 @@ for (const width of [320, 360, 390, 430, 768, 1024, 1440]) {
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
         true,
       );
+      for (const action of ['bearbeiten', 'veröffentlichen', 'löschen']) {
+        const button = page.getByRole('button', {
+          name: `Beamer für einen Filmabend ${action}`,
+          exact: true,
+        });
+        const spacing = await button.evaluate((el) => {
+          const range = document.createRange();
+          range.selectNodeContents(el);
+          const text = range.getBoundingClientRect();
+          const box = el.getBoundingClientRect();
+          const card = el.closest('article')!.getBoundingClientRect();
+          return {
+            left: text.left - box.left,
+            right: box.right - text.right,
+            inside: box.left >= card.left && box.right <= card.right,
+          };
+        });
+        expect(spacing.left).toBeGreaterThanOrEqual(8);
+        expect(spacing.right).toBeGreaterThanOrEqual(8);
+        expect(spacing.inside).toBe(true);
+      }
     }
     await page.getByRole('button', { name: '+ Neue Anzeige', exact: true }).click();
     await expect(page.getByLabel('Titel *', { exact: true })).toBeVisible();

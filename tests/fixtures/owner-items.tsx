@@ -1,5 +1,6 @@
 // Изолированный стенд, не импортируется приложением. Не является обходом auth в production.
-import { useState } from 'react';
+import { useRef, useState } from 'react';
+import { ApiError } from '../../src/shared/api/client';
 import { createRoot } from 'react-dom/client';
 import {
   createRootRoute,
@@ -20,6 +21,8 @@ import { mockCategories, mockOwnerItems } from '../../src/features/items/mocks/i
 import { ThemeToggle } from '../../src/features/theme/ThemeToggle';
 const fixtureState = new URLSearchParams(window.location.search).get('state');
 const favoriteFixture = new URLSearchParams(window.location.search).get('favorite');
+const saveErrorFixture = new URLSearchParams(window.location.search).get('saveError');
+const actionsFixture = new URLSearchParams(window.location.search).get('actions') === 'all';
 let loadAttempts = 0;
 async function loadFixtureItems() {
   if (fixtureState === 'loading') return new Promise<typeof mockOwnerItems>(() => {});
@@ -38,10 +41,35 @@ function MockOwnerItemsProvider({ children }: { children: React.ReactNode }) {
   const store = useMockOwnerItems(loadFixtureItems);
   const [notice, setNotice] = useState('');
   const [favorites, setFavorites] = useState<Record<string, boolean>>({});
+  const saveAttempts = useRef(0);
   return (
     <OwnerItemsContext.Provider
       value={{
         ...store,
+        publish: actionsFixture ? () => {} : undefined,
+        deleteItem: actionsFixture ? () => {} : undefined,
+        saveItem: async (form, id) => {
+          if (saveErrorFixture && saveAttempts.current++ === 0) {
+            if (saveErrorFixture === 'city')
+              throw new ApiError(422, {
+                code: 'CITY_NOT_FOUND',
+                message: 'Bitte wähle einen gültigen Ort aus den Suchvorschlägen.',
+                fields: {
+                  city: ['Bitte suche nach Ortsname oder Postleitzahl und wähle einen Ort aus.'],
+                },
+              });
+            throw new Error('Bereits gespeicherte Angaben bleiben erhalten.', {
+              cause: new ApiError(400, {
+                code: 'INVALID_IMAGE',
+                message: 'Das Foto ist beschädigt oder hat ein ungültiges Format.',
+                fields: {
+                  images: ['Bitte wähle ein gültiges Foto (maximal 25 Megapixel, ohne Animation).'],
+                },
+              }),
+            });
+          }
+          store.saveItem(form, id);
+        },
         items: store.items.map((item) =>
           favoriteFixture
             ? {

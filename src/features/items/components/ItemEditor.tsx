@@ -2,7 +2,7 @@ import { Button } from '@/shared/ui/atoms';
 import { useRef, useState } from 'react';
 import { useItemForm } from '../hooks/useItemForm';
 import { initialItemFormValues } from '../model/itemFormSchema';
-import { itemErrorMessage } from '../model/itemErrorMessage';
+import { itemErrorMessage, itemFieldErrors } from '../model/itemErrorMessage';
 import { toCreateItemInput, toItemFormValues } from '../model/itemFormAdapters';
 import { ACCEPTED_IMAGE_TYPES, MAX_ITEM_IMAGES } from '../model/itemFormSchema';
 import type { ValidatedItemForm } from '../model/itemFormSchema';
@@ -82,7 +82,7 @@ export function ItemEditor({
         maxImages={MAX_ITEM_IMAGES}
         submitAttempts={form.submitAttempts}
         isSubmitting={form.isSubmitting || isSaving}
-        submitError={form.submitError}
+        submitError={form.submitError ?? (preview ? null : saveError)}
         submitLabel="Vorschau anzeigen"
         onFieldChange={(field, value) => {
           invalidatePreview();
@@ -104,7 +104,7 @@ export function ItemEditor({
       />
       {preview && payload && (
         <section className={styles.preview} aria-labelledby="preview-title">
-          <p role="status">Alle Angaben sind gültig. Hier ist deine Vorschau.</p>
+          <p role="status">Hier ist deine Vorschau. Prüfe die Angaben vor dem Speichern.</p>
           {form.images[0] && (
             <img className={styles.cover} src={form.images[0].url} alt={payload.title} />
           )}
@@ -134,6 +134,11 @@ export function ItemEditor({
                 await onSave(preview);
               } catch (error) {
                 setSaveError(itemErrorMessage(error));
+                const fieldErrors = itemFieldErrors(error);
+                if (Object.keys(fieldErrors).length > 0) {
+                  form.setServerErrors(fieldErrors);
+                  setPreview(null);
+                }
               } finally {
                 saving.current = false;
                 setIsSaving(false);

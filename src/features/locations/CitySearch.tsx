@@ -39,6 +39,7 @@ export function CitySearch({
   const [failure, setFailure] = useState<string | null>(null);
   const [retry, setRetry] = useState(0);
   const query = value.trim();
+  const noMatches = searched && !loading && !failure && query.length >= 2 && places.length === 0;
   const optionId = (place: Place) => id + '-' + encodeURIComponent(place.id);
   useEffect(() => {
     if (open && active >= 0 && places[active])
@@ -109,7 +110,13 @@ export function CitySearch({
         }
         autoComplete="off"
         value={value}
-        error={error}
+        error={
+          error ??
+          failure ??
+          (noMatches
+            ? 'Kein Ort gefunden. Prüfe die Schreibweise oder suche nach der Postleitzahl.'
+            : undefined)
+        }
         disabled={disabled}
         placeholder="Ortsname oder PLZ, z. B. Berlin oder 39104"
         hint="Ort in Deutschland suchen und aus den Vorschlägen wählen."
