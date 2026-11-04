@@ -13,6 +13,16 @@ export function RequireAuth({ children }: { children: ReactNode }) {
   if (!isSignedIn)
     return (
       <section className={styles.page} aria-labelledby="sign-in-required-title">
+        <div className={styles.backdrop} aria-hidden="true">
+          <picture>
+            <source
+              media="(max-width: 767px)"
+              srcSet="/media/hero-mobile-golden-640.webp 640w, /media/hero-mobile-golden-960.webp 960w"
+              sizes="100vw"
+            />
+            <img src="/media/hero-brownstone.webp" alt="" />
+          </picture>
+        </div>
         <div className={styles.card}>
           <div className={styles.icon} aria-hidden="true">
             <SectionIcon icon={section.icon} />
