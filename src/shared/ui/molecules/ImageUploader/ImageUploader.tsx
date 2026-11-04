@@ -12,6 +12,8 @@ export function ImageUploader({
   error,
   onFilesSelected,
 }: ImageUploaderProps) {
+  const formatsHint =
+    'Erlaubte Formate: JPG/JPEG (.jpg, .jpeg), PNG (.png), WebP (.webp). Maximal 5 MB pro Foto, bis zu 8 Fotos. HEIC, GIF und PDF werden nicht unterstützt.';
   return (
     <div className={styles.uploader}>
       <Input
@@ -22,12 +24,13 @@ export function ImageUploader({
         multiple
         disabled={disabled}
         error={error}
-        hint="JPEG, PNG oder WebP. Maximal 5 MB pro Foto, bis zu 8 Fotos."
+        hint={formatsHint}
         onChange={(event) => {
           onFilesSelected(Array.from(event.currentTarget.files ?? []));
           event.currentTarget.value = '';
         }}
       />
+      {error && <p className={styles.hint}>{formatsHint}</p>}
     </div>
   );
 }

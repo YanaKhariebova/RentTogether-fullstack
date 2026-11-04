@@ -119,7 +119,11 @@ export function ItemForm(props: ItemFormProps) {
           <ImageUploader
             accept={props.imageAccept}
             disabled={props.images.length >= props.maxImages}
-            error={errors.images}
+            error={
+              props.imageErrors.length > 0
+                ? 'Einige Dateien konnten nicht hinzugefügt werden. Bitte prüfe die Hinweise unten.'
+                : errors.images
+            }
             onFilesSelected={props.onFilesSelected}
           />
           <p role="status">

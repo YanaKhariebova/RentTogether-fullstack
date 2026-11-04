@@ -68,6 +68,10 @@ export function useItemForm(
     isSubmitting,
     submitError,
     changeField,
+    setServerErrors(nextErrors: FormErrors) {
+      setErrors(nextErrors);
+      setSubmitAttempts((count) => count + 1);
+    },
     submit,
     images: gallery.images,
     imageErrors: gallery.errors,

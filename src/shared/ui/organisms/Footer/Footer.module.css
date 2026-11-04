@@ -1,7 +1,10 @@
 .footer {
   border-top: 1px solid var(--color-border);
-  background: var(--color-header);
+  background: #e8f2ec;
   color: var(--color-text);
+}
+:global(:root[data-theme='dark']) .footer {
+  background: var(--color-header);
 }
 .inner {
   max-width: 1200px;

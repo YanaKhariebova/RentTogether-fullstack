@@ -271,7 +271,12 @@ test('real owner creates, reloads, publishes and edits photos; another account c
   });
   await page.getByRole('button', { name: 'Vorschau anzeigen', exact: true }).click();
   await page.getByRole('button', { name: 'Änderungen speichern', exact: true }).click();
-  await expect(page.getByRole('alert')).toContainText('gültiges Foto');
+  await expect(page.getByRole('alert').filter({ hasText: 'gültiges Foto' })).toBeVisible();
+  await expect(page.getByLabel('Fotos auswählen', { exact: true })).toHaveAttribute(
+    'aria-invalid',
+    'true',
+  );
+  await expect(page.getByLabel('Fotos auswählen', { exact: true })).toBeFocused();
   expect((await apiRequest(page, '/my/items')).body.items[0].isPublished).toBe(false);
   await page.getByRole('button', { name: 'Foto 2 entfernen', exact: true }).click();
   await savePreview(page);
