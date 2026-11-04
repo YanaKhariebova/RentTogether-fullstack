@@ -5,6 +5,8 @@ import { createRootRoute, createRoute, createRouter, RouterProvider } from '@tan
 import '@fontsource-variable/inter';
 import '../../src/index.css';
 import { HeaderView } from '../../src/shared/ui/organisms/Header/Header';
+import { ThemeToggle } from '../../src/features/theme/ThemeToggle';
+import { NotificationBadge } from '../../src/features/notifications/components/NotificationBadge';
 import { BookingNotificationsView } from '../../src/features/notifications/BookingNotifications';
 import type { BookingNotification } from '../../src/features/notifications/types';
 const params = new URLSearchParams(location.search);
@@ -38,6 +40,8 @@ export function Fixture() {
   return (
     <>
       <HeaderView
+        themeToggle={<ThemeToggle />}
+        notificationBadge={(count) => <NotificationBadge count={count} />}
         auth={<a href="/account/profile">Mein Profil</a>}
         signedIn
         bookingUnreadCount={state === 'error' || state === 'unavailable' ? undefined : count}

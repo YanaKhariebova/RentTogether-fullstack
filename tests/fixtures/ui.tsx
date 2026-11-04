@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import '@fontsource-variable/inter';
 import { createRootRoute, createRoute, createRouter, RouterProvider } from '@tanstack/react-router';
 import { HeaderView } from '../../src/shared/ui/organisms/Header/Header';
+import { ThemeToggle } from '../../src/features/theme/ThemeToggle';
 import { NavigationIcon } from '../../src/shared/ui/organisms/Header/NavigationIcon';
 import headerStyles from '../../src/shared/ui/organisms/Header/Header.module.css';
 import { HomePage } from '../../src/pages/HomePage';
@@ -19,6 +20,7 @@ const root = createRootRoute({
         Zum Inhalt springen
       </a>
       <HeaderView
+        themeToggle={<ThemeToggle />}
         auth={
           <a href="/sign-in" className={headerStyles.signInLink}>
             <NavigationIcon name="user" />
