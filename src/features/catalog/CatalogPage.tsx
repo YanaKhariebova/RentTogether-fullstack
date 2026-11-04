@@ -1,28 +1,42 @@
 import { useAuth } from '@clerk/react';
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { Button, Input, Spinner } from '@/shared/ui/atoms';
 import { useCategoriesQuery } from '../items/api/useCategoriesQuery';
 import { ItemGrid } from './components/ItemGrid/ItemGrid';
 import { useCatalogItemsQuery } from './api/useCatalogItemsQuery';
 import { useCatalogCitiesQuery } from './api/useCatalogCitiesQuery';
 import { useFavoriteMutation, useFavoritesQuery } from '../favorites/api/useFavorites';
-import { catalogPrice } from './model/catalogPrice';
+import { useCatalogFilters } from './model/useCatalogFilters';
 import styles from './CatalogPage.module.css';
-
-const pageSize = 9;
 
 export function CatalogPage() {
   const { isLoaded, isSignedIn } = useAuth();
-  const [search, setSearch] = useState('');
-  const [city, setCity] = useState('');
-  const [category, setCategory] = useState('');
-  const [minPrice, setMinPrice] = useState('');
-  const [maxPrice, setMaxPrice] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [areFiltersOpen, setAreFiltersOpen] = useState(false);
-  const [areCategoriesExpanded, setAreCategoriesExpanded] = useState(false);
-  const [areCitiesExpanded, setAreCitiesExpanded] = useState(false);
-  const [citySearch, setCitySearch] = useState('');
+  const filters = useCatalogFilters();
+  const {
+    search,
+    city,
+    category,
+    minPrice,
+    maxPrice,
+    currentPage,
+    areFiltersOpen,
+    areCategoriesExpanded,
+    areCitiesExpanded,
+    citySearch,
+    priceError,
+    query: catalogQuery,
+    setSearch,
+    setCity,
+    setCategory,
+    setMinPrice,
+    setMaxPrice,
+    setCurrentPage,
+    setAreFiltersOpen,
+    setAreCategoriesExpanded,
+    setAreCitiesExpanded,
+    setCitySearch,
+    changeFilter,
+  } = filters;
   const { data: categoriesData } = useCategoriesQuery();
   const {
     data: citiesData,
@@ -30,26 +44,6 @@ export function CatalogPage() {
     isError: citiesFailed,
     refetch: reloadCities,
   } = useCatalogCitiesQuery();
-  const normalizedMin = catalogPrice(minPrice);
-  const normalizedMax = catalogPrice(maxPrice);
-  const priceError =
-    normalizedMin === null || normalizedMax === null
-      ? 'Bitte gib einen gültigen Preis mit höchstens zwei Nachkommastellen ein.'
-      : normalizedMin && normalizedMax && Number(normalizedMin) > Number(normalizedMax)
-        ? 'Der Mindestpreis darf nicht höher als der Höchstpreis sein.'
-        : null;
-  const catalogQuery = useMemo(
-    () => ({
-      q: search.trim() || undefined,
-      city: city || undefined,
-      categoryId: category || undefined,
-      minPrice: normalizedMin ?? undefined,
-      maxPrice: normalizedMax ?? undefined,
-      page: currentPage,
-      limit: pageSize,
-    }),
-    [category, city, currentPage, normalizedMax, normalizedMin, search],
-  );
   const {
     data: catalogData,
     isPending,
@@ -93,11 +87,6 @@ export function CatalogPage() {
         .includes(citySearch.trim().toLocaleLowerCase('de-DE')),
     );
   const visibleCities = areCitiesExpanded ? matchingCities : matchingCities.slice(0, 4);
-
-  function changeFilter(setter: (value: string) => void, value: string) {
-    setter(value);
-    setCurrentPage(1);
-  }
 
   const items = catalogData?.items ?? [];
   const totalPages = catalogData?.pagination.totalPages ?? 0;
