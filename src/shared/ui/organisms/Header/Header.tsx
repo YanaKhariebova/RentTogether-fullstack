@@ -1,4 +1,4 @@
-import { useAuth, useClerk, UserButton } from '@clerk/react';
+import { useAuth, useClerk, useUser, UserButton } from '@clerk/react';
 import { Link, useRouterState } from '@tanstack/react-router';
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { Button, IconButton } from '../../atoms';
@@ -32,6 +32,7 @@ const information = [
 export function Header() {
   const { isLoaded, isSignedIn } = useAuth();
   const { signOut } = useClerk();
+  const { user } = useUser();
   const bookingNotifications = useBookingNotificationCount();
   const messageNotifications = useMessageUnreadCount();
   const messageAudio = useRef<HTMLAudioElement | null>(null);
@@ -106,6 +107,8 @@ export function Header() {
       messageUnreadCount={
         messageNotifications.isError ? undefined : messageNotifications.data?.count
       }
+      avatarUrl={user?.imageUrl}
+      avatarName={user?.fullName ?? user?.username ?? undefined}
       signedIn={Boolean(isSignedIn)}
       authLoaded={isLoaded}
       onSignOut={() => {
@@ -119,6 +122,8 @@ export function HeaderView({
   auth,
   signedIn = false,
   authLoaded = true,
+  avatarUrl,
+  avatarName,
   onSignOut,
   bookingUnreadCount,
   messageUnreadCount,
@@ -126,6 +131,8 @@ export function HeaderView({
   auth: ReactNode;
   signedIn?: boolean;
   authLoaded?: boolean;
+  avatarUrl?: string;
+  avatarName?: string;
   onSignOut?: () => void;
   bookingUnreadCount?: number;
   messageUnreadCount?: number;
@@ -177,10 +184,20 @@ export function HeaderView({
     <>
       <header className={styles.header}>
         <div className={styles.inner}>
-          <Link to="/" className={styles.brand}>
-            <img src={logo} alt="" width={40} height={34} />
+          <Link
+            to="/"
+            className={styles.brand}
+            aria-label="RentTogether Weniger kaufen. Mehr teilen."
+          >
+            <span
+              className={styles.brandMark}
+              aria-hidden="true"
+              style={{ maskImage: 'url(' + logo + ')', WebkitMaskImage: 'url(' + logo + ')' }}
+            />
             <span>
-              RentTogether<span className={styles.tagline}>Weniger kaufen. Mehr teilen.</span>
+              <span className={styles.rent}>Rent</span>
+              <span className={styles.together}>Together</span>
+              <span className={styles.tagline}>Weniger kaufen. Mehr teilen.</span>
             </span>
           </Link>
           <nav aria-label="Hauptnavigation" className={styles.desktop}>
@@ -315,26 +332,42 @@ export function HeaderView({
           </div>
         </nav>
         <div className={styles.panelSettings}>
-          <span>Darstellung</span>
-          <ThemeToggle />
-          {authLoaded ? (
-            <Link to={signedIn ? '/account/profile' : '/sign-in'} onClick={close}>
-              {signedIn ? 'Mein Profil' : 'Anmelden'}
-            </Link>
-          ) : (
-            <span role="status">Konto wird geladen …</span>
-          )}
-          {signedIn && onSignOut && (
-            <Button
-              variant="secondary"
-              onClick={() => {
-                close();
-                onSignOut();
-              }}
+          {authLoaded && signedIn && (
+            <Link
+              to="/account/profile"
+              className={styles.panelAvatar}
+              aria-label="Profil öffnen"
+              title={avatarName ? 'Profil von ' + avatarName : 'Profil öffnen'}
+              onClick={close}
             >
-              Abmelden
-            </Button>
+              {avatarUrl ? (
+                <img src={avatarUrl} alt="" width={36} height={36} referrerPolicy="no-referrer" />
+              ) : (
+                <NavigationIcon name="user" />
+              )}
+            </Link>
           )}
+          <div className={styles.accountActions}>
+            {!authLoaded ? (
+              <span role="status">Konto wird geladen …</span>
+            ) : signedIn ? (
+              <Button
+                variant="secondary"
+                className={styles.accountButton}
+                onClick={() => {
+                  close();
+                  onSignOut?.();
+                }}
+              >
+                Abmelden
+              </Button>
+            ) : (
+              <Link to="/sign-in" className={styles.accountButton} onClick={close}>
+                Anmelden
+              </Link>
+            )}
+            <ThemeToggle />
+          </div>
         </div>
       </dialog>
       <nav aria-label="Mobile Navigation" className={styles.mobile}>

@@ -29,6 +29,39 @@ for (const width of [320, 390, 1440]) {
   }) => {
     await page.setViewportSize({ width, height: 1000 });
     await page.goto(fixture);
+    const brands = [
+      page
+        .getByRole('banner')
+        .getByRole('link', { name: 'RentTogether Weniger kaufen. Mehr teilen.', exact: true }),
+      page
+        .getByRole('contentinfo')
+        .getByRole('link', { name: 'RentTogether – Startseite', exact: true }),
+    ];
+    for (const brand of brands) {
+      const mark = brand.locator('span[aria-hidden="true"]');
+      await expect(mark).toHaveCSS('mask-image', /url/);
+      await expect(mark).toHaveCSS(
+        'background-color',
+        await brand
+          .getByText('Rent', { exact: true })
+          .evaluate((element) => getComputedStyle(element).color),
+      );
+      await expect(brand.getByText('Rent', { exact: true })).toHaveCSS(
+        'color',
+        'rgb(44, 150, 112)',
+      );
+      await expect(brand.getByText('Together', { exact: true })).toHaveCSS(
+        'color',
+        'rgb(44, 150, 112)',
+      );
+      const tagline = brand.getByText('Weniger kaufen. Mehr teilen.', { exact: true });
+      await expect(tagline).toBeVisible();
+      await expect(tagline).toHaveCSS('color', 'rgb(148, 103, 24)');
+      const rentBox = await brand.getByText('Rent', { exact: true }).boundingBox();
+      const taglineBox = await tagline.boundingBox();
+      expect(taglineBox!.x).toBeCloseTo(rentBox!.x, 0);
+      expect(taglineBox!.y).toBeGreaterThan(rentBox!.y);
+    }
     const originalColors = await buttonColors(page);
     const originalBackground = await page
       .locator('html')
@@ -43,6 +76,31 @@ for (const width of [320, 390, 1440]) {
       'true',
     );
     if (width < 1024) await page.getByRole('button', { name: 'Menü schließen' }).click();
+    for (const brand of brands) {
+      const mark = brand.locator('span[aria-hidden="true"]');
+      await expect(mark).toHaveCSS('mask-image', /url/);
+      await expect(mark).toHaveCSS(
+        'background-color',
+        await brand
+          .getByText('Rent', { exact: true })
+          .evaluate((element) => getComputedStyle(element).color),
+      );
+      await expect(brand.getByText('Rent', { exact: true })).toHaveCSS(
+        'color',
+        'rgb(121, 211, 171)',
+      );
+      await expect(brand.getByText('Together', { exact: true })).toHaveCSS(
+        'color',
+        'rgb(121, 211, 171)',
+      );
+      const tagline = brand.getByText('Weniger kaufen. Mehr teilen.', { exact: true });
+      await expect(tagline).toBeVisible();
+      await expect(tagline).toHaveCSS('color', 'rgb(242, 198, 109)');
+      const rentBox = await brand.getByText('Rent', { exact: true }).boundingBox();
+      const taglineBox = await tagline.boundingBox();
+      expect(taglineBox!.x).toBeCloseTo(rentBox!.x, 0);
+      expect(taglineBox!.y).toBeGreaterThan(rentBox!.y);
+    }
     const darkColors = await buttonColors(page);
     for (const index of [0, 2, 4]) expect(darkColors[index]).toEqual(originalColors[index]);
     for (const index of [3, 5]) {
