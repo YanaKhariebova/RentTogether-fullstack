@@ -4,6 +4,7 @@ import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { Button, IconButton } from '../../atoms';
 import { ThemeToggle } from '../../../../features/theme/ThemeToggle';
 import logo from '../../../assets/renttogether-icon.svg';
+import messageNotificationSound from '../../../assets/sounds/message-notification.mp3';
 import styles from './Header.module.css';
 import { NavigationIcon } from './NavigationIcon';
 import { useBookingNotificationCount } from '@/features/notifications/api/useBookingNotifications';
@@ -34,23 +35,37 @@ export function Header() {
   const { user } = useUser();
   const bookingNotifications = useBookingNotificationCount();
   const messageNotifications = useMessageUnreadCount();
-  const messageAudio = useRef<AudioContext | null>(null);
+  const messageAudio = useRef<HTMLAudioElement | null>(null);
   const previousMessageCount = useRef<number | null>(null);
 
   useEffect(() => {
-    const enableMessageAudio = () => {
-      if (!messageAudio.current) messageAudio.current = new AudioContext();
-      void messageAudio.current.resume();
-      window.removeEventListener('pointerdown', enableMessageAudio);
-      window.removeEventListener('keydown', enableMessageAudio);
+    const audio = new Audio(messageNotificationSound);
+    audio.preload = 'auto';
+    audio.volume = 0.4;
+    messageAudio.current = audio;
+
+    const unlockMessageAudio = () => {
+      audio.muted = true;
+      void audio
+        .play()
+        .then(() => {
+          audio.pause();
+          audio.currentTime = 0;
+        })
+        .finally(() => {
+          audio.muted = false;
+        });
+      window.removeEventListener('pointerdown', unlockMessageAudio);
+      window.removeEventListener('keydown', unlockMessageAudio);
     };
 
-    window.addEventListener('pointerdown', enableMessageAudio, { once: true });
-    window.addEventListener('keydown', enableMessageAudio, { once: true });
+    window.addEventListener('pointerdown', unlockMessageAudio, { once: true });
+    window.addEventListener('keydown', unlockMessageAudio, { once: true });
     return () => {
-      window.removeEventListener('pointerdown', enableMessageAudio);
-      window.removeEventListener('keydown', enableMessageAudio);
-      void messageAudio.current?.close();
+      window.removeEventListener('pointerdown', unlockMessageAudio);
+      window.removeEventListener('keydown', unlockMessageAudio);
+      audio.pause();
+      messageAudio.current = null;
     };
   }, []);
 
@@ -63,22 +78,14 @@ export function Header() {
     if (
       previousCount === null ||
       unreadCount <= previousCount ||
-      document.visibilityState !== 'visible' ||
-      messageAudio.current?.state !== 'running'
+      document.visibilityState !== 'visible'
     )
       return;
 
     const tone = messageAudio.current;
-    const oscillator = tone.createOscillator();
-    const gain = tone.createGain();
-    oscillator.type = 'sine';
-    oscillator.frequency.setValueAtTime(740, tone.currentTime);
-    gain.gain.setValueAtTime(0.0001, tone.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.055, tone.currentTime + 0.015);
-    gain.gain.exponentialRampToValueAtTime(0.0001, tone.currentTime + 0.22);
-    oscillator.connect(gain).connect(tone.destination);
-    oscillator.start();
-    oscillator.stop(tone.currentTime + 0.23);
+    if (!tone) return;
+    tone.currentTime = 0;
+    void tone.play().catch(() => undefined);
   }, [messageNotifications.data?.count]);
 
   return (
