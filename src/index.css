@@ -18,7 +18,7 @@
   --color-primary-hover: #1c4b32;
   --color-accent: #f2c66d;
   --color-brand: #2c9670;
-  --color-brand-tagline: #946718;
+  --color-brand-tagline: #c58a24;
   --color-background: #f5f8f4;
   --color-primary-soft: #e8f2ee;
   --color-danger: #984b48;
@@ -43,6 +43,10 @@
   --space-4: 16px;
   --space-6: 24px;
   --space-8: 32px;
+  --desktop-content-inset: max(
+    16px,
+    min(calc((100vw - 1200px) / 2), calc(200px + clamp(24px, 2.7vw, 56px)))
+  );
   --shadow-card: 0 4px 20px #20352d10;
 }
 

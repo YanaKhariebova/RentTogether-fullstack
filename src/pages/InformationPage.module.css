@@ -5,6 +5,7 @@
   overflow-wrap: anywhere;
 }
 .eyebrow {
+  margin-top: 0;
   color: var(--color-emphasis);
   font-size: 0.8125rem;
   font-weight: 700;

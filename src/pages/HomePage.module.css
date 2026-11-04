@@ -193,6 +193,16 @@
   }
 }
 
+@media (min-width: 1024px) {
+  .hero {
+    padding-inline: var(--desktop-content-inset);
+  }
+  .content {
+    margin-left: 0;
+    width: calc((100vw - 2 * clamp(24px, 2.7vw, 56px)) * 0.43 + 1.5cm);
+  }
+}
+
 @media (hover: hover) and (pointer: fine) {
   .actions a:hover {
     box-shadow:
