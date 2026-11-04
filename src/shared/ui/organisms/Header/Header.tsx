@@ -10,6 +10,7 @@ import { NavigationIcon } from './NavigationIcon';
 import { useBookingNotificationCount } from '@/features/notifications/api/useBookingNotifications';
 import { NotificationBadge } from '@/features/notifications/components/NotificationBadge';
 import { useMessageUnreadCount } from '@/features/messages/api/useConversations';
+import { shouldPlayMessageTone } from '@/features/messages/model/conversationPresentation';
 
 const navigation = [
   { to: '/catalog', label: 'Entdecken', icon: 'search' },
@@ -76,9 +77,11 @@ export function Header() {
     const previousCount = previousMessageCount.current;
     previousMessageCount.current = unreadCount;
     if (
-      previousCount === null ||
-      unreadCount <= previousCount ||
-      document.visibilityState !== 'visible'
+      !shouldPlayMessageTone({
+        previousCount,
+        unreadCount,
+        isPageVisible: document.visibilityState === 'visible',
+      })
     )
       return;
 

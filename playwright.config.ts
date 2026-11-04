@@ -9,6 +9,9 @@ if (!['localhost', '127.0.0.1', '[::1]'].includes(frontend.hostname)) {
 }
 export default defineConfig({
   testDir: './tests/ui',
+  // One Vite instance serves fixture pages and app routes. Running browser tests
+  // serially avoids intermittent connection resets while that server is rebuilding.
+  workers: 1,
   use: { baseURL: frontend.origin, channel: process.env.PLAYWRIGHT_CHANNEL },
   webServer: {
     command: `npm run dev -- --host ${frontend.hostname} --port ${frontend.port || 5173} --strictPort`,
