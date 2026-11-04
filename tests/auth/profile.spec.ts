@@ -90,13 +90,19 @@ test('guest access is blocked on every account entry point', async ({ page }) =>
     '/account/bookings',
     '/account/bookings/my-rentals',
     '/account/bookings/incoming',
+    '/account/messages',
   ]) {
     await page.goto(path);
+    const title = path.startsWith('/account/favorites')
+      ? 'Deine Favoriten warten auf dich'
+      : path.startsWith('/account/bookings')
+        ? 'Deine Anfragen warten auf dich'
+        : path.startsWith('/account/messages')
+          ? 'Bleib mit deiner Nachbarschaft in Kontakt'
+          : 'Melde dich an, um weiterzumachen';
+    await expect(page.getByRole('heading', { name: title, exact: true })).toBeVisible();
     await expect(
-      page.getByRole('heading', { name: 'Bitte melde dich an', exact: true }),
-    ).toBeVisible();
-    await expect(
-      page.getByRole('main').getByRole('link', { name: 'Anmelden', exact: true }),
+      page.getByRole('main').getByRole('link', { name: 'Jetzt anmelden', exact: true }),
     ).toHaveAttribute('href', '/sign-in');
     await expect(page.getByRole('main').locator('input')).toHaveCount(0);
   }
@@ -281,6 +287,7 @@ test('booking failures are visible and a successful retry refreshes cached renta
   const date = new Date();
   date.setMonth(date.getMonth() + 1, 10);
   const month = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+  await page.getByRole('button', { name: 'Zeitraum auswählen', exact: true }).click();
   await page.getByRole('button', { name: 'Zum nächsten Monat', exact: true }).click();
   await page.locator(`[data-day="${month}-10"]:not([data-outside]) button`).click();
   await page.locator(`[data-day="${month}-13"]:not([data-outside]) button`).click();
@@ -290,7 +297,8 @@ test('booking failures are visible and a successful retry refreshes cached renta
   ).toBeVisible();
   rejectBooking = false;
   await page.getByRole('button', { name: 'Anfrage senden', exact: true }).click();
-  await expect(page.getByText('Deine Anfrage wurde gesendet.', { exact: true })).toBeVisible();
+  await expect(page.getByRole('status').filter({ hasText: 'Anfrage gesendet' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Anfrage gesendet', exact: true })).toBeDisabled();
   await page
     .getByRole('navigation', { name: 'Hauptnavigation' })
     .getByRole('link', { name: 'Anfragen', exact: true })
@@ -360,7 +368,9 @@ test('real Clerk sessions persist profiles and isolate two accounts across sign-
   await page.goto('/');
   await clerk.loaded({ page });
   await page.goto('/account/profile');
-  await expect(page.getByRole('heading', { name: 'Bitte melde dich an' })).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: 'Melde dich an, um weiterzumachen' }),
+  ).toBeVisible();
 
   await clerk.signIn({ page, emailAddress: ownerEmail });
   await page.goto('/account/profile');
@@ -384,7 +394,9 @@ test('real Clerk sessions persist profiles and isolate two accounts across sign-
 
   await clerk.signOut({ page });
   await page.goto('/account/profile');
-  await expect(page.getByRole('heading', { name: 'Bitte melde dich an' })).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: 'Melde dich an, um weiterzumachen' }),
+  ).toBeVisible();
   await expect(page.getByLabel('Name', { exact: true })).toHaveCount(0);
   const anonymous = await page.request.get(`${apiUrl}/me`);
   expect(anonymous.status()).toBe(401);
