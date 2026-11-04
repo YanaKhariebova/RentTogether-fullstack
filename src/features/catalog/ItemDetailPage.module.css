@@ -25,6 +25,23 @@
   min-width: 0;
 }
 
+.gallery:focus-visible {
+  outline: 3px solid var(--color-emphasis);
+  outline-offset: 4px;
+  border-radius: var(--radius-lg);
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .image {
   display: block;
   width: 100%;

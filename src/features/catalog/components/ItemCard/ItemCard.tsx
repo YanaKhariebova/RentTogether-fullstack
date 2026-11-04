@@ -26,6 +26,16 @@ export function ItemCard({
     <article className={styles.card}>
       <Link className={styles.link} to="/items/$itemId" params={{ itemId: item.id }}>
         <img className={styles.image} src={imageUrl} alt={item.title} />
+        {item.images.length > 1 && (
+          <span className={styles.photoCount}>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="3" y="5" width="14" height="12" rx="2" />
+              <path d="m5 15 3.5-3.5 2.5 2.5 2-2 2 2" />
+              <path d="M7 3h10a2 2 0 0 1 2 2v10" />
+            </svg>
+            {item.images.length} Fotos
+          </span>
+        )}
 
         <div className={styles.content}>
           <h2 className={styles.title}>{item.title}</h2>
