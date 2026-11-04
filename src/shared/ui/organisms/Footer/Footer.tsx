@@ -3,6 +3,9 @@ import logo from '../../../assets/renttogether-icon.svg';
 import styles from './Footer.module.css';
 
 export function Footer() {
+  const startYear = 2026;
+  const currentYear = new Date().getFullYear();
+  const copyrightYears = currentYear > startYear ? `${startYear}–${currentYear}` : `${startYear}`;
   return (
     <footer className={styles.footer}>
       <div className={styles.inner}>
@@ -70,7 +73,7 @@ export function Footer() {
           </div>
         </nav>
         <div className={styles.bottom}>
-          <small>© {new Date().getFullYear()} RentTogether</small>
+          <small>© {copyrightYears} RentTogether</small>
           <small>Entwickelt von Olha Khodakivska, Yana Khariebova und Vladislav Nedbailo.</small>
           <a href="#main-content">
             Zum Seitenanfang <span aria-hidden="true">↑</span>

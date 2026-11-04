@@ -113,6 +113,31 @@ for (const theme of ['light', 'dark']) {
 
 test.describe('mobile drawer', () => {
   test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
+  test('account controls stay at the bottom while the menu scrolls on short screens', async ({
+    page,
+  }) => {
+    for (const signedIn of [false, true]) {
+      for (const height of [480, 667, 844]) {
+        await page.setViewportSize({ width: 390, height });
+        await page.goto('/tests/fixtures/ui.html' + (signedIn ? '?signedIn=1' : ''));
+        await page.getByRole('button', { name: 'Menü öffnen' }).tap();
+        const dialog = page.getByRole('dialog');
+        const account = signedIn
+          ? dialog.getByRole('button', { name: 'Abmelden', exact: true })
+          : dialog.getByRole('link', { name: 'Anmelden', exact: true });
+        const accountBox = await account.boundingBox();
+        expect(accountBox!.y + accountBox!.height).toBeCloseTo(height - 24, 0);
+        if (signedIn)
+          await expect(dialog.getByRole('link', { name: 'Profil öffnen' })).toBeInViewport();
+        await dialog.getByRole('link', { name: 'Impressum', exact: true }).scrollIntoViewIfNeeded();
+        await expect(dialog.getByRole('link', { name: 'Impressum', exact: true })).toBeInViewport();
+        expect((await account.boundingBox())!.y).toBeCloseTo(accountBox!.y, 0);
+        await expect(account).toBeInViewport();
+        await expect(dialog.getByRole('button', { name: /Design aktivieren$/ })).toBeInViewport();
+        expect(await dialog.evaluate((el) => el.scrollHeight <= el.clientHeight)).toBe(true);
+      }
+    }
+  });
   test('drawer stays compact on tablets with balanced padding and readable links', async ({
     page,
   }) => {

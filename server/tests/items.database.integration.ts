@@ -1340,7 +1340,7 @@ test('personal booking history only hides terminal bookings for the caller and p
         });
       assert.equal((await archive()).status, 401);
       assert.equal((await archive(outsider)).status, 404);
-      if (status !== 'COMPLETED' && status !== 'CANCELLED') {
+      if (!['COMPLETED', 'CANCELLED', 'REJECTED'].includes(status)) {
         assert.equal((await archive(item)).status, 409);
         assert.equal((await archive(renter)).status, 409);
         const saved = await prisma.booking.findUniqueOrThrow({ where: { id: booking.id } });
@@ -1433,6 +1433,40 @@ test('personal booking history only hides terminal bookings for the caller and p
   } finally {
     await prisma.booking.deleteMany({ where: { id: { in: ids } } });
   }
+});
+
+test('conversation API exposes the other participant avatar without exposing the current user avatar', async () => {
+  const item = await createItemFixture();
+  const renter = await prisma.user.create({
+    data: {
+      clerkUserId: `messages_avatar_${randomUUID()}`,
+      name: 'Katya',
+      city: 'Berlin',
+      email: '',
+      avatarUrl: 'https://images.clerk.dev/katya-avatar.jpg',
+    },
+  });
+  ownerIds.push(renter.id);
+  await prisma.conversation.create({
+    data: {
+      kind: 'ITEM_INQUIRY',
+      itemId: item.id,
+      participantId: renter.id,
+      messages: { create: { senderId: renter.id, body: 'Ist der Kinderwagen verfügbar?' } },
+    },
+  });
+
+  const response = await fetch(base + '/api/conversations', { headers: headersFor(item) });
+  assert.equal(response.status, 200);
+  const { conversations } = (await response.json()) as {
+    conversations: { otherParticipantName: string; otherParticipantAvatarUrl: string | null }[];
+  };
+  assert.equal(conversations.length, 1);
+  assert.equal(conversations[0]?.otherParticipantName, 'Katya');
+  assert.equal(
+    conversations[0]?.otherParticipantAvatarUrl,
+    'https://images.clerk.dev/katya-avatar.jpg',
+  );
 });
 
 test('item writes validate a changed city, persist its canonical name and keep unchanged legacy cities editable', async () => {

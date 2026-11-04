@@ -3,6 +3,7 @@ import { useAuth } from '@clerk/react';
 import { useEffect, useId, useRef, useState } from 'react';
 import { Button, Spinner } from '@/shared/ui/atoms';
 import { useConversationsQuery, useHideConversationMutation } from './api/useConversations';
+import { orderConversations } from './model/conversationPresentation';
 import styles from './MessagesPage.module.css';
 
 function formatUpdatedAt(value: string) {
@@ -21,15 +22,7 @@ export function MessagesPage() {
   } | null>(null);
   const dialog = useRef<HTMLDialogElement>(null);
   const dialogId = useId();
-  const orderedConversations = [...(conversations.data?.conversations ?? [])].sort(
-    (first, second) => {
-      const unreadDifference = Number(second.unreadCount > 0) - Number(first.unreadCount > 0);
-      if (unreadDifference) return unreadDifference;
-
-      const dateDifference = second.updatedAt.localeCompare(first.updatedAt);
-      return dateDifference || second.id.localeCompare(first.id);
-    },
-  );
+  const orderedConversations = orderConversations(conversations.data?.conversations ?? []);
 
   useEffect(() => {
     if (conversationToHide && !dialog.current?.open) dialog.current?.showModal();
