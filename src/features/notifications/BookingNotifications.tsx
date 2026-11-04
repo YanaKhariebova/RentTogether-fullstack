@@ -20,7 +20,13 @@ export function BookingNotifications() {
         .flatMap((page) => page.notifications)
         .map((item) => [item.id, item]),
     ).values(),
-  ];
+  ].sort((first, second) => {
+    const unreadDifference = Number(Boolean(first.readAt)) - Number(Boolean(second.readAt));
+    if (unreadDifference) return unreadDifference;
+
+    const dateDifference = second.createdAt.localeCompare(first.createdAt);
+    return dateDifference || second.id.localeCompare(first.id);
+  });
   return (
     <BookingNotificationsView
       notifications={notifications}

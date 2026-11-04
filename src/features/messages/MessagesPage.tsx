@@ -21,6 +21,15 @@ export function MessagesPage() {
   } | null>(null);
   const dialog = useRef<HTMLDialogElement>(null);
   const dialogId = useId();
+  const orderedConversations = [...(conversations.data?.conversations ?? [])].sort(
+    (first, second) => {
+      const unreadDifference = Number(second.unreadCount > 0) - Number(first.unreadCount > 0);
+      if (unreadDifference) return unreadDifference;
+
+      const dateDifference = second.updatedAt.localeCompare(first.updatedAt);
+      return dateDifference || second.id.localeCompare(first.id);
+    },
+  );
 
   useEffect(() => {
     if (conversationToHide && !dialog.current?.open) dialog.current?.showModal();
@@ -41,9 +50,9 @@ export function MessagesPage() {
             <p role="alert">Nachrichten konnten nicht geladen werden.</p>
             <Button onClick={() => void conversations.refetch()}>Erneut versuchen</Button>
           </div>
-        ) : conversations.data?.conversations.length ? (
+        ) : orderedConversations.length ? (
           <ul className={styles.list} aria-label="Unterhaltungen">
-            {conversations.data.conversations.map((conversation) => (
+            {orderedConversations.map((conversation) => (
               <li
                 key={conversation.id}
                 className={`${styles.conversationItem} ${
