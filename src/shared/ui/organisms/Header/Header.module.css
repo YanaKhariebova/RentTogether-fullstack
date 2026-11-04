@@ -185,7 +185,7 @@
   max-width: calc(100vw - 32px);
   height: 100dvh;
   max-height: 100dvh;
-  overflow-y: auto;
+  overflow: hidden;
   overscroll-behavior: contain;
   padding: max(16px, env(safe-area-inset-top))
     max(16px, env(safe-area-inset-left), env(safe-area-inset-right))
@@ -194,6 +194,10 @@
   border-left: 1px solid var(--color-border);
   color: var(--color-text);
   background: var(--color-surface);
+}
+.panel[open] {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
 }
 .panel::backdrop {
   background: rgb(10 26 19 / 55%);
@@ -214,6 +218,10 @@
 }
 .panel nav {
   display: grid;
+  align-content: start;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   margin-block: 24px;
 }
 .panel a {
