@@ -2,12 +2,13 @@ import { useAuth } from '@clerk/react';
 import { Link, useLocation } from '@tanstack/react-router';
 import type { ReactNode } from 'react';
 import { Spinner } from '../../shared/ui/atoms/Spinner/Spinner';
+import { getSignInRequiredContent, type SignInRequiredContent } from './requireAuthPresentation';
 import styles from './RequireAuth.module.css';
 
 export function RequireAuth({ children }: { children: ReactNode }) {
   const { isLoaded, isSignedIn } = useAuth();
   const { pathname } = useLocation();
-  const section = getSection(pathname);
+  const section = getSignInRequiredContent(pathname);
   if (!isLoaded) return <Spinner />;
   if (!isSignedIn)
     return (
@@ -34,42 +35,7 @@ export function RequireAuth({ children }: { children: ReactNode }) {
   return children;
 }
 
-type Section = {
-  icon: 'heart' | 'chat' | 'calendar';
-  title: string;
-  description: string;
-};
-
-function getSection(pathname: string): Section {
-  if (pathname.startsWith('/account/favorites')) {
-    return {
-      icon: 'heart',
-      title: 'Deine Favoriten warten auf dich',
-      description: 'Melde dich an, um deine gespeicherten Dinge wiederzufinden.',
-    };
-  }
-  if (pathname.startsWith('/account/messages')) {
-    return {
-      icon: 'chat',
-      title: 'Bleib mit deiner Nachbarschaft in Kontakt',
-      description: 'Melde dich an, um Nachrichten zu Anfragen und Ausleihen zu sehen.',
-    };
-  }
-  if (pathname.startsWith('/account/bookings')) {
-    return {
-      icon: 'calendar',
-      title: 'Deine Anfragen warten auf dich',
-      description: 'Melde dich an, um deine Mieten und eingehenden Anfragen zu verwalten.',
-    };
-  }
-  return {
-    icon: 'heart',
-    title: 'Melde dich an, um weiterzumachen',
-    description: 'Melde dich an, um deine Nachbarschaft zu entdecken.',
-  };
-}
-
-function SectionIcon({ icon }: Pick<Section, 'icon'>) {
+function SectionIcon({ icon }: Pick<SignInRequiredContent, 'icon'>) {
   if (icon === 'chat') {
     return (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
