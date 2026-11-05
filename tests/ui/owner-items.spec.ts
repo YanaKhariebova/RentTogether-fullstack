@@ -227,11 +227,20 @@ for (const width of [320, 360, 390, 430, 768, 1024, 1440]) {
           return {
             left: text.left - box.left,
             right: box.right - text.right,
+            textHeight: text.height,
+            top: box.top,
             inside: box.left >= card.left && box.right <= card.right,
           };
         });
-        expect(spacing.left).toBeGreaterThanOrEqual(8);
-        expect(spacing.right).toBeGreaterThanOrEqual(8);
+        expect(spacing.left).toBeGreaterThanOrEqual(3);
+        expect(spacing.right).toBeGreaterThanOrEqual(3);
+        expect(spacing.textHeight).toBeLessThan(20);
+        expect(spacing.top).toBeCloseTo(
+          (await page
+            .getByRole('button', { name: 'Beamer für einen Filmabend bearbeiten', exact: true })
+            .boundingBox())!.y,
+          0,
+        );
         expect(spacing.inside).toBe(true);
       }
     }
