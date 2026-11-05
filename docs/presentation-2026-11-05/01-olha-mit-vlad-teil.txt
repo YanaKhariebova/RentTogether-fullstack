@@ -1,0 +1,89 @@
+RentTogether — Text für Olha einschließlich Vlads Themenblock
+Вариант 1: Влад не выступает. Ольга и Яна презентуют вдвоём.
+
+12 минут — на всю команду, а не только на этот текст.
+Рабочий план: Ольга 7:15, Яна 4:15, резерв 0:30.
+Время включает показ интерфейса. Точную длительность подтвердить репетицией.
+Всё в квадратных скобках — действия и подсказки, вслух не читать.
+
+0:00–1:00 | OLHA | Begrüßung, Idee und Team
+[Главная страница. Слайд с именами участников.]
+
+Hallo zusammen! Wir stellen euch heute RentTogether vor: eine Plattform zum Mieten und Verleihen von Dingen in der Nachbarschaft.
+
+Eine Bohrmaschine, ein Beamer oder ein Zelt wird oft nur selten gebraucht. Unsere Idee ist: Warum kaufen, wenn jemand in der Nähe den Gegenstand bereits hat und verleihen möchte?
+
+Unser Motto lautet: „Weniger kaufen. Mehr teilen.“
+
+An dem Projekt haben Yana, Vladislav und ich, Olha, gearbeitet. Vlad hat die technische Grundlage vorbereitet. Yana hat vor allem den Katalog, die Buchungen und den Chat umgesetzt. Mein Schwerpunkt waren die Anzeigen, die Fotos und der Bereich für Eigentümer. Außerdem habe ich Deployment und Integration betreut.
+
+Ich zeige euch zuerst, wie eine Anzeige entsteht.
+
+1:00–3:30 | OLHA | Demo: Eine Anzeige erstellen und verwalten
+[Первый аккаунт — владелец. Открыть Meine Anzeigen.]
+
+Hier sehen wir „Meine Anzeigen“. In diesem Bereich verwaltet eine Person ihre eigenen Angebote. Sie kann eine Anzeige bearbeiten, veröffentlichen oder ausblenden.
+
+[Открыть заранее заполненный черновик проектора, добавить одно фото.]
+
+Für unser Beispiel möchte ich einen Beamer verleihen. Ich ergänze den Titel, eine Beschreibung, die Kategorie und den Preis pro Tag. Den Ort kann ich über den Namen oder die Postleitzahl suchen. Die Auswahl ist auf Deutschland begrenzt. Dadurch vermeiden wir viele Schreibfehler bei Ortsnamen.
+
+Zu einer Anzeige gehören auch Fotos. Die erlaubten Formate und Grenzen stehen direkt beim Upload. Wenn eine Eingabe oder ein Foto ungültig ist, wird das betroffene Feld markiert und eine verständliche Fehlermeldung angezeigt.
+
+[Показать Vorschau, затем Veröffentlichen. Не вводить всю форму во время выступления.]
+
+Vor der Veröffentlichung kann ich mir die Vorschau ansehen. So erkenne ich, wie mein Angebot für andere aussieht. Jetzt veröffentliche ich die Anzeige.
+
+[Вернуться к Meine Anzeigen.]
+
+Die Daten bleiben auch nach dem Neuladen erhalten. Die Bearbeitung ist dem Eigentümer vorbehalten. Diese Berechtigung prüft auch das Backend. Wenn ich den Gegenstand vorübergehend nicht anbieten möchte, kann ich die Anzeige ausblenden.
+
+Jetzt übergebe ich an Yana. Sie zeigt, wie aus diesem Angebot eine Mietanfrage wird.
+
+3:30–7:45 | YANA | Отдельный текст Яны
+[Это время зарезервировано для Яны; Ольга здесь не читает свой текст.]
+[Яна: каталог → фильтры → избранное → товар → даты и цена → заявка.]
+[Ольга во втором окне подтверждает входящую заявку, когда Яна передаст слово.]
+[Яна: обновлённый статус → уведомление → одно сообщение в чате.]
+[Заранее согласовать, кто управляет мышью, чтобы не переключать экран лишний раз.]
+
+7:45–9:45 | OLHA | Technische Grundlage — übernommener Themenblock von Vlad
+[Слайд: React → Express API → PostgreSQL. Рядом: Clerk и Cloudinary.]
+
+Ich ergänze jetzt die technische Grundlage, die ursprünglich zu Vlads Aufgaben gehörte.
+
+Unser Frontend basiert auf React und TypeScript. Vite verwenden wir für die Entwicklung und den Build. TanStack Router organisiert die Seiten, und TanStack Query verwaltet die Daten aus der API.
+
+Das Backend besteht aus Node.js und Express. Es verarbeitet die Anfragen und prüft die Geschäftsregeln. Prisma verbindet das Backend mit unserer PostgreSQL-Datenbank. Eingaben validieren wir mit Zod.
+
+[Показать упрощённую ERD: User, Item, ItemImage, Booking.]
+
+In der Datenbank gehört eine Anzeige zu einem Benutzer. Eine Anzeige kann mehrere Fotos und mehrere Buchungen haben. Eine Buchung verbindet einen Gegenstand mit der mietenden Person. Für Chat und Benachrichtigungen gibt es weitere verknüpfte Daten.
+
+Clerk übernimmt die Anmeldung. Unser Backend prüft bei geschützten Aktionen die Identität und die Berechtigungen. Eine ausgeblendete Schaltfläche allein wäre dafür nicht ausreichend.
+
+Außerdem verwenden wir wiederverwendbare Komponenten, zum Beispiel für Buttons und Eingabefelder. Gemeinsame Farben und CSS Modules helfen uns, die Gestaltung einheitlich zu halten.
+
+[Коротко показать мобильный вид; не проводить установку PWA.]
+
+Die Oberfläche passt sich an Smartphone, Tablet und Desktop an. Frontend und API laufen bei Render, die Datenbank bei Neon und die Fotos bei Cloudinary.
+
+9:45–11:30 | OLHA | Zusammenarbeit, Herausforderungen, Ausblick und Abschluss
+[Слайд: Git/PR, Tests, две сложности и будущие шаги.]
+
+Eine Herausforderung war, dass mehrere Personen gleichzeitig an einer Anwendung gearbeitet haben. Deshalb haben wir die Aufgaben aufgeteilt und gemeinsame API-Verträge dokumentiert. Änderungen haben wir in Git-Branches entwickelt und über Pull Requests zusammengeführt. Unseren Aufgabenplan und den Fortschritt haben wir im Repository festgehalten.
+
+Technisch war wichtig, dass eine spätere Preisänderung bestehende Buchungen nicht verändert. Deshalb speichern wir den vereinbarten Preis bei der Buchung. Außerdem prüft das Backend, ob sich bestätigte Mietzeiträume überschneiden.
+
+Für die Qualitätssicherung verwenden wir automatisierte Tests für einzelne Funktionen, die API, die Datenbank und die Oberfläche. Mit Playwright prüfen wir unter anderem unterschiedliche Bildschirmgrößen. Zusätzlich haben wir den Ablauf mit zwei Benutzerkonten gemeinsam getestet. Die Anwendung berücksichtigt auch Tastaturbedienung, sichtbare Fokusmarkierungen und verständliche Formularfehler.
+
+Als nächste Schritte möchten wir Feedback von weiteren Testpersonen sammeln und die Bedienung gezielt verbessern. Denkbar sind außerdem Bewertungen nach einer abgeschlossenen Ausleihe und eine Umkreissuche. Das sind Erweiterungen für die Zukunft.
+
+[Финальный слайд: ссылка на сайт и GitHub.]
+
+RentTogether zeigt, wie aus einer Idee eine Fullstack-Anwendung mit einem vollständigen Ablauf wird: vom eigenen Angebot bis zur bestätigten Anfrage und zur Kommunikation.
+
+Vielen Dank fürs Zuhören! Wir freuen uns auf eure Fragen.
+
+11:30–12:00 | Резерв для переходов и небольших задержек
+После выступления: отдельные 3–5 минут вопросов.
