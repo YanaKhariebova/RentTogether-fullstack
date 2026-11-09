@@ -31,3 +31,6 @@ server/.local-postgres/
 server/uploads/
 .local-tools/
 .tanstack/
+
+# Личный сценарий выступления Яны — хранится только локально.
+docs/yana-presentation-script.md
