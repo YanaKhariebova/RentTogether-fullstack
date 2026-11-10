@@ -40,11 +40,13 @@
 
 .actions :global(button) {
   min-width: 108px;
+  margin-right: 20px;
 }
 
 .actions span {
   color: var(--color-muted);
   font-size: 0.875rem;
+  margin-left: 20px;
 }
 
 .form > p {
