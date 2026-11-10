@@ -31,3 +31,8 @@ export function requireOwner(ownerId: string, currentUserId: string) {
   if (ownerId !== currentUserId)
     throw new ApiError(403, 'FORBIDDEN', 'Du darfst diese Anzeige nicht ändern.');
 }
+
+export function requireModerator(user: User) {
+  if (user.role !== 'MODERATOR' && user.role !== 'ADMIN')
+    throw new ApiError(403, 'FORBIDDEN', 'Diese Aktion ist nur für Moderatoren erlaubt.');
+}

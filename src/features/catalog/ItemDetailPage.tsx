@@ -10,6 +10,7 @@ import { useItemDetailQuery } from './api/useItemDetailQuery';
 import { useFavoriteMutation, useFavoritesQuery } from '../favorites/api/useFavorites';
 import { useCurrentUser } from '../profile/api/useCurrentUser';
 import { useSendItemInquiryMutation } from '../messages/api/useConversations';
+import { type ItemReportReason, useReportItemMutation } from './api/useReportItemMutation';
 import styles from './ItemDetailPage.module.css';
 
 export function ItemDetailPage() {
@@ -23,9 +24,13 @@ export function ItemDetailPage() {
   const favoriteMutation = useFavoriteMutation();
   const currentUser = useCurrentUser();
   const inquiry = useSendItemInquiryMutation(itemId);
+  const reportItem = useReportItemMutation(itemId);
   const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
   const [inquiryOpen, setInquiryOpen] = useState(false);
   const [inquiryBody, setInquiryBody] = useState('');
+  const [reportOpen, setReportOpen] = useState(false);
+  const [reportReason, setReportReason] = useState<ItemReportReason>('Unangemessener Inhalt');
+  const [reportDetails, setReportDetails] = useState('');
 
   if (isPending) {
     return (
@@ -176,6 +181,64 @@ export function ItemDetailPage() {
             <p className={styles.price}>{formattedPrice} / Tag</p>
             <p className={styles.description}>{item.description}</p>
             <p className={styles.owner}>Angeboten von {item.owner.name}</p>
+            {isLoaded && isSignedIn && !isOwnItem && (
+              <section className={styles.report} aria-label="Anzeige melden">
+                <button
+                  type="button"
+                  className={styles.reportToggle}
+                  onClick={() => setReportOpen((open) => !open)}
+                  aria-expanded={reportOpen}
+                >
+                  Anzeige melden
+                </button>
+                {reportOpen && (
+                  <form
+                    className={styles.reportForm}
+                    onSubmit={(event) => {
+                      event.preventDefault();
+                      void reportItem
+                        .mutateAsync({
+                          reason: reportReason,
+                          details: reportDetails,
+                        })
+                        .then(() => setReportOpen(false));
+                    }}
+                  >
+                    <label>
+                      Grund
+                      <select
+                        value={reportReason}
+                        onChange={(event) =>
+                          setReportReason(event.target.value as ItemReportReason)
+                        }
+                      >
+                        <option>Unangemessener Inhalt</option>
+                        <option>Betrug oder verdächtiges Angebot</option>
+                        <option>Verbotener Artikel</option>
+                        <option>Falsche Angaben</option>
+                        <option>Anderer Grund</option>
+                      </select>
+                    </label>
+                    <Textarea
+                      label="Zusätzliche Informationen (optional)"
+                      maxLength={500}
+                      value={reportDetails}
+                      onChange={(event) => setReportDetails(event.target.value)}
+                    />
+                    {reportItem.isError && (
+                      <p role="alert">
+                        {reportItem.error instanceof Error
+                          ? reportItem.error.message
+                          : 'Die Meldung konnte nicht gesendet werden.'}
+                      </p>
+                    )}
+                    <Button type="submit" loading={reportItem.isPending}>
+                      Meldung senden
+                    </Button>
+                  </form>
+                )}
+              </section>
+            )}
             {isLoaded && isSignedIn && !isOwnItem && (
               <div className={styles.inquiry}>
                 <Button

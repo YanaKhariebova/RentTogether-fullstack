@@ -4,8 +4,15 @@
   margin-inline: auto;
   padding-bottom: clamp(8px, 2vw, 24px);
 }
+.heading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
 .panel h1 {
-  margin: 0 0 12px;
+  margin: 0;
   font-size: clamp(28px, 3vw, 36px);
   line-height: 1.2;
   letter-spacing: -0.03em;
@@ -28,4 +35,22 @@
 }
 .success {
   color: var(--color-emphasis);
+}
+
+.moderationLink {
+  display: flex;
+  width: fit-content;
+  min-height: 44px;
+  align-items: center;
+  margin: 0;
+  padding: 8px 14px;
+  border: 1px solid var(--color-emphasis);
+  border-radius: var(--radius-sm);
+  color: var(--color-emphasis);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.moderationLink:hover {
+  background: var(--color-primary-soft);
 }

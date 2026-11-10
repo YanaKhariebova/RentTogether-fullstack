@@ -15,6 +15,7 @@ const user: User = {
   email: 'vlad@example.test',
   phone: '',
   avatarUrl: '',
+  role: 'USER',
   createdAt: new Date(),
   updatedAt: new Date(),
 };
@@ -33,6 +34,7 @@ const prisma = {
   | 'user'
   | 'category'
   | 'item'
+  | 'itemReport'
   | 'booking'
   | 'favorite'
   | 'hiddenConversation'
@@ -101,6 +103,7 @@ test('current user response excludes Clerk ID and internal timestamps', async ()
       email: user.email,
       phone: '',
       avatarUrl: '',
+      role: 'USER',
     },
   });
 });

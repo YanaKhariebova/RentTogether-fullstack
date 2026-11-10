@@ -24,6 +24,7 @@ import { Route as AccountBookingsRouteImport } from './routes/account.bookings'
 import { Route as AccountFavoritesRouteImport } from './routes/account.favorites'
 import { Route as AccountItemsRouteImport } from './routes/account.items'
 import { Route as AccountMessagesRouteImport } from './routes/account.messages'
+import { Route as AccountModerationRouteImport } from './routes/account.moderation'
 import { Route as AccountProfileRouteImport } from './routes/account.profile'
 import { Route as ItemsItemIdRouteImport } from './routes/items.$itemId'
 import { Route as AccountBookingsIndexRouteImport } from './routes/account.bookings.index'
@@ -110,6 +111,11 @@ const AccountMessagesRoute = AccountMessagesRouteImport.update({
   path: '/messages',
   getParentRoute: () => AccountRoute,
 } as any)
+const AccountModerationRoute = AccountModerationRouteImport.update({
+  id: '/moderation',
+  path: '/moderation',
+  getParentRoute: () => AccountRoute,
+} as any)
 const AccountProfileRoute = AccountProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
@@ -179,6 +185,7 @@ export interface FileRoutesByFullPath {
   '/account/favorites': typeof AccountFavoritesRoute
   '/account/items': typeof AccountItemsRouteWithChildren
   '/account/messages': typeof AccountMessagesRouteWithChildren
+  '/account/moderation': typeof AccountModerationRoute
   '/account/profile': typeof AccountProfileRoute
   '/items/$itemId': typeof ItemsItemIdRoute
   '/account/bookings/incoming': typeof AccountBookingsIncomingRoute
@@ -203,6 +210,7 @@ export interface FileRoutesByTo {
   '/so-funktionierts': typeof SoFunktioniertsRoute
   '/ueber-uns': typeof UeberUnsRoute
   '/account/favorites': typeof AccountFavoritesRoute
+  '/account/moderation': typeof AccountModerationRoute
   '/account/profile': typeof AccountProfileRoute
   '/items/$itemId': typeof ItemsItemIdRoute
   '/account/bookings/incoming': typeof AccountBookingsIncomingRoute
@@ -231,6 +239,7 @@ export interface FileRoutesById {
   '/account/favorites': typeof AccountFavoritesRoute
   '/account/items': typeof AccountItemsRouteWithChildren
   '/account/messages': typeof AccountMessagesRouteWithChildren
+  '/account/moderation': typeof AccountModerationRoute
   '/account/profile': typeof AccountProfileRoute
   '/items/$itemId': typeof ItemsItemIdRoute
   '/account/bookings/incoming': typeof AccountBookingsIncomingRoute
@@ -260,6 +269,7 @@ export interface FileRouteTypes {
     | '/account/favorites'
     | '/account/items'
     | '/account/messages'
+    | '/account/moderation'
     | '/account/profile'
     | '/items/$itemId'
     | '/account/bookings/incoming'
@@ -284,6 +294,7 @@ export interface FileRouteTypes {
     | '/so-funktionierts'
     | '/ueber-uns'
     | '/account/favorites'
+    | '/account/moderation'
     | '/account/profile'
     | '/items/$itemId'
     | '/account/bookings/incoming'
@@ -311,6 +322,7 @@ export interface FileRouteTypes {
     | '/account/favorites'
     | '/account/items'
     | '/account/messages'
+    | '/account/moderation'
     | '/account/profile'
     | '/items/$itemId'
     | '/account/bookings/incoming'
@@ -445,6 +457,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AccountMessagesRouteImport
       parentRoute: typeof AccountRoute
     }
+    '/account/moderation': {
+      id: '/account/moderation'
+      path: '/moderation'
+      fullPath: '/account/moderation'
+      preLoaderRoute: typeof AccountModerationRouteImport
+      parentRoute: typeof AccountRoute
+    }
     '/account/profile': {
       id: '/account/profile'
       path: '/profile'
@@ -569,6 +588,7 @@ interface AccountRouteChildren {
   AccountFavoritesRoute: typeof AccountFavoritesRoute
   AccountItemsRoute: typeof AccountItemsRouteWithChildren
   AccountMessagesRoute: typeof AccountMessagesRouteWithChildren
+  AccountModerationRoute: typeof AccountModerationRoute
   AccountProfileRoute: typeof AccountProfileRoute
 }
 
@@ -577,6 +597,7 @@ const AccountRouteChildren: AccountRouteChildren = {
   AccountFavoritesRoute: AccountFavoritesRoute,
   AccountItemsRoute: AccountItemsRouteWithChildren,
   AccountMessagesRoute: AccountMessagesRouteWithChildren,
+  AccountModerationRoute: AccountModerationRoute,
   AccountProfileRoute: AccountProfileRoute,
 }
 
