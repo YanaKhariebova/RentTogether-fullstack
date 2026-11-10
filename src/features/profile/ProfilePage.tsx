@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { z } from 'zod';
+import { Link } from '@tanstack/react-router';
 import { ApiError } from '../../shared/api/client';
 import type { CurrentUser } from '../../shared/api/types';
 import { Button, Input, Spinner } from '../../shared/ui/atoms';
@@ -86,7 +87,14 @@ export function ProfilePage() {
   const user = useCurrentUser();
   return (
     <section className={styles.panel}>
-      <h1>Mein Profil</h1>
+      <div className={styles.heading}>
+        <h1>Mein Profil</h1>
+        {['MODERATOR', 'ADMIN'].includes(user.data?.user.role ?? '') && (
+          <Link className={styles.moderationLink} to="/account/moderation">
+            Zur Moderation
+          </Link>
+        )}
+      </div>
       <p>So lernen dich andere Mitglieder kennen.</p>
       {user.isPending ? (
         <Spinner />
@@ -96,7 +104,9 @@ export function ProfilePage() {
           <Button onClick={() => void user.refetch()}>Erneut versuchen</Button>
         </div>
       ) : (
-        <ProfileForm key={user.data.user.id} user={user.data.user} />
+        <>
+          <ProfileForm key={user.data.user.id} user={user.data.user} />
+        </>
       )}
     </section>
   );

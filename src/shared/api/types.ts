@@ -6,6 +6,7 @@ export type CurrentUser = {
   email: string;
   phone: string;
   avatarUrl: string;
+  role: 'USER' | 'MODERATOR' | 'ADMIN';
 };
 export type ProfilePatch = Partial<Pick<CurrentUser, 'name' | 'city' | 'phone'>>;
 export type Item = {

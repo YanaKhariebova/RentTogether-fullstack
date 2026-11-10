@@ -8,6 +8,7 @@ import { ThemeToggle } from '@/features/theme/ThemeToggle';
 import { useBookingNotificationCount } from '@/features/notifications/api/useBookingNotifications';
 import { NotificationBadge } from '@/features/notifications/components/NotificationBadge';
 import { useMessageUnreadCount } from '@/features/messages/api/useConversations';
+import { useCurrentUser } from '@/features/profile/api/useCurrentUser';
 import { shouldPlayMessageTone } from '@/features/messages/model/conversationPresentation';
 import styles from '@/shared/ui/organisms/Header/Header.module.css';
 
@@ -17,6 +18,7 @@ export function AppHeader() {
   const { user } = useUser();
   const bookingNotifications = useBookingNotificationCount();
   const messageNotifications = useMessageUnreadCount();
+  const currentUser = useCurrentUser();
   const messageAudio = useRef<HTMLAudioElement | null>(null);
   const previousMessageCount = useRef<number | null>(null);
 
@@ -93,6 +95,9 @@ export function AppHeader() {
       avatarName={user?.fullName ?? user?.username ?? undefined}
       signedIn={Boolean(isSignedIn)}
       authLoaded={isLoaded}
+      isModerator={
+        currentUser.data?.user.role === 'MODERATOR' || currentUser.data?.user.role === 'ADMIN'
+      }
       onSignOut={() => void signOut({ redirectUrl: '/' })}
     />
   );

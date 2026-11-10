@@ -34,6 +34,7 @@ export function HeaderView({
   messageUnreadCount,
   notificationBadge,
   themeToggle,
+  isModerator = false,
 }: {
   auth: ReactNode;
   signedIn?: boolean;
@@ -45,6 +46,7 @@ export function HeaderView({
   messageUnreadCount?: number;
   notificationBadge?: (count: number) => ReactNode;
   themeToggle?: ReactNode;
+  isModerator?: boolean;
 }) {
   const panel = useRef<HTMLDialogElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
@@ -222,6 +224,7 @@ export function HeaderView({
               {messageBadge(to)}
             </Link>
           ))}
+          {isModerator && <Link to="/account/moderation">Moderation</Link>}
           <Link to="/account/items/new">Etwas verleihen</Link>
           <div className={styles.information}>
             {information.map(({ to, label }) => (

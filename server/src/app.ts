@@ -9,6 +9,7 @@ import type { PrismaClient } from './generated/prisma/client.js';
 import { ApiError, errorHandler } from './lib/errors.js';
 import { profilePatchSchema, toCurrentUser } from './modules/users/profile.js';
 import { createItemsRoutes } from './modules/items/routes.js';
+import { createItemModerationRoutes } from './modules/moderation/routes.js';
 import { createBookingsRoutes } from './modules/bookings/routes.js';
 import { createFavoritesRoutes } from './modules/favorites/routes.js';
 import { createNotificationsRoutes } from './modules/notifications/routes.js';
@@ -32,6 +33,7 @@ export function createApp(deps: {
     | 'message'
     | '$transaction'
     | 'imageCleanup'
+    | 'itemReport'
   >;
   authenticate: RequestHandler;
   authMiddleware?: RequestHandler;
@@ -84,6 +86,11 @@ export function createApp(deps: {
     locations,
   );
   app.use('/api/items', itemsRouter);
+  const { itemReportsRouter, moderationRouter } = createItemModerationRoutes(
+    deps.prisma,
+    deps.authenticate,
+  );
+  app.use('/api/items', itemReportsRouter);
   app.use('/api/items', createItemInquiryRoutes(deps.prisma, deps.authenticate));
   app.use('/api/my', myRouter);
   app.use('/api/bookings', createBookingsRoutes(deps.prisma, deps.authenticate));
@@ -91,6 +98,7 @@ export function createApp(deps: {
   app.use('/api/me/favorites', createFavoritesRoutes(deps.prisma, deps.authenticate));
   app.use('/api/me/notifications', createNotificationsRoutes(deps.prisma, deps.authenticate));
   app.use('/api/conversations', createMessagesRoutes(deps.prisma, deps.authenticate));
+  app.use('/api/moderation', moderationRouter);
   app.use((_req, _res) => {
     throw new ApiError(404, 'NOT_FOUND', 'Die Seite wurde nicht gefunden.');
   });
