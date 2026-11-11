@@ -390,6 +390,19 @@ export function createItemsService(prisma: ItemsDatabase, storage?: ImageStorage
         const item = await prisma.$transaction(async (tx) => {
           await lockOwnedItem(tx, id, ownerId);
           if (data.categoryId) await requireCategory(tx, data.categoryId);
+          if (data.isPublished === true) {
+            const item = await tx.item.findUniqueOrThrow({
+              where: { id },
+              select: { moderationRemovedAt: true },
+            });
+            if (item.moderationRemovedAt) {
+              throw new ApiError(
+                403,
+                'ITEM_REMOVED_BY_MODERATION',
+                'Diese Anzeige wurde von der Moderation entfernt und kann derzeit nicht veröffentlicht werden.',
+              );
+            }
+          }
           if (
             data.isPublished === true &&
             (await tx.itemImage.count({ where: { itemId: id } })) === 0

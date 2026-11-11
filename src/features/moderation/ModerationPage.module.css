@@ -1,5 +1,5 @@
 .page {
-  width: min(1440px, 100%);
+  width: min(1320px, 100%);
   margin-inline: auto;
 }
 .heading {
@@ -13,37 +13,62 @@
   text-align: center;
 }
 .page > p {
+  margin: 8px 0 28px;
   color: var(--color-muted);
   text-align: center;
 }
 .list {
   display: grid;
-  gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 18px;
 }
 .card {
   display: grid;
+  align-content: start;
   gap: 12px;
-  padding: 18px;
+  min-height: 250px;
+  padding: 22px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   background: var(--color-surface);
   box-shadow: var(--shadow-card);
 }
+.card strong {
+  display: inline-flex;
+  width: fit-content;
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: var(--color-primary-soft);
+  color: var(--color-emphasis);
+  font-size: 0.8125rem;
+}
 .card p {
   margin: 6px 0;
+  line-height: 1.55;
 }
 .card small {
   color: var(--color-muted);
+  line-height: 1.4;
 }
 .actions {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
 }
+.card .actions {
+  margin-top: auto;
+}
 .empty {
+  display: grid;
+  width: 100%;
+  min-height: 120px;
+  box-sizing: border-box;
+  place-items: center;
   padding: 20px;
-  border-radius: var(--radius-md);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-lg);
   background: var(--color-surface);
+  color: var(--color-muted);
 }
 .profileLink {
   display: flex;
@@ -58,4 +83,154 @@
 }
 .profileLink:hover {
   background: var(--color-primary-soft);
+}
+.trashLink {
+  display: flex;
+  width: fit-content;
+  min-height: 44px;
+  align-items: center;
+  gap: 9px;
+  margin: 30px auto 0;
+  padding: 9px 15px;
+  border: 1px solid color-mix(in srgb, var(--color-danger) 45%, var(--color-border));
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--color-danger) 5%, var(--color-surface));
+  color: var(--color-text);
+  font-weight: 700;
+  text-decoration: none;
+}
+.trashLink:hover {
+  background: color-mix(in srgb, var(--color-danger) 10%, var(--color-surface));
+}
+.trashLink svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: var(--color-danger);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.9;
+}
+.trash {
+  display: grid;
+  gap: 16px;
+  margin-top: 42px;
+  padding: clamp(20px, 3vw, 32px);
+  border: 1px dashed color-mix(in srgb, var(--color-muted) 42%, var(--color-border));
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--color-primary-soft) 45%, var(--color-surface));
+}
+.trash h2,
+.trash p {
+  margin: 0;
+}
+.emptyTrash {
+  display: grid;
+  min-height: 100px;
+  place-items: center;
+  padding: 18px;
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-muted);
+}
+.trash h2 {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.trash h2 svg {
+  box-sizing: content-box;
+  width: 22px;
+  height: 22px;
+  padding: 7px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--color-danger) 10%, var(--color-surface));
+  fill: none;
+  stroke: color-mix(in srgb, var(--color-danger) 72%, var(--color-text));
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.9;
+}
+.trashHeading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.trashItem {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+.trashItem span {
+  overflow: hidden;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dialog {
+  width: min(620px, calc(100% - 32px));
+  border: 0;
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  color: var(--color-text);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+}
+.dialog::backdrop {
+  background: rgb(0 0 0 / 45%);
+}
+.dialog h2,
+.dialog p {
+  margin-top: 0;
+}
+
+.dialog .actions {
+  flex-wrap: nowrap;
+  justify-content: center;
+}
+
+.dialog .actions button {
+  white-space: nowrap;
+}
+
+.dialogError {
+  margin: 14px 0 0 !important;
+  color: var(--color-danger);
+  text-align: center;
+}
+
+@media (max-width: 620px) {
+  .heading,
+  .trashHeading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .profileLink,
+  .trashHeading :global(button) {
+    justify-content: center;
+  }
+
+  .trashItem {
+    grid-template-columns: 1fr;
+  }
+
+  .trashItem :global(button) {
+    width: 100%;
+  }
+
+  .dialog .actions {
+    flex-wrap: wrap;
+  }
+
+  .dialog .actions button {
+    width: 100%;
+  }
 }
