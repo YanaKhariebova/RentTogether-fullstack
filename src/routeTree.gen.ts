@@ -26,6 +26,7 @@ import { Route as AccountItemsRouteImport } from './routes/account.items'
 import { Route as AccountMessagesRouteImport } from './routes/account.messages'
 import { Route as AccountModerationRouteImport } from './routes/account.moderation'
 import { Route as AccountProfileRouteImport } from './routes/account.profile'
+import { Route as AccountTrashRouteImport } from './routes/account.trash'
 import { Route as ItemsItemIdRouteImport } from './routes/items.$itemId'
 import { Route as AccountBookingsIndexRouteImport } from './routes/account.bookings.index'
 import { Route as AccountBookingsIncomingRouteImport } from './routes/account.bookings.incoming'
@@ -121,6 +122,11 @@ const AccountProfileRoute = AccountProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => AccountRoute,
 } as any)
+const AccountTrashRoute = AccountTrashRouteImport.update({
+  id: '/trash',
+  path: '/trash',
+  getParentRoute: () => AccountRoute,
+} as any)
 const ItemsItemIdRoute = ItemsItemIdRouteImport.update({
   id: '/items/$itemId',
   path: '/items/$itemId',
@@ -187,6 +193,7 @@ export interface FileRoutesByFullPath {
   '/account/messages': typeof AccountMessagesRouteWithChildren
   '/account/moderation': typeof AccountModerationRoute
   '/account/profile': typeof AccountProfileRoute
+  '/account/trash': typeof AccountTrashRoute
   '/items/$itemId': typeof ItemsItemIdRoute
   '/account/bookings/incoming': typeof AccountBookingsIncomingRoute
   '/account/bookings/my-rentals': typeof AccountBookingsMyRentalsRoute
@@ -212,6 +219,7 @@ export interface FileRoutesByTo {
   '/account/favorites': typeof AccountFavoritesRoute
   '/account/moderation': typeof AccountModerationRoute
   '/account/profile': typeof AccountProfileRoute
+  '/account/trash': typeof AccountTrashRoute
   '/items/$itemId': typeof ItemsItemIdRoute
   '/account/bookings/incoming': typeof AccountBookingsIncomingRoute
   '/account/bookings/my-rentals': typeof AccountBookingsMyRentalsRoute
@@ -241,6 +249,7 @@ export interface FileRoutesById {
   '/account/messages': typeof AccountMessagesRouteWithChildren
   '/account/moderation': typeof AccountModerationRoute
   '/account/profile': typeof AccountProfileRoute
+  '/account/trash': typeof AccountTrashRoute
   '/items/$itemId': typeof ItemsItemIdRoute
   '/account/bookings/incoming': typeof AccountBookingsIncomingRoute
   '/account/bookings/my-rentals': typeof AccountBookingsMyRentalsRoute
@@ -271,6 +280,7 @@ export interface FileRouteTypes {
     | '/account/messages'
     | '/account/moderation'
     | '/account/profile'
+    | '/account/trash'
     | '/items/$itemId'
     | '/account/bookings/incoming'
     | '/account/bookings/my-rentals'
@@ -296,6 +306,7 @@ export interface FileRouteTypes {
     | '/account/favorites'
     | '/account/moderation'
     | '/account/profile'
+    | '/account/trash'
     | '/items/$itemId'
     | '/account/bookings/incoming'
     | '/account/bookings/my-rentals'
@@ -324,6 +335,7 @@ export interface FileRouteTypes {
     | '/account/messages'
     | '/account/moderation'
     | '/account/profile'
+    | '/account/trash'
     | '/items/$itemId'
     | '/account/bookings/incoming'
     | '/account/bookings/my-rentals'
@@ -471,6 +483,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AccountProfileRouteImport
       parentRoute: typeof AccountRoute
     }
+    '/account/trash': {
+      id: '/account/trash'
+      path: '/trash'
+      fullPath: '/account/trash'
+      preLoaderRoute: typeof AccountTrashRouteImport
+      parentRoute: typeof AccountRoute
+    }
     '/items/$itemId': {
       id: '/items/$itemId'
       path: '/items/$itemId'
@@ -590,6 +609,7 @@ interface AccountRouteChildren {
   AccountMessagesRoute: typeof AccountMessagesRouteWithChildren
   AccountModerationRoute: typeof AccountModerationRoute
   AccountProfileRoute: typeof AccountProfileRoute
+  AccountTrashRoute: typeof AccountTrashRoute
 }
 
 const AccountRouteChildren: AccountRouteChildren = {
@@ -599,6 +619,7 @@ const AccountRouteChildren: AccountRouteChildren = {
   AccountMessagesRoute: AccountMessagesRouteWithChildren,
   AccountModerationRoute: AccountModerationRoute,
   AccountProfileRoute: AccountProfileRoute,
+  AccountTrashRoute: AccountTrashRoute,
 }
 
 const AccountRouteWithChildren =

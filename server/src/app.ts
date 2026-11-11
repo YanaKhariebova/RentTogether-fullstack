@@ -89,6 +89,7 @@ export function createApp(deps: {
   const { itemReportsRouter, moderationRouter } = createItemModerationRoutes(
     deps.prisma,
     deps.authenticate,
+    deps.imageStorage,
   );
   app.use('/api/items', itemReportsRouter);
   app.use('/api/items', createItemInquiryRoutes(deps.prisma, deps.authenticate));
