@@ -36,7 +36,8 @@ export function useConversationMessagesQuery(conversationId: string) {
   const api = useApi();
   return useQuery({
     queryKey: apiKeys.conversationMessages(userId ?? '', conversationId),
-    queryFn: () => api<MessagesResponse>(`/conversations/${conversationId}/messages`),
+    queryFn: ({ signal }) =>
+      api<MessagesResponse>(`/conversations/${conversationId}/messages`, { signal }),
     enabled: isLoaded && !!isSignedIn && !!conversationId,
     retry: false,
   });
@@ -79,7 +80,19 @@ export function useSendMessageMutation(conversationId: string) {
         method: 'POST',
         body: JSON.stringify({ body, ...(replyToMessageId ? { replyToMessageId } : {}) }),
       }),
-    onSuccess: () => {
+    onSuccess: ({ message }) => {
+      // The write already succeeded. Keep its result even if the subsequent
+      // refresh fails, so the sender can see that the message was delivered.
+      client.setQueryData<MessagesResponse>(
+        apiKeys.conversationMessages(userId ?? '', conversationId),
+        (current) =>
+          current
+            ? {
+                ...current,
+                messages: [message, ...current.messages.filter((entry) => entry.id !== message.id)],
+              }
+            : current,
+      );
       client.invalidateQueries({ queryKey: apiKeys.conversations(userId ?? '') });
       client.invalidateQueries({
         queryKey: apiKeys.conversationMessages(userId ?? '', conversationId),
@@ -146,11 +159,29 @@ export function useMarkConversationReadMutation(conversationId: string) {
         method: 'PATCH',
         body: JSON.stringify({ lastReadMessageId }),
       }),
-    onSuccess: () => {
+    onSuccess: (_data, lastReadMessageId) => {
+      client.setQueryData<MessagesResponse>(
+        apiKeys.conversationMessages(userId ?? '', conversationId),
+        (current) => {
+          if (!current) return current;
+          const lastReadIndex = current.messages.findIndex(
+            (message) => message.id === lastReadMessageId,
+          );
+          if (lastReadIndex === -1) return current;
+          const senderId = current.messages[lastReadIndex].senderId;
+          const readAt = new Date().toISOString();
+          return {
+            ...current,
+            messages: current.messages.map((message, index) =>
+              index >= lastReadIndex && message.senderId === senderId && !message.readAt
+                ? { ...message, readAt }
+                : message,
+            ),
+          };
+        },
+      );
       client.invalidateQueries({ queryKey: apiKeys.conversations(userId ?? '') });
-      client.invalidateQueries({
-        queryKey: apiKeys.conversationMessages(userId ?? '', conversationId),
-      });
+      client.invalidateQueries({ queryKey: apiKeys.conversationUnread(userId ?? '') });
     },
   });
 }

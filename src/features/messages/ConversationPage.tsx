@@ -1,6 +1,7 @@
 import { Link, useParams } from '@tanstack/react-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Button, Spinner } from '@/shared/ui/atoms';
+import { ApiError } from '@/shared/api/client';
 import { useCurrentUser } from '@/features/profile/api/useCurrentUser';
 import { MessageComposer } from './components/MessageComposer/MessageComposer';
 import { MessageThread } from './components/MessageThread/MessageThread';
@@ -15,6 +16,10 @@ import {
 import type { ChatMessage } from './types/message';
 import styles from './ConversationPage.module.css';
 
+function isUnavailable(error: Error | null) {
+  return error instanceof ApiError && [401, 403, 404].includes(error.status);
+}
+
 export function ConversationPage() {
   const { conversationId } = useParams({ from: '/account/messages/$conversationId' });
   const currentUser = useCurrentUser();
@@ -24,27 +29,46 @@ export function ConversationPage() {
   const editMessage = useEditMessageMutation(conversationId);
   const deleteMessage = useDeleteMessageMutation(conversationId);
   const markRead = useMarkConversationReadMutation(conversationId);
+  const { mutate: markConversationRead, isPending: isMarkingRead } = markRead;
+  const lastReadAttempt = useRef<string | null>(null);
   const [replyTo, setReplyTo] = useState<ChatMessage | null>(null);
   const conversation = conversations.data?.conversations.find(
     (entry) => entry.id === conversationId,
   );
 
-  useEffect(() => {
-    if (!messages.data || !currentUser.data || markRead.isPending) return;
-    const latestUnreadIncoming = messages.data.messages.find(
-      (message) => message.senderId !== currentUser.data.user.id && !message.readAt,
-    );
-    if (latestUnreadIncoming) markRead.mutate(latestUnreadIncoming.id);
-  }, [currentUser.data, markRead, messages.data]);
+  const currentUserId = currentUser.data?.user.id;
+  const latestUnreadIncomingId = messages.data?.messages.find(
+    (message) => message.senderId !== currentUserId && !message.readAt,
+  )?.id;
 
-  if (messages.isPending || currentUser.isPending) {
+  useEffect(() => {
+    if (!currentUserId || !latestUnreadIncomingId || isMarkingRead) return;
+    const attempt = `${currentUserId}:${conversationId}:${latestUnreadIncomingId}`;
+    // A failed read receipt must not retry on every mutation state change.
+    // A new incoming message or reopening the chat can trigger another attempt.
+    if (lastReadAttempt.current === attempt) return;
+    lastReadAttempt.current = attempt;
+    markConversationRead(latestUnreadIncomingId);
+  }, [currentUserId, conversationId, latestUnreadIncomingId, isMarkingRead, markConversationRead]);
+
+  if ((!messages.data && messages.isPending) || (!currentUser.data && currentUser.isPending)) {
     return <Spinner label="Chat wird geladen …" />;
   }
-  if (messages.isError || currentUser.isError || !messages.data || !currentUser.data) {
+  function retryChat() {
+    void messages.refetch();
+    if (currentUser.isError) void currentUser.refetch();
+  }
+
+  if (
+    !messages.data ||
+    !currentUser.data ||
+    isUnavailable(messages.error) ||
+    isUnavailable(currentUser.error)
+  ) {
     return (
       <section className={styles.page}>
         <p role="alert">Der Chat konnte nicht geladen werden.</p>
-        <Button onClick={() => void messages.refetch()}>Erneut versuchen</Button>
+        <Button onClick={retryChat}>Erneut versuchen</Button>
       </section>
     );
   }
@@ -66,6 +90,12 @@ export function ConversationPage() {
             : 'Nachrichten'}
         </h1>
       </header>
+      {(messages.isError || currentUser.isError) && (
+        <div role="alert">
+          <p>Der Chat konnte nicht aktualisiert werden. Der bisherige Verlauf bleibt sichtbar.</p>
+          <Button onClick={retryChat}>Erneut versuchen</Button>
+        </div>
+      )}
       <MessageThread
         currentUserId={currentUser.data.user.id}
         currentUserName={currentUser.data.user.name}
