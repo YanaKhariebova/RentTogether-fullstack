@@ -13,6 +13,10 @@ for (const key of ['DATABASE_URL', 'CLERK_SECRET_KEY', 'CLERK_PUBLISHABLE_KEY'])
 const prisma = createPrisma();
 const authenticate = createRequireAuth({
   getSubject: (req) => getAuth(req).userId,
+  getTokenExpiresAt: (req) => {
+    const expires = getAuth(req).sessionClaims?.exp;
+    return expires ? expires * 1000 : undefined;
+  },
   loadIdentity: async (clerkUserId) => {
     const user = await clerkClient.users.getUser(clerkUserId);
     return {
@@ -62,6 +66,7 @@ const server = app.listen(port, () =>
 for (const signal of ['SIGINT', 'SIGTERM'] as const) {
   process.on(signal, () => {
     clearInterval(cleanupTimer);
+    app.closeMessageStreams();
     server.close(() => {
       void prisma.$disconnect().then(() => process.exit(0));
     });

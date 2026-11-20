@@ -36,6 +36,11 @@ jobs:
       - run: npm run build
       - run: npm run test:items
       - run: npm run test:notifications
+      - run: npm run test:messages
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:chat
+        env:
+          PLAYWRIGHT_CHANNEL: chromium
       - run: npm run db:validate
         working-directory: server
       - run: npm run build

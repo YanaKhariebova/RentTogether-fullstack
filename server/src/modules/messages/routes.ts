@@ -11,10 +11,18 @@ import {
 } from './schemas.js';
 import type { MessagesDatabase } from './service.js';
 import { createMessagesService } from './service.js';
+import type { MessageEvents } from './events.js';
 
-export function createMessagesRoutes(prisma: MessagesDatabase, authenticate: RequestHandler) {
+export function createMessagesRoutes(
+  prisma: MessagesDatabase,
+  authenticate: RequestHandler,
+  events: MessageEvents,
+) {
   const router = Router();
-  const service = createMessagesService(prisma);
+  const service = createMessagesService(prisma, events);
+  router.get('/events', authenticate, (_req, res) => {
+    events.connect(res.locals.currentUser.id, res);
+  });
   router.get('/', authenticate, async (req, res) => {
     const { cursor, limit } = pageQuerySchema.parse(req.query);
     res.json(await service.list(res.locals.currentUser.id, cursor, limit));
@@ -60,9 +68,10 @@ export function createMessagesRoutes(prisma: MessagesDatabase, authenticate: Req
 export function createBookingConversationRoutes(
   prisma: MessagesDatabase,
   authenticate: RequestHandler,
+  events: MessageEvents,
 ) {
   const router = Router();
-  const service = createMessagesService(prisma);
+  const service = createMessagesService(prisma, events);
   router.post('/:bookingId/conversation', authenticate, async (req, res) => {
     const { bookingId } = bookingConversationParamsSchema.parse(req.params);
     const conversation = await service.createForBooking(res.locals.currentUser.id, bookingId);
@@ -77,9 +86,13 @@ export function createBookingConversationRoutes(
   return router;
 }
 
-export function createItemInquiryRoutes(prisma: MessagesDatabase, authenticate: RequestHandler) {
+export function createItemInquiryRoutes(
+  prisma: MessagesDatabase,
+  authenticate: RequestHandler,
+  events: MessageEvents,
+) {
   const router = Router();
-  const service = createMessagesService(prisma);
+  const service = createMessagesService(prisma, events);
   router.post('/:itemId/conversation/messages', authenticate, async (req, res) => {
     const { itemId } = itemConversationParamsSchema.parse(req.params);
     const { body } = messageBodySchema.parse(req.body);

@@ -1,6 +1,7 @@
 import { Prisma } from '../../generated/prisma/client.js';
 import type { PrismaClient } from '../../generated/prisma/client.js';
 import { ApiError } from '../../lib/errors.js';
+import type { MessageEvents } from './events.js';
 
 export type MessagesDatabase = Pick<
   PrismaClient,
@@ -63,7 +64,13 @@ function canWrite(c: SelectedConversation) {
     : c.item.isPublished;
 }
 
-export function createMessagesService(prisma: MessagesDatabase) {
+function participantIds(c: SelectedConversation) {
+  return [c.item.ownerId, c.kind === 'BOOKING' ? c.booking?.renterId : c.participantId].filter(
+    (id): id is string => !!id,
+  );
+}
+
+export function createMessagesService(prisma: MessagesDatabase, events?: MessageEvents) {
   async function lockConversation(tx: Prisma.TransactionClient, id: string) {
     const ref = await tx.conversation.findUnique({ where: { id }, select: { itemId: true } });
     if (!ref) throw new ApiError(404, 'CONVERSATION_NOT_FOUND', 'Der Chat wurde nicht gefunden.');
@@ -75,7 +82,7 @@ export function createMessagesService(prisma: MessagesDatabase) {
     return c;
   }
   async function change(userId: string, conversationId: string, messageId: string, body?: string) {
-    return prisma.$transaction(async (tx) => {
+    const participants = await prisma.$transaction(async (tx) => {
       const c = await lockConversation(tx, conversationId);
       assertAccess(c, userId);
       if (!canWrite(c)) throw new ApiError(409, 'CHAT_CLOSED', 'Dieser Chat ist nur lesbar.');
@@ -101,8 +108,10 @@ export function createMessagesService(prisma: MessagesDatabase) {
         where: { id: conversationId },
         data: { updatedAt: new Date() },
       });
-      return { id: messageId };
+      return participantIds(c);
     });
+    events?.changed(participants, conversationId);
+    return { id: messageId };
   }
   return {
     async createForBooking(userId: string, bookingId: string) {
@@ -128,7 +137,7 @@ export function createMessagesService(prisma: MessagesDatabase) {
       });
     },
     async sendItemInquiry(userId: string, itemId: string, body: string) {
-      return prisma.$transaction(async (tx) => {
+      const result = await prisma.$transaction(async (tx) => {
         await tx.$queryRaw(
           Prisma.sql`SELECT "id" FROM "Item" WHERE "id" = ${itemId}::uuid FOR UPDATE`,
         );
@@ -154,8 +163,14 @@ export function createMessagesService(prisma: MessagesDatabase) {
           where: { conversationId: c.id, userId: item.ownerId },
         });
         await tx.conversation.update({ where: { id: c.id }, data: { updatedAt: new Date() } });
-        return { conversation: c, message: toPublicMessage(message) };
+        return {
+          conversation: c,
+          message: toPublicMessage(message),
+          participants: [userId, item.ownerId],
+        };
       });
+      events?.created(result.participants, result.conversation.id, result.message);
+      return { conversation: result.conversation, message: result.message };
     },
     async list(userId: string, cursor?: string, limit = 20) {
       const rows = await prisma.conversation.findMany({
@@ -227,7 +242,7 @@ export function createMessagesService(prisma: MessagesDatabase) {
       };
     },
     async send(userId: string, id: string, body: string, replyToMessageId?: string) {
-      return prisma.$transaction(async (tx) => {
+      const result = await prisma.$transaction(async (tx) => {
         const c = await lockConversation(tx, id);
         assertAccess(c, userId);
         if (!canWrite(c)) throw new ApiError(409, 'CHAT_CLOSED', 'Dieser Chat ist nur lesbar.');
@@ -247,14 +262,16 @@ export function createMessagesService(prisma: MessagesDatabase) {
           data: { conversationId: id, senderId: userId, body, replyToMessageId },
           select: messageSelect,
         });
-        const recipientId = c.item.ownerId === userId ? c.participantId : c.item.ownerId;
+        const recipientId = participantIds(c).find((id) => id !== userId);
         if (recipientId)
           await tx.hiddenConversation.deleteMany({
             where: { conversationId: id, userId: recipientId },
           });
         await tx.conversation.update({ where: { id }, data: { updatedAt: new Date() } });
-        return toPublicMessage(m);
+        return { message: toPublicMessage(m), participants: participantIds(c) };
       });
+      events?.created(result.participants, id, result.message);
+      return result.message;
     },
     async edit(userId: string, id: string, messageId: string, body: string) {
       await change(userId, id, messageId, body);
@@ -276,6 +293,7 @@ export function createMessagesService(prisma: MessagesDatabase) {
         create: { conversationId: id, userId },
         update: {},
       });
+      events?.changed([userId], id);
     },
     async markRead(userId: string, id: string, lastReadMessageId: string) {
       const c = await prisma.conversation.findUnique({ where: { id }, select: conversationSelect });
@@ -299,6 +317,7 @@ export function createMessagesService(prisma: MessagesDatabase) {
         },
         data: { readAt: new Date() },
       });
+      events?.changed(participantIds(c), id);
     },
     async unreadCount(userId: string) {
       return prisma.message.count({

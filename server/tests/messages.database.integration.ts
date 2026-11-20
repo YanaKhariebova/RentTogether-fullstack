@@ -83,6 +83,10 @@ before(async () => {
     prisma,
     authenticate: createRequireAuth({
       getSubject: (req) => req.get('x-test-subject') ?? null,
+      getTokenExpiresAt: (req) =>
+        req.get('x-test-stream-ttl')
+          ? Date.now() + Number(req.get('x-test-stream-ttl'))
+          : undefined,
       loadIdentity: async (clerkUserId) => ({
         clerkUserId,
         name: 'Chat test user',
@@ -198,4 +202,98 @@ test('booking chat: the same exchange works and a closed booking remains read-on
     ).status,
     409,
   );
+});
+
+async function openEvents(userId: string, ttl?: number) {
+  const controller = new AbortController();
+  const response = await fetch(base + '/api/conversations/events', {
+    headers: { ...headers(userId), ...(ttl ? { 'x-test-stream-ttl': String(ttl) } : {}) },
+    signal: controller.signal,
+  });
+  assert.equal(response.status, 200);
+  assert.match(response.headers.get('content-type') ?? '', /text\/event-stream/);
+  const reader = response.body!.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+  async function next() {
+    while (true) {
+      const end = buffer.indexOf('\n\n');
+      if (end >= 0) {
+        const frame = buffer.slice(0, end);
+        buffer = buffer.slice(end + 2);
+        if (frame.startsWith('data: ')) return JSON.parse(frame.slice(6));
+        continue;
+      }
+      const chunk = await reader.read();
+      if (chunk.done) throw new Error('Chat stream closed');
+      buffer += decoder.decode(chunk.value, { stream: true });
+    }
+  }
+  return { next, close: () => controller.abort() };
+}
+
+test('authenticated live events are sent after commit to both participants, never outsiders', async () => {
+  assert.equal((await fetch(base + '/api/conversations/events')).status, 401);
+  const created = await request(renterId, `/items/${itemId}/conversation/messages`, 'POST', {
+    body: 'Live inquiry',
+  });
+  assert.equal(created.status, 201);
+  const { conversation } = await created.json();
+  const owner = await openEvents(ownerId);
+  const renter = await openEvents(renterId);
+  const outsider = await openEvents(outsiderId);
+  try {
+    const sent = await request(ownerId, `/conversations/${conversation.id}/messages`, 'POST', {
+      body: 'Sofortige Antwort',
+    });
+    assert.equal(sent.status, 201);
+    const { message } = await sent.json();
+    const [ownerEvent, renterEvent] = await Promise.all([owner.next(), renter.next()]);
+    assert.equal(ownerEvent.message.id, message.id);
+    assert.equal(ownerEvent.incoming, false);
+    assert.equal(renterEvent.message.id, message.id);
+    assert.equal(renterEvent.incoming, true);
+    assert.equal(renterEvent.message.body, 'Sofortige Antwort');
+    assert.ok(await prisma.message.findUnique({ where: { id: renterEvent.message.id } }));
+    const noOutsideEvent = outsider.next().then(
+      () => true,
+      () => false,
+    );
+    assert.equal(
+      await Promise.race([
+        noOutsideEvent,
+        new Promise((resolve) => setTimeout(() => resolve(false), 150)),
+      ]),
+      false,
+    );
+    const noFailedWriteEvent = renter.next().then(
+      () => true,
+      () => false,
+    );
+    const rejected = await request(ownerId, `/conversations/${conversation.id}/messages`, 'POST', {
+      body: 'Invalid reply',
+      replyToMessageId: randomUUID(),
+    });
+    assert.equal(rejected.status, 400);
+    assert.equal(
+      await Promise.race([
+        noFailedWriteEvent,
+        new Promise((resolve) => setTimeout(() => resolve(false), 150)),
+      ]),
+      false,
+    );
+  } finally {
+    owner.close();
+    renter.close();
+    outsider.close();
+  }
+});
+
+test('a live connection closes when its verified authentication expires', async () => {
+  const stream = await openEvents(ownerId, 50);
+  try {
+    await assert.rejects(stream.next(), /Chat stream closed/);
+  } finally {
+    stream.close();
+  }
 });

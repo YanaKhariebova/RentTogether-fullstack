@@ -121,6 +121,7 @@ test('all owner item endpoints require authentication', async () => {
     ['POST', '/api/bookings'],
     ['POST', `/api/bookings/${user.id}/conversation`],
     ['GET', '/api/conversations'],
+    ['GET', '/api/conversations/events'],
     ['GET', '/api/conversations/unread-count'],
     ['GET', `/api/conversations/${user.id}/messages`],
     ['POST', `/api/conversations/${user.id}/messages`],
