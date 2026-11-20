@@ -114,6 +114,11 @@ export function createMessagesService(prisma: MessagesDatabase) {
         if (!b) throw new ApiError(404, 'BOOKING_NOT_FOUND', 'Die Anfrage wurde nicht gefunden.');
         if (b.renterId !== userId && b.item.ownerId !== userId)
           throw new ApiError(403, 'FORBIDDEN', 'Du darfst diesen Chat nicht öffnen.');
+        // Prisma's empty-update upsert can race when both participants open a
+        // new chat together. Use the same item lock as other chat/booking writes.
+        await tx.$queryRaw(
+          Prisma.sql`SELECT "id" FROM "Item" WHERE "id" = ${b.itemId}::uuid FOR UPDATE`,
+        );
         return tx.conversation.upsert({
           where: { bookingId },
           create: { kind: 'BOOKING', bookingId, itemId: b.itemId },
