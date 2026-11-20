@@ -16,7 +16,7 @@
     "db:seed": "prisma db seed",
     "db:local": "node scripts/local-db.mjs",
     "db:check": "prisma generate && node scripts/local-db.mjs --check",
-    "test:db": "tsx --test --test-concurrency=1 tests/database.integration.ts tests/items.database.integration.ts",
+    "test:db": "tsx --test --test-concurrency=1 tests/database.integration.ts tests/items.database.integration.ts tests/messages.database.integration.ts",
     "storage:check": "tsx src/scripts/checkImageStorage.ts"
   },
   "keywords": [],

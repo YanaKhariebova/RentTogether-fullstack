@@ -104,6 +104,7 @@ try {
       '--test-concurrency=1',
       'tests/database.integration.ts',
       'tests/items.database.integration.ts',
+      'tests/messages.database.integration.ts',
     ]);
     console.log('Clean PostgreSQL migration, repeated seed and profile persistence checks passed.');
   } else {
