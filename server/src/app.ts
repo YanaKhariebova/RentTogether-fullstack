@@ -1,4 +1,5 @@
 import cors from 'cors';
+import { createMessageEvents } from './modules/messages/events.js';
 import { createLocationService } from './modules/locations/service.js';
 import type { LocationService } from './modules/locations/service.js';
 import { createLocationRoutes } from './modules/locations/routes.js';
@@ -43,6 +44,7 @@ export function createApp(deps: {
   locationService?: LocationService;
 }) {
   const app = express();
+  const messageEvents = createMessageEvents();
   const locations = deps.locationService ?? createLocationService();
   app.disable('x-powered-by');
   app.use(cors({ origin: deps.clientUrl ?? 'http://localhost:5173' }));
@@ -92,17 +94,23 @@ export function createApp(deps: {
     deps.imageStorage,
   );
   app.use('/api/items', itemReportsRouter);
-  app.use('/api/items', createItemInquiryRoutes(deps.prisma, deps.authenticate));
+  app.use('/api/items', createItemInquiryRoutes(deps.prisma, deps.authenticate, messageEvents));
   app.use('/api/my', myRouter);
   app.use('/api/bookings', createBookingsRoutes(deps.prisma, deps.authenticate));
-  app.use('/api/bookings', createBookingConversationRoutes(deps.prisma, deps.authenticate));
+  app.use(
+    '/api/bookings',
+    createBookingConversationRoutes(deps.prisma, deps.authenticate, messageEvents),
+  );
   app.use('/api/me/favorites', createFavoritesRoutes(deps.prisma, deps.authenticate));
   app.use('/api/me/notifications', createNotificationsRoutes(deps.prisma, deps.authenticate));
-  app.use('/api/conversations', createMessagesRoutes(deps.prisma, deps.authenticate));
+  app.use(
+    '/api/conversations',
+    createMessagesRoutes(deps.prisma, deps.authenticate, messageEvents),
+  );
   app.use('/api/moderation', moderationRouter);
   app.use((_req, _res) => {
     throw new ApiError(404, 'NOT_FOUND', 'Die Seite wurde nicht gefunden.');
   });
   app.use(errorHandler);
-  return app;
+  return Object.assign(app, { closeMessageStreams: () => messageEvents.closeAll() });
 }

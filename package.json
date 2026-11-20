@@ -17,7 +17,7 @@
     "test:auth": "npm --prefix server run db:generate && tsc --project tsconfig.auth.json && playwright test --config playwright.auth.config.ts",
     "test:items": "node --test src/features/items/model/*.test.mjs",
     "test:notifications": "node --test src/features/notifications/model/*.test.mjs",
-    "test:messages": "./server/node_modules/.bin/tsx --test src/features/messages/model/*.test.mjs src/features/auth/*.test.mjs"
+    "test:messages": "./server/node_modules/.bin/tsx --test src/features/messages/model/*.test.mjs src/features/messages/api/*.test.mjs src/features/auth/*.test.mjs"
   },
   "dependencies": {
     "@clerk/localizations": "^4.24.3",

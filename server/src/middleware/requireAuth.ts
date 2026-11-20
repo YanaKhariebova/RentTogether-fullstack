@@ -6,6 +6,7 @@ declare global {
   namespace Express {
     interface Locals {
       currentUser: User;
+      authExpiresAt?: number;
     }
   }
 }
@@ -13,6 +14,7 @@ declare global {
 export type Identity = { clerkUserId: string; name: string; email: string; avatarUrl?: string };
 export type AuthDependencies = {
   getSubject: (req: Parameters<RequestHandler>[0]) => string | null;
+  getTokenExpiresAt?: (req: Parameters<RequestHandler>[0]) => number | undefined;
   loadIdentity: (clerkUserId: string) => Promise<Identity>;
   syncUser: (identity: Identity) => Promise<User>;
 };
@@ -21,6 +23,7 @@ export function createRequireAuth(deps: AuthDependencies): RequestHandler {
   return async (req, res, next) => {
     const clerkUserId = deps.getSubject(req);
     if (!clerkUserId) throw new ApiError(401, 'UNAUTHENTICATED', 'Bitte melde dich an.');
+    res.locals.authExpiresAt = deps.getTokenExpiresAt?.(req);
     res.locals.currentUser = await deps.syncUser(await deps.loadIdentity(clerkUserId));
     next();
   };

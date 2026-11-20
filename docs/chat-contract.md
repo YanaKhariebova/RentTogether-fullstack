@@ -247,8 +247,8 @@ API accepts a bounded `limit` and returns a next cursor where more rows exist.
   or completion.
 - Query keys for conversations, unread-message count, notifications and unread-notification count
   include the authenticated user ID. Mutations invalidate only that user's affected data.
-- The client refreshes counts after relevant actions and by periodic polling. There is no promise
-  of real-time delivery, browser push, email or SMS in the first version.
+- The client receives live chat events through authenticated streaming and refreshes counts after
+  relevant actions. Browser push, email and SMS are outside this implementation.
 - A badge is hidden for zero, and displays `99+` when the count is above 99.
 
 ## Delivery order
@@ -257,3 +257,25 @@ API accepts a bounded `limit` and returns a next cursor where more rows exist.
 2. Add Prisma relations and one migration for Conversation, Message and Notification.
 3. Implement and test transactional Booking notifications before connecting Header badges.
 4. Implement Chat API and then connect `/account/messages`, Header and mobile navigation.
+
+## Live chat delivery (2026-11-20)
+
+- `GET /api/conversations/events` uses an authenticated `fetch` SSE stream. The Clerk bearer
+  token stays in the Authorization header, never in the URL. Events are scoped to the signed-in
+  database user; only the two conversation participants receive a message event.
+- `message.created` carries the public message after its database transaction commits. The
+  client updates the open chat cache directly, then plays the incoming sound after rendering.
+  Duplicate events are ignored. Sending still uses the existing POST endpoint.
+- `conversation.changed` refreshes read receipts, edits, deletions and hidden conversation state.
+  Reconnecting refreshes active queries to recover messages missed during disconnection.
+- The API sends a heartbeat every 15 seconds and closes a connection after at most 45 seconds,
+  or earlier when its verified token expires. The client reconnects with a fresh token and
+  aborts the connection on sign-out. Slow consumers are disconnected instead of buffering
+  messages indefinitely. API shutdown closes all active streams.
+- If streaming is unavailable, visible conversation lists and open chats poll every 5 seconds;
+  unread counts poll every 15 seconds. Authentication/access errors stop this fallback polling.
+  Normal delivery does not wait for a polling timer. Network availability still affects latency.
+- This event hub supports the current single API instance. Multiple API instances require shared
+  pub/sub before horizontal scaling. Background browser push is not part of this change.
+- Deployment order: API first, then frontend from the same merged commit. No schema migration or
+  new package is required. The new frontend can fall back to polling against the previous API.

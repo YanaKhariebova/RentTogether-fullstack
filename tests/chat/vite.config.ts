@@ -1,4 +1,5 @@
 import react from '@vitejs/plugin-react';
+import { chatEventsFixture } from './events.fixture.ts';
 import { defineConfig } from 'vite';
 import { fileURLToPath } from 'node:url';
 
@@ -12,6 +13,6 @@ export default defineConfig({
       '@clerk/react': fileURLToPath(new URL('./clerk.fixture.ts', import.meta.url)),
     },
   },
-  plugins: [react()],
+  plugins: [react(), chatEventsFixture()],
   server: { host: '127.0.0.1', port: 4193, strictPort: true },
 });

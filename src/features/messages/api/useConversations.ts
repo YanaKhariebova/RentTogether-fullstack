@@ -1,26 +1,48 @@
 import { useAuth } from '@clerk/react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useApi } from '@/features/auth/api/useApi';
+import { ApiError } from '@/shared/api/client';
 import { apiKeys } from '@/shared/api/keys';
+import { useMessageRealtimeState } from './realtimeContext';
 import type { ChatMessage, Conversation, ConversationPreview } from '../types/message';
+
+function mayRetry(error: Error | null) {
+  return !(error instanceof ApiError && [401, 403, 404].includes(error.status));
+}
 
 type ConversationsResponse = { conversations: ConversationPreview[]; nextCursor: string | null };
 type MessagesResponse = { messages: ChatMessage[]; nextCursor: string | null; canSend: boolean };
 
 export function useMessageUnreadCount() {
+  const { connected } = useMessageRealtimeState();
+  const client = useQueryClient();
   const { isLoaded, isSignedIn, userId } = useAuth();
   const api = useApi();
   return useQuery({
     queryKey: apiKeys.conversationUnread(userId ?? ''),
-    queryFn: () => api<{ count: number }>('/conversations/unread-count'),
+    queryFn: async () => {
+      const result = await api<{ count: number }>('/conversations/unread-count');
+      const previous = client.getQueryData<{ count: number }>(
+        apiKeys.conversationUnread(userId ?? ''),
+      );
+      if (!connected && previous && result.count > previous.count) {
+        await client.refetchQueries({
+          queryKey: apiKeys.conversations(userId ?? ''),
+          type: 'active',
+          predicate: (query) => query.queryKey[2] !== 'unread-count',
+        });
+      }
+      return result;
+    },
     enabled: isLoaded && !!isSignedIn,
     retry: false,
-    refetchInterval: 15_000,
+    refetchInterval: (query) => (!connected && mayRetry(query.state.error) ? 15_000 : false),
     refetchOnWindowFocus: true,
   });
 }
 
 export function useConversationsQuery() {
+  const { connected } = useMessageRealtimeState();
   const { isLoaded, isSignedIn, userId } = useAuth();
   const api = useApi();
   return useQuery({
@@ -28,10 +50,13 @@ export function useConversationsQuery() {
     queryFn: () => api<ConversationsResponse>('/conversations'),
     enabled: isLoaded && !!isSignedIn,
     retry: false,
+    refetchInterval: (query) => (!connected && mayRetry(query.state.error) ? 5_000 : false),
+    refetchIntervalInBackground: false,
   });
 }
 
 export function useConversationMessagesQuery(conversationId: string) {
+  const { connected } = useMessageRealtimeState();
   const { isLoaded, isSignedIn, userId } = useAuth();
   const api = useApi();
   return useQuery({
@@ -40,6 +65,8 @@ export function useConversationMessagesQuery(conversationId: string) {
       api<MessagesResponse>(`/conversations/${conversationId}/messages`, { signal }),
     enabled: isLoaded && !!isSignedIn && !!conversationId,
     retry: false,
+    refetchInterval: (query) => (!connected && mayRetry(query.state.error) ? 5_000 : false),
+    refetchIntervalInBackground: false,
   });
 }
 

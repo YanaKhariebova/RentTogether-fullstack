@@ -8,8 +8,19 @@ import {
   createRouter,
   RouterProvider,
 } from '@tanstack/react-router';
+import { MessageRealtimeProvider } from '../../src/features/messages/api/MessageRealtimeProvider';
+import { useMessageUnreadCount } from '../../src/features/messages/api/useConversations';
+import { useMessageNotificationSound } from '../../src/features/messages/api/useMessageNotificationSound';
+import { useMessageRealtimeState } from '../../src/features/messages/api/realtimeContext';
 import { ConversationPage } from '../../src/features/messages/ConversationPage';
 import '../../src/index.css';
+
+export function MessageUpdates() {
+  const count = useMessageUnreadCount();
+  const { connected } = useMessageRealtimeState();
+  useMessageNotificationSound(count.data?.count);
+  return <output aria-label="Chat connection">{connected ? 'connected' : 'disconnected'}</output>;
+}
 
 const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
 const root = createRootRoute();
@@ -24,9 +35,12 @@ const router = createRouter({
 });
 createRoot(document.getElementById('root')!).render(
   <QueryClientProvider client={client}>
-    <button onClick={() => void client.invalidateQueries({ queryKey: ['conversations'] })}>
-      Test refresh
-    </button>
-    <RouterProvider router={router} />
+    <MessageRealtimeProvider>
+      <MessageUpdates />
+      <button onClick={() => void client.invalidateQueries({ queryKey: ['conversations'] })}>
+        Test refresh
+      </button>
+      <RouterProvider router={router} />
+    </MessageRealtimeProvider>
   </QueryClientProvider>,
 );
