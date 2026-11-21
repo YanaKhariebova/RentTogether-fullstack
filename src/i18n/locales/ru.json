@@ -589,5 +589,7 @@
   "resultsCount_many": "Найдено {{count}} объявлений",
   "unreadMessages_many": "{{count}} непрочитанных сообщений",
   "resultsCount_other": "Найдено {{count}} объявления",
-  "unreadMessages_other": "{{count}} непрочитанного сообщения"
+  "unreadMessages_other": "{{count}} непрочитанного сообщения",
+  "Sprachauswahl schließen": "Закрыть выбор языка",
+  "Wähle die Sprache für RentTogether.": "Выберите язык RentTogether."
 }
