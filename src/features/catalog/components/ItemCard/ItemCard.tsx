@@ -55,7 +55,9 @@ export function ItemCard({
           <div className={styles.footer}>
             <span className={styles.category}>{t(item.category.name)}</span>
 
-            <strong className={styles.price}>{formattedPrice} / Tag</strong>
+            <strong className={styles.price}>
+              {formattedPrice} {t('/ Tag')}
+            </strong>
           </div>
         </div>
       </Link>

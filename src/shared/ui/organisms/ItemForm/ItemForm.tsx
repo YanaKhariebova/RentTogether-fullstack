@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { translate as t } from '../../../../i18n/config';
+import { translate as t, translateFeedback } from '../../../../i18n/config';
 import { Button, Input, Textarea } from '@/shared/ui/atoms';
 import { useEffect, useId, useRef } from 'react';
 import type { ReactNode } from 'react';
@@ -139,7 +139,7 @@ export function ItemForm(props: ItemFormProps) {
           {props.imageErrors.length > 0 && (
             <ul className={styles.error} role="alert">
               {props.imageErrors.map((error, index) => (
-                <li key={`${index}-${error}`}>{t(error)}</li>
+                <li key={`${index}-${error}`}>{translateFeedback(error)}</li>
               ))}
             </ul>
           )}

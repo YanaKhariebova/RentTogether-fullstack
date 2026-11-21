@@ -129,7 +129,7 @@ export function ModerationPage({ showTrash = false }: { showTrash?: boolean }) {
             {reports.data?.reports.map((report) => (
               <article key={report.id} className={styles.card}>
                 <div>
-                  <strong>{report.reason}</strong>
+                  <strong>{t(report.reason)}</strong>
                   <p>{report.details || t('Keine zusätzlichen Angaben.')}</p>
                   <small>
                     {t('Gemeldet von')} {report.reporter.name} ·{' '}

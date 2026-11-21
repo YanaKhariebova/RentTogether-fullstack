@@ -210,8 +210,7 @@ export function CatalogPage() {
         </div>
 
         <p className={styles.resultCount} aria-live="polite">
-          {catalogData?.pagination.total ?? 0}{' '}
-          {catalogData?.pagination.total === 1 ? t('Anzeige') : t('Anzeigen')} gefunden
+          {t('resultsCount', { count: catalogData?.pagination.total ?? 0 })}
         </p>
 
         <div className={styles.catalogLayout}>

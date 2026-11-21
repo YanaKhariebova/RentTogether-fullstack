@@ -100,7 +100,7 @@ export function ItemDetailPage() {
         <div className={styles.layout}>
           <section
             className={styles.gallery}
-            aria-label={`Fotos: ${item.title}`}
+            aria-label={t('Fotos: {{value0}}', { value0: item.title })}
             aria-describedby={images.length > 1 ? 'gallery-keyboard-help' : undefined}
             tabIndex={images.length > 1 ? 0 : undefined}
             onKeyDown={(event) => {
@@ -123,7 +123,7 @@ export function ItemDetailPage() {
                   {t('Mit der linken und rechten Pfeiltaste zwischen Fotos wechseln.')}
                 </p>
                 <p className={styles.srOnly} aria-live="polite" aria-atomic="true">
-                  {t('Foto')} {selectedImageIndex + 1} von {images.length}
+                  {t('Foto')} {selectedImageIndex + 1} {t('von')} {images.length}
                 </p>
                 <div className={styles.thumbnails}>
                   {images.map((image, index) => (
@@ -182,7 +182,9 @@ export function ItemDetailPage() {
               </svg>
               {item.city}
             </p>
-            <p className={styles.price}>{formattedPrice} / Tag</p>
+            <p className={styles.price}>
+              {formattedPrice} {t('/ Tag')}
+            </p>
             <p className={styles.description}>{item.description}</p>
             <p className={styles.owner}>
               {t('Angeboten von')} {item.owner.name}

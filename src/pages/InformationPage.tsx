@@ -1,4 +1,4 @@
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import { translate as t } from '../i18n/config';
 import { Link } from '@tanstack/react-router';
 import type { ReactNode } from 'react';
@@ -269,8 +269,11 @@ export function InformationPage({ kind }: { kind: PageKind }) {
           <Section title={t('1. Verantwortlicher und Datenschutzkontakt')}>
             <p>
               {t('Name, Anschrift und Kontaktadresse des Verantwortlichen:')}{' '}
-              <strong>{t('Noch zu ergänzen')}</strong>. Die Anbieterangaben werden im{' '}
-              <Link to="/impressum">{t('Impressum')}</Link> {t('veröffentlicht.')}
+              <strong>{t('Noch zu ergänzen')}</strong>.{' '}
+              <Trans
+                i18nKey="operatorReference"
+                components={{ notice: <Link to="/impressum" /> }}
+              />
             </p>
           </Section>
           <Section title={t('2. Welche Daten verarbeitet werden')}>

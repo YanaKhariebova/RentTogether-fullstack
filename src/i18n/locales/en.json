@@ -576,5 +576,18 @@
   "Vorname": "First name",
   "Nachname": "Last name",
   "Benutzername": "Username",
-  "E-Mail-Adresse oder Benutzername": "Email address or username"
+  "E-Mail-Adresse oder Benutzername": "Email address or username",
+  "/ Tag": "/ day",
+  "von": "of",
+  "Ortsdaten:": "Location data:",
+  "Fotos: {{value0}}": "Photos: {{value0}}",
+  "operatorReference": "Operator details are published in the <notice>legal notice</notice>.",
+  "resultsCount_one": "{{count}} listing found",
+  "unreadMessages_one": "{{count}} unread",
+  "resultsCount_few": "{{count}} listings found",
+  "unreadMessages_few": "{{count}} unread",
+  "resultsCount_many": "{{count}} listings found",
+  "unreadMessages_many": "{{count}} unread",
+  "resultsCount_other": "{{count}} listings found",
+  "unreadMessages_other": "{{count}} unread"
 }

@@ -56,6 +56,21 @@ export function translate(key: string, values?: Record<string, unknown>): string
   const source = Object.hasOwn(de, key) ? key : (sourceKeys.get(key) ?? key);
   return String(i18n.t(source, { defaultValue: key, ...values }));
 }
+// Image validation prefixes a controlled message with the original filename.
+export function translateFeedback(message: string): string {
+  for (let at = message.indexOf(': '); at >= 0; at = message.indexOf(': ', at + 2)) {
+    const suffix = message.slice(at + 2);
+    if (Object.hasOwn(de, suffix) || sourceKeys.has(suffix))
+      return message.slice(0, at + 2) + translate(suffix);
+  }
+  const limit = message.match(/^(.*): Du kannst höchstens (\d+) Fotos hinzufügen\.$/);
+  if (limit)
+    return translate('{{value0}}: Du kannst höchstens {{value1}} Fotos hinzufügen.', {
+      value0: limit[1],
+      value1: limit[2],
+    });
+  return translate(message);
+}
 export async function selectLanguage(language: Language) {
   await i18n.changeLanguage(language);
   if (typeof document !== 'undefined') document.documentElement.lang = language;

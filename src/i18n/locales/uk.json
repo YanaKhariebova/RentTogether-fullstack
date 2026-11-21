@@ -576,5 +576,18 @@
   "Vorname": "Ім’я",
   "Nachname": "Прізвище",
   "Benutzername": "Ім’я користувача",
-  "E-Mail-Adresse oder Benutzername": "Електронна пошта або ім’я користувача"
+  "E-Mail-Adresse oder Benutzername": "Електронна пошта або ім’я користувача",
+  "/ Tag": "/ день",
+  "von": "із",
+  "Ortsdaten:": "Дані про місця:",
+  "Fotos: {{value0}}": "Фотографії: {{value0}}",
+  "operatorReference": "Відомості про оператора публікуються в розділі <notice>«Правова інформація»</notice>.",
+  "resultsCount_one": "Знайдено {{count}} оголошення",
+  "unreadMessages_one": "{{count}} непрочитане повідомлення",
+  "resultsCount_few": "Знайдено {{count}} оголошення",
+  "unreadMessages_few": "{{count}} непрочитані повідомлення",
+  "resultsCount_many": "Знайдено {{count}} оголошень",
+  "unreadMessages_many": "{{count}} непрочитаних повідомлень",
+  "resultsCount_other": "Знайдено {{count}} оголошення",
+  "unreadMessages_other": "{{count}} непрочитаного повідомлення"
 }

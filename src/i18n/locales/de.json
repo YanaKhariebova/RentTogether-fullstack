@@ -576,5 +576,18 @@
   "Vorname": "Vorname",
   "Nachname": "Nachname",
   "Benutzername": "Benutzername",
-  "E-Mail-Adresse oder Benutzername": "E-Mail-Adresse oder Benutzername"
+  "E-Mail-Adresse oder Benutzername": "E-Mail-Adresse oder Benutzername",
+  "/ Tag": "/ Tag",
+  "von": "von",
+  "Ortsdaten:": "Ortsdaten:",
+  "Fotos: {{value0}}": "Fotos: {{value0}}",
+  "operatorReference": "Die Anbieterangaben werden im <notice>Impressum</notice> veröffentlicht.",
+  "resultsCount_one": "{{count}} Anzeige gefunden",
+  "unreadMessages_one": "{{count}} ungelesen",
+  "resultsCount_few": "{{count}} Anzeigen gefunden",
+  "unreadMessages_few": "{{count}} ungelesen",
+  "resultsCount_many": "{{count}} Anzeigen gefunden",
+  "unreadMessages_many": "{{count}} ungelesen",
+  "resultsCount_other": "{{count}} Anzeigen gefunden",
+  "unreadMessages_other": "{{count}} ungelesen"
 }

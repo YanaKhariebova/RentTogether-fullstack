@@ -201,7 +201,7 @@ export function CitySearch({
             </>
           )}
           <small>
-            Ortsdaten:{' '}
+            {t('Ortsdaten:')}{' '}
             <a href="https://www.openplzapi.org/de/" target="_blank" rel="noreferrer">
               OpenPLZ API
             </a>

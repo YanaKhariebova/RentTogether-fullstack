@@ -576,5 +576,18 @@
   "Vorname": "Имя",
   "Nachname": "Фамилия",
   "Benutzername": "Имя пользователя",
-  "E-Mail-Adresse oder Benutzername": "Электронная почта или имя пользователя"
+  "E-Mail-Adresse oder Benutzername": "Электронная почта или имя пользователя",
+  "/ Tag": "/ день",
+  "von": "из",
+  "Ortsdaten:": "Данные о местах:",
+  "Fotos: {{value0}}": "Фотографии: {{value0}}",
+  "operatorReference": "Сведения об операторе публикуются в разделе <notice>«Правовая информация»</notice>.",
+  "resultsCount_one": "Найдено {{count}} объявление",
+  "unreadMessages_one": "{{count}} непрочитанное сообщение",
+  "resultsCount_few": "Найдено {{count}} объявления",
+  "unreadMessages_few": "{{count}} непрочитанных сообщения",
+  "resultsCount_many": "Найдено {{count}} объявлений",
+  "unreadMessages_many": "{{count}} непрочитанных сообщений",
+  "resultsCount_other": "Найдено {{count}} объявления",
+  "unreadMessages_other": "{{count}} непрочитанного сообщения"
 }

@@ -1,7 +1,14 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
-import { i18n, isLanguage, resolveLanguage, formatLocale, translate } from './config.ts';
+import {
+  i18n,
+  isLanguage,
+  resolveLanguage,
+  formatLocale,
+  translate,
+  translateFeedback,
+} from './config.ts';
 const codes = ['de', 'en', 'ru', 'uk'];
 const dictionaries = Object.fromEntries(
   codes.map((code) => [
@@ -56,6 +63,22 @@ test('interpolation preserves user-authored text and UI feedback can be translat
     const feedback = translate('Dein Profil wurde gespeichert.');
     await i18n.changeLanguage('ru');
     assert.equal(translate(feedback), 'Ваш профиль сохранён.');
+  } finally {
+    await i18n.changeLanguage('de');
+  }
+});
+
+test('photo feedback translates validation text without translating filenames', async () => {
+  try {
+    await i18n.changeLanguage('en');
+    assert.equal(
+      translateFeedback('моё фото.heic: Erlaubt sind JPEG, PNG und WebP.'),
+      'моё фото.heic: JPEG, PNG and WebP are supported.',
+    );
+    assert.equal(
+      translateFeedback('снимок.png: Du kannst höchstens 8 Fotos hinzufügen.'),
+      'снимок.png: You can add up to 8 photos.',
+    );
   } finally {
     await i18n.changeLanguage('de');
   }

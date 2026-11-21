@@ -93,7 +93,7 @@ export function MessagesPage() {
                   {conversation.unreadCount > 0 && (
                     <span
                       className={styles.badge}
-                      aria-label={`${conversation.unreadCount} ungelesen`}
+                      aria-label={t('unreadMessages', { count: conversation.unreadCount })}
                     >
                       {conversation.unreadCount > 99 ? '99+' : conversation.unreadCount}
                     </span>
