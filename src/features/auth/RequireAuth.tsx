@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next';
+import { translate as t } from '../../i18n/config';
 import { useAuth } from '@clerk/react';
 import { Link, useLocation } from '@tanstack/react-router';
 import type { ReactNode } from 'react';
@@ -6,6 +8,7 @@ import { getSignInRequiredContent, type SignInRequiredContent } from './requireA
 import styles from './RequireAuth.module.css';
 
 export function RequireAuth({ children }: { children: ReactNode }) {
+  useTranslation();
   const { isLoaded, isSignedIn } = useAuth();
   const { pathname } = useLocation();
   const section = getSignInRequiredContent(pathname);
@@ -27,16 +30,15 @@ export function RequireAuth({ children }: { children: ReactNode }) {
           <div className={styles.icon} aria-hidden="true">
             <SectionIcon icon={section.icon} />
           </div>
-          <p className={styles.eyebrow}>Schön, dass du da bist</p>
-          <h1 id="sign-in-required-title">{section.title}</h1>
-          <p className={styles.description}>{section.description}</p>
+          <p className={styles.eyebrow}>{t('Schön, dass du da bist')}</p>
+          <h1 id="sign-in-required-title">{t(section.title)}</h1>
+          <p className={styles.description}>{t(section.description)}</p>
           <div className={styles.actions}>
             <Link className={styles.signInLink} to="/sign-in">
-              Jetzt anmelden
-              <span aria-hidden="true">→</span>
+              {t('Jetzt anmelden')} <span aria-hidden="true">→</span>
             </Link>
             <p className={styles.signUpHint}>
-              Noch kein Konto? <Link to="/sign-up">Jetzt registrieren</Link>
+              {t('Noch kein Konto?')} <Link to="/sign-up">{t('Jetzt registrieren')}</Link>
             </p>
           </div>
         </div>
@@ -46,6 +48,7 @@ export function RequireAuth({ children }: { children: ReactNode }) {
 }
 
 function SectionIcon({ icon }: Pick<SignInRequiredContent, 'icon'>) {
+  useTranslation();
   if (icon === 'chat') {
     return (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">

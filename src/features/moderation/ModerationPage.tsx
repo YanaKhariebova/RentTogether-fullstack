@@ -1,3 +1,6 @@
+import { formatLocale } from '../../i18n/config';
+import { useTranslation } from 'react-i18next';
+import { translate as t } from '../../i18n/config';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@clerk/react';
 import { Link } from '@tanstack/react-router';
@@ -24,6 +27,7 @@ type PendingAction =
   | null;
 
 export function ModerationPage({ showTrash = false }: { showTrash?: boolean }) {
+  useTranslation();
   const { isLoaded, isSignedIn } = useAuth();
   const api = useApi();
   const client = useQueryClient();
@@ -88,48 +92,48 @@ export function ModerationPage({ showTrash = false }: { showTrash?: boolean }) {
     if (!pendingAction && dialog.current?.open) dialog.current.close();
   }, [pendingAction]);
 
-  if (me.isPending) return <Spinner label="Moderation wird geladen …" />;
+  if (me.isPending) return <Spinner label={t('Moderation wird geladen …')} />;
   if (!['MODERATOR', 'ADMIN'].includes(me.data?.user.role ?? '')) {
     return (
       <section className={styles.page}>
-        <h1>Kein Zugriff</h1>
-        <p>Diese Seite ist nur für Moderatoren.</p>
+        <h1>{t('Kein Zugriff')}</h1>
+        <p>{t('Diese Seite ist nur für Moderatoren.')}</p>
       </section>
     );
   }
   return (
     <section className={styles.page}>
       <div className={styles.heading}>
-        <h1>{showTrash ? 'Papierkorb' : 'Moderation'}</h1>
+        <h1>{showTrash ? t('Papierkorb') : t('Moderation')}</h1>
         <Link
           className={styles.profileLink}
           to={showTrash ? '/account/moderation' : '/account/profile'}
         >
-          {showTrash ? 'Zur Moderation' : 'Mein Profil'}
+          {showTrash ? t('Zur Moderation') : t('Mein Profil')}
         </Link>
       </div>
       {!showTrash && (
         <>
-          <p>Offene Meldungen</p>
+          <p>{t('Offene Meldungen')}</p>
           {reports.isPending ? <Spinner /> : null}
           {reports.isError ? (
             <div role="alert">
-              <p>Meldungen konnten nicht geladen werden.</p>
-              <Button onClick={() => void reports.refetch()}>Erneut versuchen</Button>
+              <p>{t('Meldungen konnten nicht geladen werden.')}</p>
+              <Button onClick={() => void reports.refetch()}>{t('Erneut versuchen')}</Button>
             </div>
           ) : null}
           {reports.data?.reports.length === 0 ? (
-            <p className={styles.empty}>Keine offenen Meldungen.</p>
+            <p className={styles.empty}>{t('Keine offenen Meldungen.')}</p>
           ) : null}
           <div className={styles.list}>
             {reports.data?.reports.map((report) => (
               <article key={report.id} className={styles.card}>
                 <div>
                   <strong>{report.reason}</strong>
-                  <p>{report.details || 'Keine zusätzlichen Angaben.'}</p>
+                  <p>{report.details || t('Keine zusätzlichen Angaben.')}</p>
                   <small>
-                    Gemeldet von {report.reporter.name} ·{' '}
-                    {new Intl.DateTimeFormat('de-DE', {
+                    {t('Gemeldet von')} {report.reporter.name} ·{' '}
+                    {new Intl.DateTimeFormat(formatLocale(), {
                       dateStyle: 'medium',
                       timeStyle: 'short',
                     }).format(new Date(report.createdAt))}
@@ -144,14 +148,14 @@ export function ModerationPage({ showTrash = false }: { showTrash?: boolean }) {
                     disabled={busy}
                     onClick={() => setPendingAction({ kind: 'dismiss', report })}
                   >
-                    Meldung ablehnen
+                    {t('Meldung ablehnen')}
                   </Button>
                   <Button
                     variant="danger"
                     disabled={busy}
                     onClick={() => setPendingAction({ kind: 'remove', report })}
                   >
-                    Anzeige von der Seite entfernen
+                    {t('Anzeige von der Seite entfernen')}
                   </Button>
                 </div>
               </article>
@@ -161,7 +165,7 @@ export function ModerationPage({ showTrash = false }: { showTrash?: boolean }) {
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M4 7h16m-10 4v6m4-6v6M9 7l1-3h4l1 3m-8 0 1 13h8l1-13" />
             </svg>
-            Papierkorb öffnen
+            {t('Papierkorb öffnen')}
           </Link>
         </>
       )}
@@ -172,7 +176,7 @@ export function ModerationPage({ showTrash = false }: { showTrash?: boolean }) {
               <svg className={styles.trashIcon} viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M4 7h16m-10 4v6m4-6v6M9 7l1-3h4l1 3m-8 0 1 13h8l1-13" />
               </svg>
-              Papierkorb
+              {t('Papierkorb')}
             </h2>
             {trash.data?.items.length ? (
               <Button
@@ -180,13 +184,13 @@ export function ModerationPage({ showTrash = false }: { showTrash?: boolean }) {
                 disabled={busy}
                 onClick={() => setPendingAction({ kind: 'empty' })}
               >
-                Papierkorb endgültig leeren
+                {t('Papierkorb endgültig leeren')}
               </Button>
             ) : null}
           </div>
-          {trash.isPending ? <Spinner label="Papierkorb wird geladen …" /> : null}
+          {trash.isPending ? <Spinner label={t('Papierkorb wird geladen …')} /> : null}
           {trash.data?.items.length === 0 ? (
-            <p className={styles.emptyTrash}>Der Papierkorb ist leer.</p>
+            <p className={styles.emptyTrash}>{t('Der Papierkorb ist leer.')}</p>
           ) : null}
           {trash.data?.items.map((item) => (
             <div className={styles.trashItem} key={item.id}>
@@ -197,19 +201,19 @@ export function ModerationPage({ showTrash = false }: { showTrash?: boolean }) {
                 loading={restore.isPending && restore.variables === item.id}
                 onClick={() => restore.mutate(item.id)}
               >
-                Zur Moderation zurückgeben
+                {t('Zur Moderation zurückgeben')}
               </Button>
               <Button
                 variant="danger"
                 disabled={busy}
                 onClick={() => setPendingAction({ kind: 'delete', item })}
               >
-                Endgültig löschen
+                {t('Endgültig löschen')}
               </Button>
             </div>
           ))}
           {trash.isError || restore.isError || deleteForever.isError || emptyTrash.isError ? (
-            <p role="alert">Aktion konnte nicht ausgeführt werden.</p>
+            <p role="alert">{t('Aktion konnte nicht ausgeführt werden.')}</p>
           ) : null}
         </section>
       )}
@@ -223,21 +227,31 @@ export function ModerationPage({ showTrash = false }: { showTrash?: boolean }) {
       >
         <h2>
           {pendingAction?.kind === 'dismiss'
-            ? 'Meldung wirklich ablehnen?'
+            ? t('Meldung wirklich ablehnen?')
             : pendingAction?.kind === 'remove'
-              ? 'Anzeige wirklich von der Seite entfernen?'
+              ? t('Anzeige wirklich von der Seite entfernen?')
               : pendingAction?.kind === 'delete'
-                ? 'Anzeige endgültig löschen?'
-                : 'Papierkorb endgültig leeren?'}
+                ? t('Anzeige endgültig löschen?')
+                : t('Papierkorb endgültig leeren?')}
         </h2>
         <p>
           {pendingAction?.kind === 'dismiss'
-            ? `Die Anzeige „${pendingAction.report.item.title}“ bleibt öffentlich sichtbar.`
+            ? t('Die Anzeige „{{value0}}“ bleibt öffentlich sichtbar.', {
+                value0: pendingAction.report.item.title,
+              })
             : pendingAction?.kind === 'remove'
-              ? `„${pendingAction.report.item.title}“ wird in den Papierkorb verschoben und ist nicht mehr öffentlich sichtbar. Du kannst sie später wiederherstellen.`
+              ? t(
+                  '„{{value0}}“ wird in den Papierkorb verschoben und ist nicht mehr öffentlich sichtbar. Du kannst sie später wiederherstellen.',
+                  { value0: pendingAction.report.item.title },
+                )
               : pendingAction?.kind === 'delete'
-                ? `„${pendingAction.item.title}“ und die zugehörigen Fotos werden endgültig gelöscht. Das kann nicht rückgängig gemacht werden.`
-                : 'Alle Anzeigen und zugehörigen Fotos im Papierkorb werden endgültig gelöscht. Das kann nicht rückgängig gemacht werden.'}
+                ? t(
+                    '„{{value0}}“ und die zugehörigen Fotos werden endgültig gelöscht. Das kann nicht rückgängig gemacht werden.',
+                    { value0: pendingAction.item.title },
+                  )
+                : t(
+                    'Alle Anzeigen und zugehörigen Fotos im Papierkorb werden endgültig gelöscht. Das kann nicht rückgängig gemacht werden.',
+                  )}
         </p>
         <div className={styles.actions}>
           <Button
@@ -246,7 +260,7 @@ export function ModerationPage({ showTrash = false }: { showTrash?: boolean }) {
             autoFocus
             onClick={() => setPendingAction(null)}
           >
-            Abbrechen
+            {t('Abbrechen')}
           </Button>
           <Button
             variant={pendingAction?.kind === 'dismiss' ? 'primary' : 'danger'}
@@ -268,19 +282,19 @@ export function ModerationPage({ showTrash = false }: { showTrash?: boolean }) {
             }}
           >
             {pendingAction?.kind === 'dismiss'
-              ? 'Meldung ablehnen'
+              ? t('Meldung ablehnen')
               : pendingAction?.kind === 'remove'
-                ? 'In den Papierkorb verschieben'
+                ? t('In den Papierkorb verschieben')
                 : pendingAction?.kind === 'delete'
-                  ? 'Endgültig löschen'
-                  : 'Papierkorb leeren'}
+                  ? t('Endgültig löschen')
+                  : t('Papierkorb leeren')}
           </Button>
         </div>
         {actionError && (
           <p className={styles.dialogError} role="alert">
             {actionError instanceof ApiError
               ? actionError.message
-              : 'Die Aktion konnte nicht ausgeführt werden. Bitte versuche es erneut.'}
+              : t('Die Aktion konnte nicht ausgeführt werden. Bitte versuche es erneut.')}
           </p>
         )}
       </dialog>

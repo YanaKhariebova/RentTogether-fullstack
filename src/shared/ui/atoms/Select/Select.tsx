@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next';
+import { translate as t } from '@/i18n/config';
 import { useId } from 'react';
 import type { SelectHTMLAttributes } from 'react';
 import styles from './Select.module.css';
@@ -7,6 +9,7 @@ export type SelectProps = SelectHTMLAttributes<HTMLSelectElement> & {
   options: readonly { value: string; label: string }[];
 };
 export function Select({ label, error, options, id, className = '', ...props }: SelectProps) {
+  useTranslation();
   const generatedId = useId();
   const inputId = id ?? generatedId;
   return (
@@ -27,7 +30,7 @@ export function Select({ label, error, options, id, className = '', ...props }: 
       </select>
       {error && (
         <span id={`${inputId}-error`} className={styles.error}>
-          {error}
+          {t(error)}
         </span>
       )}
     </div>

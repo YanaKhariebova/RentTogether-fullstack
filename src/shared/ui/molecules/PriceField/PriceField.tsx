@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next';
+import { translate as t } from '../../../../i18n/config';
 import { Input } from '@/shared/ui/atoms';
 import styles from './PriceField.module.css';
 interface PriceFieldProps {
@@ -6,10 +8,11 @@ interface PriceFieldProps {
   onChange: (value: string) => void;
 }
 export function PriceField({ value, error, onChange }: PriceFieldProps) {
+  useTranslation();
   return (
     <div className={styles.field}>
       <Input
-        label="Preis pro Tag (€) *"
+        label={t('Preis pro Tag (€) *')}
         name="pricePerDay"
         type="text"
         inputMode="decimal"
@@ -17,7 +20,7 @@ export function PriceField({ value, error, onChange }: PriceFieldProps) {
         value={value}
         placeholder="15,50"
         error={error}
-        hint="Zum Beispiel 15,50 € pro Tag."
+        hint={t('Zum Beispiel 15,50 € pro Tag.')}
         onChange={(event) => onChange(event.currentTarget.value)}
       />
     </div>

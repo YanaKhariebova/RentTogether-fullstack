@@ -1,3 +1,4 @@
+import { translate as t } from '../../../i18n/config';
 import { useState } from 'react';
 import { useItemImages } from './useItemImages';
 import { initialItemFormValues, itemFormSchema } from '../model/itemFormSchema';
@@ -55,7 +56,7 @@ export function useItemForm(
     try {
       await onValidSubmit(result.data);
     } catch {
-      setSubmitError('Die Anzeige konnte nicht gespeichert werden. Bitte versuche es erneut.');
+      setSubmitError(t('Die Anzeige konnte nicht gespeichert werden. Bitte versuche es erneut.'));
     } finally {
       setIsSubmitting(false);
     }

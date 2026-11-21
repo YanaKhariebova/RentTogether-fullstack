@@ -28,6 +28,7 @@ export default defineConfig({
   timeout: 120_000,
   expect: { timeout: 20_000 },
   use: {
+    locale: 'de-DE',
     baseURL: frontend.origin,
     channel: process.env.PLAYWRIGHT_CHANNEL ?? 'msedge',
     trace: 'off',

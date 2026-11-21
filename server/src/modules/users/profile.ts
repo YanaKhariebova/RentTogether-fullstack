@@ -8,6 +8,7 @@ export const profilePatchSchema = z
     name: z.string().trim().min(1, 'Bitte gib deinen Namen ein.').max(100),
     city: z.string().trim().max(100),
     phone: z.string().trim().max(50),
+    preferredLocale: z.enum(['de', 'en', 'uk', 'ru']),
   })
   .partial()
   .refine((value) => Object.keys(value).length > 0, 'Bitte ändere mindestens ein Feld.');
@@ -21,5 +22,6 @@ export function toCurrentUser(user: User) {
     phone: user.phone,
     avatarUrl: user.avatarUrl,
     role: user.role,
+    preferredLocale: user.preferredLocale,
   };
 }

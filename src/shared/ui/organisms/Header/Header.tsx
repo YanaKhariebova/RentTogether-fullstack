@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next';
+import { translate as t } from '../../../../i18n/config';
 import { Link, useRouterState } from '@tanstack/react-router';
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { Button, IconButton } from '../../atoms';
@@ -34,6 +36,7 @@ export function HeaderView({
   messageUnreadCount,
   notificationBadge,
   themeToggle,
+  languagePicker,
   isModerator = false,
 }: {
   auth: ReactNode;
@@ -46,8 +49,10 @@ export function HeaderView({
   messageUnreadCount?: number;
   notificationBadge?: (count: number) => ReactNode;
   themeToggle?: ReactNode;
+  languagePicker?: ReactNode;
   isModerator?: boolean;
 }) {
+  useTranslation();
   const panel = useRef<HTMLDialogElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
   const [open, setOpen] = useState(false);
@@ -94,7 +99,7 @@ export function HeaderView({
           <Link
             to="/"
             className={styles.brand}
-            aria-label="RentTogether Weniger kaufen. Mehr teilen."
+            aria-label={t('RentTogether Weniger kaufen. Mehr teilen.')}
           >
             <span
               className={styles.brandMark}
@@ -104,28 +109,29 @@ export function HeaderView({
             <span>
               <span className={styles.rent}>Rent</span>
               <span className={styles.together}>Together</span>
-              <span className={styles.tagline}>Weniger kaufen. Mehr teilen.</span>
+              <span className={styles.tagline}>{t('Weniger kaufen. Mehr teilen.')}</span>
             </span>
           </Link>
-          <nav aria-label="Hauptnavigation" className={styles.desktop}>
+          <nav aria-label={t('Hauptnavigation')} className={styles.desktop}>
             {navigation.map(({ to, label, icon }) => (
               <Link
                 key={to}
                 to={to}
-                title={label}
+                title={t(label)}
                 aria-describedby={
                   to === '/account/bookings' && hasBookingUpdates ? bookingDescription : undefined
                 }
                 activeProps={{ 'aria-current': 'page' }}
               >
                 <NavigationIcon name={icon} />
-                <span className={styles.navLabel}>{label}</span>
+                <span className={styles.navLabel}>{t(label)}</span>
                 {bookingBadge(to)}
                 {messageBadge(to)}
               </Link>
             ))}
           </nav>
           <div className={styles.auth}>
+            {languagePicker}
             {auth}
             {themeToggle}
           </div>
@@ -133,7 +139,7 @@ export function HeaderView({
             ref={trigger}
             type="button"
             className={styles.menuButton}
-            aria-label="Menü öffnen"
+            aria-label={t('Menü öffnen')}
             aria-expanded={open}
             aria-controls={id}
             aria-haspopup="dialog"
@@ -166,7 +172,7 @@ export function HeaderView({
         onKeyDown={(event) => {
           if (event.key !== 'Tab') return;
           const controls = event.currentTarget.querySelectorAll<HTMLElement>(
-            'a[href], button:not(:disabled)',
+            'a[href], button:not(:disabled), select:not(:disabled)',
           );
           const first = controls[0];
           const last = controls[controls.length - 1];
@@ -197,18 +203,18 @@ export function HeaderView({
         }}
       >
         <div className={styles.panelHeading}>
-          <h2 id={`${id}-title`}>Dein RentTogether</h2>
-          <IconButton label="Menü schließen" onClick={close} autoFocus>
+          <h2 id={`${id}-title`}>{t('Dein RentTogether')}</h2>
+          <IconButton label={t('Menü schließen')} onClick={close} autoFocus>
             ×
           </IconButton>
         </div>
         <nav
-          aria-label="Menü"
+          aria-label={t('Menü')}
           onClick={(event) => {
             if ((event.target as HTMLElement).closest('a')) close();
           }}
         >
-          <Link to="/">Startseite</Link>
+          <Link to="/">{t('Startseite')}</Link>
           {navigation.map(({ to, label, icon }) => (
             <Link
               key={to}
@@ -219,28 +225,29 @@ export function HeaderView({
               activeProps={{ 'aria-current': 'page' }}
             >
               <NavigationIcon name={icon} />
-              <span>{label}</span>
+              <span>{t(label)}</span>
               {bookingBadge(to)}
               {messageBadge(to)}
             </Link>
           ))}
-          {isModerator && <Link to="/account/moderation">Moderation</Link>}
-          <Link to="/account/items/new">Etwas verleihen</Link>
+          {isModerator && <Link to="/account/moderation">{t('Moderation')}</Link>}
+          <Link to="/account/items/new">{t('Etwas verleihen')}</Link>
           <div className={styles.information}>
             {information.map(({ to, label }) => (
               <Link key={to} to={to} activeProps={{ 'aria-current': 'page' }}>
-                {label}
+                {t(label)}
               </Link>
             ))}
           </div>
         </nav>
         <div className={styles.panelSettings}>
+          {languagePicker}
           {authLoaded && signedIn && (
             <Link
               to="/account/profile"
               className={styles.panelAvatar}
-              aria-label="Profil öffnen"
-              title={avatarName ? 'Profil von ' + avatarName : 'Profil öffnen'}
+              aria-label={t('Profil öffnen')}
+              title={avatarName ? t('Profil von ') + avatarName : t('Profil öffnen')}
               onClick={close}
             >
               {avatarUrl ? (
@@ -252,7 +259,7 @@ export function HeaderView({
           )}
           <div className={styles.accountActions}>
             {!authLoaded ? (
-              <span role="status">Konto wird geladen …</span>
+              <span role="status">{t('Konto wird geladen …')}</span>
             ) : signedIn ? (
               <Button
                 variant="secondary"
@@ -262,18 +269,18 @@ export function HeaderView({
                   onSignOut?.();
                 }}
               >
-                Abmelden
+                {t('Abmelden')}
               </Button>
             ) : (
               <Link to="/sign-in" className={styles.accountButton} onClick={close}>
-                Anmelden
+                {t('Anmelden')}
               </Link>
             )}
             {themeToggle}
           </div>
         </div>
       </dialog>
-      <nav aria-label="Mobile Navigation" className={styles.mobile}>
+      <nav aria-label={t('Mobile Navigation')} className={styles.mobile}>
         {navigation
           .filter(({ to }) => ['/catalog', '/account/items', '/account/bookings'].includes(to))
           .map(({ to, label, icon }) => (
@@ -286,7 +293,7 @@ export function HeaderView({
               activeProps={{ 'aria-current': 'page' }}
             >
               <NavigationIcon name={icon} />
-              <span>{label}</span>
+              <span>{t(label)}</span>
               {bookingBadge(to)}
             </Link>
           ))}
@@ -298,9 +305,7 @@ export function HeaderView({
         aria-live="polite"
         aria-atomic="true"
       >
-        {hasBookingUpdates
-          ? `${bookingCount} ungelesene ${bookingCount === 1 ? 'Benachrichtigung' : 'Benachrichtigungen'} zu deinen Anfragen.`
-          : ''}
+        {hasBookingUpdates ? t('bookingUnread', { count: bookingCount }) : ''}
       </span>
     </>
   );

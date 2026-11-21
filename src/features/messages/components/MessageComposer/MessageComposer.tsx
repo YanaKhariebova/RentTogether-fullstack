@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next';
+import { translate as t } from '../../../../i18n/config';
 import { useState } from 'react';
 import { Button, Textarea } from '@/shared/ui/atoms';
 import styles from './MessageComposer.module.css';
@@ -18,6 +20,7 @@ export function MessageComposer({
   replyTo = null,
   onCancelReply,
 }: MessageComposerProps) {
+  useTranslation();
   const [body, setBody] = useState('');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const trimmedBody = body.trim();
@@ -31,7 +34,7 @@ export function MessageComposer({
       await onSend(trimmedBody);
       setBody('');
     } catch {
-      setErrorMessage('Nachricht konnte nicht gesendet werden. Bitte versuche es erneut.');
+      setErrorMessage(t('Nachricht konnte nicht gesendet werden. Bitte versuche es erneut.'));
     }
   }
 
@@ -45,16 +48,18 @@ export function MessageComposer({
     >
       {replyTo && (
         <div className={styles.replyPreview}>
-          <span>Antwort auf: {replyTo.body}</span>
-          <button type="button" onClick={onCancelReply} aria-label="Antwort entfernen">
+          <span>
+            {t('Antwort auf:')} {replyTo.body}
+          </span>
+          <button type="button" onClick={onCancelReply} aria-label={t('Antwort entfernen')}>
             ×
           </button>
         </div>
       )}
       <Textarea
-        label="Nachricht schreiben"
+        label={t('Nachricht schreiben')}
         maxLength={2000}
-        placeholder="Schreibe eine Nachricht …"
+        placeholder={t('Schreibe eine Nachricht …')}
         value={body}
         disabled={disabled || isSending}
         onChange={(event) => setBody(event.target.value)}
@@ -68,7 +73,7 @@ export function MessageComposer({
       <div className={styles.actions}>
         <span aria-live="polite">{body.length}/2000</span>
         <Button type="submit" loading={isSending} disabled={disabled || !trimmedBody}>
-          Senden
+          {t('Senden')}
         </Button>
       </div>
       {errorMessage && <p role="alert">{errorMessage}</p>}

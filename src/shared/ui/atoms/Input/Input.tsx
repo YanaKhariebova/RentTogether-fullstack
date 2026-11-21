@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next';
+import { translate as t } from '@/i18n/config';
 import { useId } from 'react';
 import type { InputHTMLAttributes } from 'react';
 import styles from './Input.module.css';
@@ -7,6 +9,7 @@ export type InputProps = InputHTMLAttributes<HTMLInputElement> & {
   hint?: string;
 };
 export function Input({ label, error, hint, id, className = '', ...props }: InputProps) {
+  useTranslation();
   const generatedId = useId();
   const inputId = id ?? generatedId;
   return (
@@ -21,7 +24,7 @@ export function Input({ label, error, hint, id, className = '', ...props }: Inpu
       />
       {(error || hint) && (
         <span id={`${inputId}-help`} className={error ? styles.error : styles.hint}>
-          {error || hint}
+          {error ? t(error) : hint ? t(hint) : ''}
         </span>
       )}
     </div>

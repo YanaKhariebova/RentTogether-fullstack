@@ -5,10 +5,13 @@ export type CurrentUser = {
   city: string;
   email: string;
   phone: string;
+  preferredLocale?: string | null;
   avatarUrl: string;
   role: 'USER' | 'MODERATOR' | 'ADMIN';
 };
-export type ProfilePatch = Partial<Pick<CurrentUser, 'name' | 'city' | 'phone'>>;
+export type ProfilePatch = Partial<
+  Pick<CurrentUser, 'name' | 'city' | 'phone' | 'preferredLocale'>
+>;
 export type Item = {
   id: string;
   title: string;

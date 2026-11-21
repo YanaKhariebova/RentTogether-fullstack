@@ -1,9 +1,12 @@
+import { useTranslation } from 'react-i18next';
+import { translate as t } from '../../i18n/config';
 import { useTheme } from './theme';
 import styles from './ThemeToggle.module.css';
 
 export function ThemeToggle() {
+  useTranslation();
   const { theme, toggleTheme } = useTheme();
-  const label = theme === 'dark' ? 'Helles Design aktivieren' : 'Dunkles Design aktivieren';
+  const label = theme === 'dark' ? t('Helles Design aktivieren') : t('Dunkles Design aktivieren');
   return (
     <button
       type="button"

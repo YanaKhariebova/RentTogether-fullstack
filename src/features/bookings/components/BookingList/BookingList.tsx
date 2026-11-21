@@ -1,3 +1,6 @@
+import { formatLocale } from '../../../../i18n/config';
+import { useTranslation } from 'react-i18next';
+import { translate as t } from '../../../../i18n/config';
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { Badge, Button, IconButton, Spinner } from '@/shared/ui/atoms';
 import { useNavigate } from '@tanstack/react-router';
@@ -36,7 +39,7 @@ function getBadgeVariant(status: BookingStatus) {
 }
 
 function formatDate(date: string) {
-  return new Intl.DateTimeFormat('de-DE', {
+  return new Intl.DateTimeFormat(formatLocale(), {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
@@ -44,13 +47,14 @@ function formatDate(date: string) {
 }
 
 function formatPrice(value: string) {
-  return new Intl.NumberFormat('de-DE', {
+  return new Intl.NumberFormat(formatLocale(), {
     style: 'currency',
     currency: 'EUR',
   }).format(Number(value));
 }
 
 export function BookingList({ view }: BookingListProps) {
+  useTranslation();
   const isRentals = view === 'rentals';
   const rentalsQuery = useMyRentalsQuery(isRentals);
   const incomingQuery = useIncomingBookingsQuery(!isRentals);
@@ -85,12 +89,12 @@ export function BookingList({ view }: BookingListProps) {
   return (
     <section className={styles.section} aria-labelledby={`${view}-title`}>
       <div className={styles.heading}>
-        <p className={styles.eyebrow}>{isRentals ? 'Als Mieterin' : 'Als Eigentümerin'}</p>
-        <h1 id={`${view}-title`}>{isRentals ? 'Meine Mieten' : 'Eingehende Anfragen'}</h1>
+        <p className={styles.eyebrow}>{isRentals ? t('Als Mieterin') : t('Als Eigentümerin')}</p>
+        <h1 id={`${view}-title`}>{isRentals ? t('Meine Mieten') : t('Eingehende Anfragen')}</h1>
       </div>
 
-      {actionError && <p role="alert">{actionError.message}</p>}
-      {notice && <p role="status">{notice}</p>}
+      {actionError && <p role="alert">{t(actionError.message)}</p>}
+      {notice && <p role="status">{t(notice ?? '')}</p>}
       <dialog
         ref={confirmation}
         className={styles.dialog}
@@ -101,16 +105,17 @@ export function BookingList({ view }: BookingListProps) {
           if (!archive.isPending) setSelected(null);
         }}
       >
-        <h2 id={dialogId + '-title'}>Anfrage aus deinem Verlauf entfernen?</h2>
+        <h2 id={dialogId + '-title'}>{t('Anfrage aus deinem Verlauf entfernen?')}</h2>
         <p id={dialogId + '-description'}>
-          „{selected?.itemTitle}“ wird nur aus deinem Verlauf und deinen zugehörigen
-          Benachrichtigungen entfernt. Für die andere Person und im Chat bleibt die Buchung
-          erhalten.
+          „{selected?.itemTitle}
+          {t(
+            '“ wird nur aus deinem Verlauf und deinen zugehörigen Benachrichtigungen entfernt. Für die andere Person und im Chat bleibt die Buchung erhalten.',
+          )}
         </p>
-        {archive.error && <p role="alert">{archive.error.message}</p>}
+        {archive.error && <p role="alert">{t(archive.error.message)}</p>}
         <div className={styles.actions}>
           <Button autoFocus disabled={archive.isPending} onClick={() => setSelected(null)}>
-            Abbrechen
+            {t('Abbrechen')}
           </Button>
           <Button
             variant="danger"
@@ -120,31 +125,31 @@ export function BookingList({ view }: BookingListProps) {
               archive.mutate(selected.id, {
                 onSuccess: () => {
                   setSelected(null);
-                  setNotice('Die Anfrage wurde aus deinem Verlauf entfernt.');
+                  setNotice(t('Die Anfrage wurde aus deinem Verlauf entfernt.'));
                 },
               });
             }}
           >
-            Aus meinem Verlauf entfernen
+            {t('Aus meinem Verlauf entfernen')}
           </Button>
         </div>
       </dialog>
 
       {(isRentals ? rentalsQuery.isPending : incomingQuery.isPending) ? (
         <div className={styles.empty}>
-          <Spinner label="Buchungen werden geladen …" />
+          <Spinner label={t('Buchungen werden geladen …')} />
         </div>
       ) : (isRentals ? rentalsQuery.isError : incomingQuery.isError) ? (
         <div className={styles.empty}>
-          <p role="alert">Buchungen konnten nicht geladen werden.</p>
+          <p role="alert">{t('Buchungen konnten nicht geladen werden.')}</p>
           <Button
             onClick={() => void (isRentals ? rentalsQuery.refetch() : incomingQuery.refetch())}
           >
-            Erneut versuchen
+            {t('Erneut versuchen')}
           </Button>
         </div>
       ) : sourceBookings.length === 0 ? (
-        <p className={styles.empty}>Noch keine Buchungen vorhanden.</p>
+        <p className={styles.empty}>{t('Noch keine Buchungen vorhanden.')}</p>
       ) : (
         <ul className={styles.list}>
           {sourceBookings.map((booking) => (
@@ -154,17 +159,17 @@ export function BookingList({ view }: BookingListProps) {
                   <h2>{booking.itemTitle}</h2>
                   <p>
                     {isRentals
-                      ? 'Vermietet über RentTogether'
-                      : `Anfrage von ${booking.renterName}`}
+                      ? t('Vermietet über RentTogether')
+                      : t('Anfrage von {{value0}}', { value0: booking.renterName })}
                   </p>
                 </div>
                 <div className={styles.statusActions}>
                   <Badge variant={getBadgeVariant(booking.status)}>
-                    {statusLabels[booking.status]}
+                    {t(statusLabels[booking.status])}
                   </Badge>
                   {['COMPLETED', 'CANCELLED', 'REJECTED'].includes(booking.status) && (
                     <IconButton
-                      label={booking.itemTitle + ': aus meinem Verlauf entfernen'}
+                      label={booking.itemTitle + t(': aus meinem Verlauf entfernen')}
                       className={styles.archiveButton}
                       disabled={archive.isPending}
                       onClick={() => {
@@ -193,17 +198,17 @@ export function BookingList({ view }: BookingListProps) {
 
               <dl className={styles.details}>
                 <div>
-                  <dt>Zeitraum</dt>
+                  <dt>{t('Zeitraum')}</dt>
                   <dd>
                     {formatDate(booking.pickupDate)} – {formatDate(booking.returnDate)}
                   </dd>
                 </div>
                 <div>
-                  <dt>Preis pro Tag</dt>
+                  <dt>{t('Preis pro Tag')}</dt>
                   <dd>{formatPrice(booking.pricePerDay)}</dd>
                 </div>
                 <div>
-                  <dt>Gesamtpreis</dt>
+                  <dt>{t('Gesamtpreis')}</dt>
                   <dd>{formatPrice(booking.totalPrice)}</dd>
                 </div>
               </dl>
@@ -220,7 +225,7 @@ export function BookingList({ view }: BookingListProps) {
                   )
                 }
               >
-                Nachrichten
+                {t('Nachrichten')}
               </Button>
 
               {isRentals && booking.status === 'PENDING' && (
@@ -229,7 +234,7 @@ export function BookingList({ view }: BookingListProps) {
                   disabled={cancelBooking.isPending}
                   onClick={() => cancelBooking.mutate({ id: booking.id, itemId: booking.itemId })}
                 >
-                  Anfrage stornieren
+                  {t('Anfrage stornieren')}
                 </Button>
               )}
 
@@ -246,7 +251,7 @@ export function BookingList({ view }: BookingListProps) {
                       })
                     }
                   >
-                    Annehmen
+                    {t('Annehmen')}
                   </Button>
                   <Button
                     variant="secondary"
@@ -259,7 +264,7 @@ export function BookingList({ view }: BookingListProps) {
                       })
                     }
                   >
-                    Ablehnen
+                    {t('Ablehnen')}
                   </Button>
                 </div>
               )}
@@ -272,7 +277,7 @@ export function BookingList({ view }: BookingListProps) {
                     ownerStatus.mutate({ id: booking.id, itemId: booking.itemId, status: 'ACTIVE' })
                   }
                 >
-                  Übergabe starten
+                  {t('Übergabe starten')}
                 </Button>
               )}
 
@@ -288,7 +293,7 @@ export function BookingList({ view }: BookingListProps) {
                     })
                   }
                 >
-                  Abschließen
+                  {t('Abschließen')}
                 </Button>
               )}
             </li>

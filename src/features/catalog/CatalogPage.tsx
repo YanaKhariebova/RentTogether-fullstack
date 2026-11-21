@@ -1,3 +1,6 @@
+import { formatLocale } from '../../i18n/config';
+import { useTranslation } from 'react-i18next';
+import { translate as t } from '../../i18n/config';
 import { useAuth } from '@clerk/react';
 import { useMemo } from 'react';
 import { Button, Input, Spinner } from '@/shared/ui/atoms';
@@ -10,6 +13,7 @@ import { useCatalogFilters } from './model/useCatalogFilters';
 import styles from './CatalogPage.module.css';
 
 export function CatalogPage() {
+  const { t: translate } = useTranslation();
   const { isLoaded, isSignedIn } = useAuth();
   const filters = useCatalogFilters();
   const {
@@ -60,21 +64,21 @@ export function CatalogPage() {
 
   const cityOptions = useMemo(
     () => [
-      { value: '', label: 'Alle Städte' },
+      { value: '', label: translate('Alle Städte') },
       ...(citiesData?.cities ?? []).map((itemCity) => ({ value: itemCity, label: itemCity })),
     ],
-    [citiesData],
+    [citiesData, translate],
   );
 
   const categoryOptions = useMemo(
     () => [
-      { value: '', label: 'Alle Kategorien' },
+      { value: '', label: translate('Alle Kategorien') },
       ...(categoriesData?.categories ?? []).map((categoryItem) => ({
         value: categoryItem.id,
-        label: categoryItem.name,
+        label: translate(categoryItem.name),
       })),
     ],
-    [categoriesData],
+    [categoriesData, translate],
   );
 
   const categories = categoryOptions.slice(1);
@@ -83,8 +87,8 @@ export function CatalogPage() {
     .slice(1)
     .filter((option) =>
       option.label
-        .toLocaleLowerCase('de-DE')
-        .includes(citySearch.trim().toLocaleLowerCase('de-DE')),
+        .toLocaleLowerCase(formatLocale())
+        .includes(citySearch.trim().toLocaleLowerCase(formatLocale())),
     );
   const visibleCities = areCitiesExpanded ? matchingCities : matchingCities.slice(0, 4);
 
@@ -96,7 +100,7 @@ export function CatalogPage() {
     <section className={styles.page}>
       <section className={styles.section} aria-labelledby="catalog-title">
         <h1 id="catalog-title" className={styles.title}>
-          Entdecken
+          {t('Entdecken')}
         </h1>
 
         <div className={styles.filterPanel}>
@@ -107,8 +111,8 @@ export function CatalogPage() {
             </svg>
             <input
               type="search"
-              aria-label="Wonach suchst du?"
-              placeholder="Wonach suchst du?"
+              aria-label={t('Wonach suchst du?')}
+              placeholder={t('Wonach suchst du?')}
               value={search}
               onChange={(event) => changeFilter(setSearch, event.target.value)}
             />
@@ -117,7 +121,7 @@ export function CatalogPage() {
           <button
             type="button"
             className={styles.filterToggle}
-            aria-label="Filter anzeigen"
+            aria-label={t('Filter anzeigen')}
             aria-expanded={areFiltersOpen}
             onClick={() => setAreFiltersOpen((isOpen) => !isOpen)}
           >
@@ -131,7 +135,7 @@ export function CatalogPage() {
 
           <div className={`${styles.filterControls} ${areFiltersOpen ? styles.filtersOpen : ''}`}>
             <label className={styles.selectField}>
-              <span className={styles.srOnly}>Kategorie</span>
+              <span className={styles.srOnly}>{t('Kategorie')}</span>
               <select
                 value={category}
                 onChange={(event) => changeFilter(setCategory, event.target.value)}
@@ -148,7 +152,7 @@ export function CatalogPage() {
             </label>
 
             <label className={styles.selectField}>
-              <span className={styles.srOnly}>Stadt</span>
+              <span className={styles.srOnly}>{t('Stadt')}</span>
               <select value={city} onChange={(event) => changeFilter(setCity, event.target.value)}>
                 {cityOptions.map((option) => (
                   <option key={option.value} value={option.value}>
@@ -163,7 +167,7 @@ export function CatalogPage() {
 
             <div className={styles.mobilePriceRange}>
               <label>
-                <span>Min. Preis (€)</span>
+                <span>{t('Min. Preis (€)')}</span>
                 <input
                   type="number"
                   inputMode="decimal"
@@ -175,13 +179,13 @@ export function CatalogPage() {
                 />
               </label>
               <label>
-                <span>Max. Preis (€)</span>
+                <span>{t('Max. Preis (€)')}</span>
                 <input
                   type="number"
                   inputMode="decimal"
                   min="0"
                   step="0.01"
-                  placeholder="Beliebig"
+                  placeholder={t('Beliebig')}
                   value={maxPrice}
                   onChange={(event) => changeFilter(setMaxPrice, event.target.value)}
                 />
@@ -192,7 +196,7 @@ export function CatalogPage() {
           <button
             type="button"
             className={styles.searchButton}
-            aria-label="Suche ausführen"
+            aria-label={t('Suche ausführen')}
             onClick={() => {
               setCurrentPage(1);
               if (!priceError) void refetch();
@@ -207,13 +211,13 @@ export function CatalogPage() {
 
         <p className={styles.resultCount} aria-live="polite">
           {catalogData?.pagination.total ?? 0}{' '}
-          {catalogData?.pagination.total === 1 ? 'Anzeige' : 'Anzeigen'} gefunden
+          {catalogData?.pagination.total === 1 ? t('Anzeige') : t('Anzeigen')} gefunden
         </p>
 
         <div className={styles.catalogLayout}>
-          <aside className={styles.sidebar} aria-label="Katalogfilter">
+          <aside className={styles.sidebar} aria-label={t('Katalogfilter')}>
             <section className={styles.filterGroup}>
-              <h2>Kategorie</h2>
+              <h2>{t('Kategorie')}</h2>
               <div id="catalog-category-list" className={styles.categoryList}>
                 <button
                   type="button"
@@ -221,7 +225,7 @@ export function CatalogPage() {
                   aria-pressed={!category}
                   onClick={() => changeFilter(setCategory, '')}
                 >
-                  Alle Kategorien
+                  {t('Alle Kategorien')}
                 </button>
                 {visibleCategories.map((option) => (
                   <button
@@ -243,21 +247,21 @@ export function CatalogPage() {
                   className={styles.expandButton}
                   aria-label={
                     areCategoriesExpanded
-                      ? 'Weniger Kategorien anzeigen'
-                      : 'Alle Kategorien anzeigen'
+                      ? t('Weniger Kategorien anzeigen')
+                      : t('Alle Kategorien anzeigen')
                   }
                   aria-expanded={areCategoriesExpanded}
                   aria-controls="catalog-category-list"
                   onClick={() => setAreCategoriesExpanded((expanded) => !expanded)}
                 >
-                  {areCategoriesExpanded ? 'Weniger anzeigen' : 'Alle anzeigen'}
+                  {areCategoriesExpanded ? t('Weniger anzeigen') : t('Alle anzeigen')}
                   <span aria-hidden="true">{areCategoriesExpanded ? '−' : '+'}</span>
                 </Button>
               )}
             </section>
 
             <section className={styles.filterGroup}>
-              <h2>Stadt</h2>
+              <h2>{t('Stadt')}</h2>
               <div className={styles.cityList}>
                 <button
                   type="button"
@@ -265,13 +269,13 @@ export function CatalogPage() {
                   aria-pressed={!city}
                   onClick={() => changeFilter(setCity, '')}
                 >
-                  Alle Städte
+                  {t('Alle Städte')}
                 </button>
                 <div className={styles.citySearch}>
                   <Input
                     type="search"
-                    label="Stadt suchen"
-                    placeholder="Stadt eingeben …"
+                    label={t('Stadt suchen')}
+                    placeholder={t('Stadt eingeben …')}
                     value={citySearch}
                     disabled={!citiesData}
                     onChange={(event) => {
@@ -294,20 +298,20 @@ export function CatalogPage() {
                   ))}
                   {areCitiesLoading ? (
                     <p className={styles.noCities} role="status">
-                      Städte werden geladen …
+                      {t('Städte werden geladen …')}
                     </p>
                   ) : citiesFailed ? (
                     <div>
                       <p className={styles.noCities} role="alert">
-                        Städte konnten nicht geladen werden.
+                        {t('Städte konnten nicht geladen werden.')}
                       </p>
                       <Button variant="secondary" onClick={() => void reloadCities()}>
-                        Städte erneut laden
+                        {t('Städte erneut laden')}
                       </Button>
                     </div>
                   ) : matchingCities.length === 0 ? (
                     <p className={styles.noCities} role="status">
-                      Keine Stadt gefunden.
+                      {t('Keine Stadt gefunden.')}
                     </p>
                   ) : null}
                 </div>
@@ -317,23 +321,23 @@ export function CatalogPage() {
                   variant="secondary"
                   className={styles.expandButton}
                   aria-label={
-                    areCitiesExpanded ? 'Weniger Städte anzeigen' : 'Alle Städte anzeigen'
+                    areCitiesExpanded ? t('Weniger Städte anzeigen') : t('Alle Städte anzeigen')
                   }
                   aria-expanded={areCitiesExpanded}
                   aria-controls="catalog-city-list"
                   onClick={() => setAreCitiesExpanded((expanded) => !expanded)}
                 >
-                  {areCitiesExpanded ? 'Weniger anzeigen' : 'Alle anzeigen'}
+                  {areCitiesExpanded ? t('Weniger anzeigen') : t('Alle anzeigen')}
                   <span aria-hidden="true">{areCitiesExpanded ? '−' : '+'}</span>
                 </Button>
               )}
             </section>
 
             <section className={styles.filterGroup}>
-              <h2>Preis pro Tag</h2>
+              <h2>{t('Preis pro Tag')}</h2>
               <div className={styles.sidebarPriceRange}>
                 <label>
-                  <span>Min. Preis (€)</span>
+                  <span>{t('Min. Preis (€)')}</span>
                   <input
                     type="number"
                     inputMode="decimal"
@@ -345,13 +349,13 @@ export function CatalogPage() {
                   />
                 </label>
                 <label>
-                  <span>Max. Preis (€)</span>
+                  <span>{t('Max. Preis (€)')}</span>
                   <input
                     type="number"
                     inputMode="decimal"
                     min="0"
                     step="0.01"
-                    placeholder="Beliebig"
+                    placeholder={t('Beliebig')}
                     value={maxPrice}
                     onChange={(event) => changeFilter(setMaxPrice, event.target.value)}
                   />
@@ -363,25 +367,25 @@ export function CatalogPage() {
           <div>
             {favoriteMutation.isError && (
               <p role="alert">
-                Favoriten konnten nicht gespeichert werden. Bitte versuche es erneut.
+                {t('Favoriten konnten nicht gespeichert werden. Bitte versuche es erneut.')}
               </p>
             )}
             {priceError ? (
               <p className={styles.empty} role="alert">
-                {priceError}
+                {t(priceError ?? '')}
               </p>
             ) : isPending ? (
               <div className={styles.empty}>
-                <Spinner label="Anzeigen werden geladen …" />
+                <Spinner label={t('Anzeigen werden geladen …')} />
               </div>
             ) : isError ? (
               <div className={styles.empty} role="alert">
                 <p>
                   {error instanceof Error
                     ? error.message
-                    : 'Anzeigen konnten nicht geladen werden.'}
+                    : t('Anzeigen konnten nicht geladen werden.')}
                 </p>
-                <Button onClick={() => void refetch()}>Erneut versuchen</Button>
+                <Button onClick={() => void refetch()}>{t('Erneut versuchen')}</Button>
               </div>
             ) : items.length > 0 ? (
               <>
@@ -399,13 +403,13 @@ export function CatalogPage() {
                 />
 
                 {totalPages > 1 && (
-                  <nav className={styles.pagination} aria-label="Seitennavigation">
+                  <nav className={styles.pagination} aria-label={t('Seitennavigation')}>
                     <Button
                       variant="secondary"
                       disabled={activePage === 1}
                       onClick={() => setCurrentPage((page) => page - 1)}
                     >
-                      Zurück
+                      {t('Zurück')}
                     </Button>
                     <div className={styles.pageNumbers}>
                       {Array.from({ length: totalPages }, (_, index) => index + 1).map((page) => (
@@ -413,7 +417,7 @@ export function CatalogPage() {
                           key={page}
                           type="button"
                           className={page === activePage ? styles.currentPage : ''}
-                          aria-label={`Seite ${page}`}
+                          aria-label={t('Seite {{value0}}', { value0: page })}
                           aria-current={page === activePage ? 'page' : undefined}
                           onClick={() => setCurrentPage(page)}
                         >
@@ -426,13 +430,13 @@ export function CatalogPage() {
                       disabled={activePage === totalPages}
                       onClick={() => setCurrentPage((page) => page + 1)}
                     >
-                      Weiter
+                      {t('Weiter')}
                     </Button>
                   </nav>
                 )}
               </>
             ) : (
-              <p className={styles.empty}>Keine passenden Anzeigen gefunden.</p>
+              <p className={styles.empty}>{t('Keine passenden Anzeigen gefunden.')}</p>
             )}
           </div>
         </div>

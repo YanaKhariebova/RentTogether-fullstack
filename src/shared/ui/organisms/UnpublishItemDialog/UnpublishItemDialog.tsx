@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next';
+import { translate as t } from '../../../../i18n/config';
 import { Button } from '@/shared/ui/atoms';
 import { useEffect, useId, useRef } from 'react';
 import styles from './UnpublishItemDialog.module.css';
@@ -19,6 +21,7 @@ export function UnpublishItemDialog({
   busy = false,
   error,
 }: UnpublishItemDialogProps) {
+  useTranslation();
   const dialog = useRef<HTMLDialogElement>(null);
   const id = useId();
   useEffect(() => {
@@ -38,17 +41,23 @@ export function UnpublishItemDialog({
       }}
     >
       <h2 id={`${id}-title`}>
-        {action === 'delete' ? 'Anzeige endgültig löschen?' : 'Anzeige ausblenden?'}
+        {action === 'delete' ? t('Anzeige endgültig löschen?') : t('Anzeige ausblenden?')}
       </h2>
       <p id={`${id}-description`}>
         {action === 'delete'
-          ? `„${item?.title}“ und die Fotos werden endgültig gelöscht. Das kann nicht rückgängig gemacht werden. Anzeigen mit Anfragen bleiben zum Schutz der Buchungshistorie erhalten.`
-          : `„${item?.title}“ wird nicht mehr im Katalog angezeigt. Deine Anzeige bleibt in „Meine Anzeigen“ erhalten.`}
+          ? t(
+              '„{{value0}}“ und die Fotos werden endgültig gelöscht. Das kann nicht rückgängig gemacht werden. Anzeigen mit Anfragen bleiben zum Schutz der Buchungshistorie erhalten.',
+              { value0: item?.title },
+            )
+          : t(
+              '„{{value0}}“ wird nicht mehr im Katalog angezeigt. Deine Anzeige bleibt in „Meine Anzeigen“ erhalten.',
+              { value0: item?.title },
+            )}
       </p>
       {error && <p role="alert">{error}</p>}
       <div className={styles.actions}>
         <Button type="button" disabled={busy} autoFocus onClick={onCancel}>
-          Abbrechen
+          {t('Abbrechen')}
         </Button>
         <Button
           type="button"
@@ -58,7 +67,7 @@ export function UnpublishItemDialog({
             if (item) void onConfirm(item.id);
           }}
         >
-          {action === 'delete' ? 'Endgültig löschen' : 'Ausblenden'}
+          {action === 'delete' ? t('Endgültig löschen') : t('Ausblenden')}
         </Button>
       </div>
     </dialog>

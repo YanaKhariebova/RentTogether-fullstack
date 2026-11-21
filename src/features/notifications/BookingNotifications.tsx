@@ -1,3 +1,6 @@
+import { formatLocale } from '../../i18n/config';
+import { useTranslation } from 'react-i18next';
+import { translate as t } from '../../i18n/config';
 import { Link } from '@tanstack/react-router';
 import { Button, Spinner } from '@/shared/ui/atoms';
 import { ApiError } from '@/shared/api/client';
@@ -11,6 +14,7 @@ import type { BookingNotification } from './types';
 import styles from './BookingNotifications.module.css';
 
 export function BookingNotifications() {
+  useTranslation();
   const query = useBookingNotifications();
   const count = useBookingNotificationCount();
   const read = useReadBookingNotification();
@@ -77,39 +81,39 @@ export function BookingNotificationsView({
   onRead,
   onLoadMore,
 }: Props) {
+  useTranslation();
   return (
     <section className={styles.section} aria-labelledby="booking-notifications-title">
       <div className={styles.heading}>
         <div>
-          <p className={styles.eyebrow}>Immer auf dem Laufenden</p>
-          <h2 id="booking-notifications-title">Benachrichtigungen</h2>
+          <p className={styles.eyebrow}>{t('Immer auf dem Laufenden')}</p>
+          <h2 id="booking-notifications-title">{t('Benachrichtigungen')}</h2>
         </div>
         <Button variant="secondary" onClick={onRetry}>
-          Aktualisieren
+          {t('Aktualisieren')}
         </Button>
       </div>
       <p className={styles.intro}>
-        Neue Anfragen und Neuigkeiten zu deinen Mieten findest du hier.
+        {t('Neue Anfragen und Neuigkeiten zu deinen Mieten findest du hier.')}
       </p>
       {typeof unreadCount === 'number' && (
         <p className={styles.count} role="status">
-          {unreadCount === 0
-            ? 'Alles gelesen.'
-            : `${unreadCount} ungelesene ${unreadCount === 1 ? 'Benachrichtigung' : 'Benachrichtigungen'}`}
+          {unreadCount === 0 ? t('Alles gelesen.') : t('unreadCount', { count: unreadCount })}
         </p>
       )}
       {readError && (
         <p role="alert">
-          Der Lesestatus konnte nicht gespeichert werden. Bitte versuche es erneut.
+          {t('Der Lesestatus konnte nicht gespeichert werden. Bitte versuche es erneut.')}
         </p>
       )}
       {loading ? (
-        <Spinner label="Benachrichtigungen werden geladen …" />
+        <Spinner label={t('Benachrichtigungen werden geladen …')} />
       ) : unavailable ? (
         <div className={styles.empty}>
           <p>
-            Benachrichtigungen werden gerade eingerichtet. Deine Buchungen findest du weiterhin
-            unter „Meine Mieten“ und „Eingehende Anfragen“.
+            {t(
+              'Benachrichtigungen werden gerade eingerichtet. Deine Buchungen findest du weiterhin unter „Meine Mieten“ und „Eingehende Anfragen“.',
+            )}
           </p>
         </div>
       ) : (
@@ -117,20 +121,22 @@ export function BookingNotificationsView({
           {error && (
             <div className={styles.empty} role="alert">
               <p>
-                Benachrichtigungen konnten nicht aktualisiert werden. Bereits geladene Einträge
-                bleiben sichtbar.
+                {t(
+                  'Benachrichtigungen konnten nicht aktualisiert werden. Bereits geladene Einträge bleiben sichtbar.',
+                )}
               </p>
               <Button variant="secondary" onClick={onRetry}>
-                Erneut versuchen
+                {t('Erneut versuchen')}
               </Button>
             </div>
           )}
           {!error && notifications.length === 0 && (
             <div className={styles.empty}>
-              <h3>Du bist auf dem neuesten Stand</h3>
+              <h3>{t('Du bist auf dem neuesten Stand')}</h3>
               <p>
-                Sobald es eine neue Anfrage oder eine Änderung deiner Miete gibt, erscheint sie
-                hier.
+                {t(
+                  'Sobald es eine neue Anfrage oder eine Änderung deiner Miete gibt, erscheint sie hier.',
+                )}
               </p>
             </div>
           )}
@@ -145,13 +151,13 @@ export function BookingNotificationsView({
                     className={`${styles.card} ${unread ? styles.unread : ''}`}
                   >
                     <div className={styles.cardHeading}>
-                      <h3>{text.title}</h3>
-                      {unread && <span className={styles.new}>Neu</span>}
+                      <h3>{t(text.title)}</h3>
+                      {unread && <span className={styles.new}>{t('Neu')}</span>}
                     </div>
                     <p className={styles.itemTitle}>{notification.itemTitle}</p>
-                    <p>{text.body}</p>
+                    <p>{t(text.body)}</p>
                     <time dateTime={notification.createdAt}>
-                      {new Intl.DateTimeFormat('de-DE', {
+                      {new Intl.DateTimeFormat(formatLocale(), {
                         dateStyle: 'medium',
                         timeStyle: 'short',
                       }).format(new Date(notification.createdAt))}
@@ -164,7 +170,7 @@ export function BookingNotificationsView({
                           if (unread) onRead([notification.id]);
                         }}
                       >
-                        Anfrage öffnen →
+                        {t('Anfrage öffnen →')}
                       </Link>
                       {unread && (
                         <Button
@@ -172,9 +178,11 @@ export function BookingNotificationsView({
                           loading={readingId === notification.id}
                           disabled={!!readingId}
                           onClick={() => onRead([notification.id])}
-                          aria-label={`${text.title}: als gelesen markieren`}
+                          aria-label={t('{{value0}}: als gelesen markieren', {
+                            value0: t(text.title),
+                          })}
                         >
-                          Als gelesen markieren
+                          {t('Als gelesen markieren')}
                         </Button>
                       )}
                     </div>
@@ -185,7 +193,7 @@ export function BookingNotificationsView({
           )}
           {hasMore && (
             <Button variant="secondary" loading={loadingMore} onClick={onLoadMore}>
-              Weitere Benachrichtigungen
+              {t('Weitere Benachrichtigungen')}
             </Button>
           )}
         </>

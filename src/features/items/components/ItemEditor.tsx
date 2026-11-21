@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next';
+import { translate as t } from '../../../i18n/config';
 import { Button } from '@/shared/ui/atoms';
 import { useRef, useState } from 'react';
 import { useItemForm } from '../hooks/useItemForm';
@@ -26,6 +28,7 @@ export function ItemEditor({
   onSave,
   onCancel,
 }: ItemEditorProps) {
+  useTranslation();
   const saving = useRef(false);
   const [isSaving, setIsSaving] = useState(false);
   const [preview, setPreview] = useState<ValidatedItemForm | null>(null);
@@ -48,17 +51,20 @@ export function ItemEditor({
     <section className={styles.page} aria-labelledby="item-editor-title">
       <header>
         <Button className={styles.back} type="button" disabled={isSaving} onClick={onCancel}>
-          ← Meine Anzeigen
+          {t('← Meine Anzeigen')}
         </Button>
         <h1 id="item-editor-title" className={styles.title}>
-          {item ? 'Anzeige bearbeiten' : 'Neue Anzeige'}
+          {item ? t('Anzeige bearbeiten') : t('Neue Anzeige')}
         </h1>
         <p>
-          {item ? 'Passe die Angaben und Fotos deiner Anzeige an.' : 'Was möchtest du verleihen?'}
+          {item
+            ? t('Passe die Angaben und Fotos deiner Anzeige an.')
+            : t('Was möchtest du verleihen?')}
         </p>
         <p className={styles.notice}>
-          Prüfe deine Vorschau und speichere danach deine Anzeige. Neue Anzeigen werden als Entwurf
-          gespeichert.
+          {t(
+            'Prüfe deine Vorschau und speichere danach deine Anzeige. Neue Anzeigen werden als Entwurf gespeichert.',
+          )}
         </p>
       </header>
       <ItemForm
@@ -104,20 +110,22 @@ export function ItemEditor({
       />
       {preview && payload && (
         <section className={styles.preview} aria-labelledby="preview-title">
-          <p role="status">Hier ist deine Vorschau. Prüfe die Angaben vor dem Speichern.</p>
+          <p role="status">{t('Hier ist deine Vorschau. Prüfe die Angaben vor dem Speichern.')}</p>
           {form.images[0] && (
             <img className={styles.cover} src={form.images[0].url} alt={payload.title} />
           )}
           <h2 id="preview-title">{payload.title}</h2>
           <p className={styles.description}>{payload.description}</p>
           <dl className={styles.details}>
-            <dt>Ort</dt>
+            <dt>{t('Ort')}</dt>
             <dd>{payload.city}</dd>
-            <dt>Kategorie</dt>
-            <dd>{categories.find((category) => category.id === payload.categoryId)?.name}</dd>
-            <dt>Preis pro Tag</dt>
+            <dt>{t('Kategorie')}</dt>
+            <dd>
+              {t(categories.find((category) => category.id === payload.categoryId)?.name ?? '')}
+            </dd>
+            <dt>{t('Preis pro Tag')}</dt>
             <dd>{payload.pricePerDay.replace('.', ',')} €</dd>
-            <dt>Fotos</dt>
+            <dt>{t('Fotos')}</dt>
             <dd>{preview.images.length}</dd>
           </dl>
           {saveError && <p role="alert">{saveError}</p>}
@@ -145,7 +153,7 @@ export function ItemEditor({
               }
             }}
           >
-            {item ? 'Änderungen speichern' : 'Anzeige speichern'}
+            {item ? t('Änderungen speichern') : t('Anzeige speichern')}
           </Button>
         </section>
       )}

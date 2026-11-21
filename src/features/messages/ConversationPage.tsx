@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next';
+import { translate as t } from '../../i18n/config';
 import { Link, useParams } from '@tanstack/react-router';
 import { useEffect, useRef, useState } from 'react';
 import { Button, Spinner } from '@/shared/ui/atoms';
@@ -21,6 +23,7 @@ function isUnavailable(error: Error | null) {
 }
 
 export function ConversationPage() {
+  useTranslation();
   const { conversationId } = useParams({ from: '/account/messages/$conversationId' });
   const currentUser = useCurrentUser();
   const conversations = useConversationsQuery();
@@ -52,7 +55,7 @@ export function ConversationPage() {
   }, [currentUserId, conversationId, latestUnreadIncomingId, isMarkingRead, markConversationRead]);
 
   if ((!messages.data && messages.isPending) || (!currentUser.data && currentUser.isPending)) {
-    return <Spinner label="Chat wird geladen …" />;
+    return <Spinner label={t('Chat wird geladen …')} />;
   }
   function retryChat() {
     void messages.refetch();
@@ -67,39 +70,41 @@ export function ConversationPage() {
   ) {
     return (
       <section className={styles.page}>
-        <p role="alert">Der Chat konnte nicht geladen werden.</p>
-        <Button onClick={retryChat}>Erneut versuchen</Button>
+        <p role="alert">{t('Der Chat konnte nicht geladen werden.')}</p>
+        <Button onClick={retryChat}>{t('Erneut versuchen')}</Button>
       </section>
     );
   }
 
   return (
     <section className={styles.page} aria-labelledby="conversation-title">
-      <Link to="/account/messages">← Alle Nachrichten</Link>
+      <Link to="/account/messages">{t('← Alle Nachrichten')}</Link>
       <header className={styles.heading}>
         <p>
           {conversation?.kind === 'ITEM_INQUIRY'
-            ? 'Frage zum Artikel'
+            ? t('Frage zum Artikel')
             : conversation
-              ? 'Chat zur Buchung'
-              : 'Nachrichten'}
+              ? t('Chat zur Buchung')
+              : t('Nachrichten')}
         </p>
         <h1 id="conversation-title">
           {conversation
             ? `${conversation.itemTitle} · ${conversation.otherParticipantName}`
-            : 'Nachrichten'}
+            : t('Nachrichten')}
         </h1>
       </header>
       {(messages.isError || currentUser.isError) && (
         <div role="alert">
-          <p>Der Chat konnte nicht aktualisiert werden. Der bisherige Verlauf bleibt sichtbar.</p>
-          <Button onClick={retryChat}>Erneut versuchen</Button>
+          <p>
+            {t('Der Chat konnte nicht aktualisiert werden. Der bisherige Verlauf bleibt sichtbar.')}
+          </p>
+          <Button onClick={retryChat}>{t('Erneut versuchen')}</Button>
         </div>
       )}
       <MessageThread
         currentUserId={currentUser.data.user.id}
         currentUserName={currentUser.data.user.name}
-        otherParticipantName={conversation?.otherParticipantName ?? 'Kontakt'}
+        otherParticipantName={conversation?.otherParticipantName ?? t('Kontakt')}
         otherParticipantAvatarUrl={conversation?.otherParticipantAvatarUrl ?? null}
         messages={[...messages.data.messages].reverse()}
         onReply={setReplyTo}

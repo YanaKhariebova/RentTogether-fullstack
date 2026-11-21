@@ -6,6 +6,7 @@ export default defineConfig({
   workers: 1,
   retries: 0,
   use: {
+    locale: 'de-DE',
     baseURL: 'http://127.0.0.1:4193',
     channel: process.env.PLAYWRIGHT_CHANNEL ?? 'chrome',
     screenshot: 'only-on-failure',

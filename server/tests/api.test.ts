@@ -14,6 +14,7 @@ const user: User = {
   city: 'Berlin',
   email: 'vlad@example.test',
   phone: '',
+  preferredLocale: null,
   avatarUrl: '',
   role: 'USER',
   createdAt: new Date(),
@@ -104,6 +105,7 @@ test('current user response excludes Clerk ID and internal timestamps', async ()
       phone: '',
       avatarUrl: '',
       role: 'USER',
+      preferredLocale: null,
     },
   });
 });
