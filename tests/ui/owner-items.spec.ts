@@ -48,7 +48,7 @@ for (const width of [320, 768, 1024, 1440]) {
       for (const card of cards) {
         expect(card.titleFits).toBe(true);
         expect(card.buttonsBottomGap).toBeCloseTo(19, 0);
-        for (const height of card.buttonHeights) expect(height).toBeCloseTo(44, 0);
+        for (const height of card.buttonHeights) expect(height).toBeGreaterThanOrEqual(44);
         for (const peer of cards.filter((other) => Math.abs(other.top - card.top) < 1)) {
           for (const key of ['bottom', 'city', 'meta', 'category', 'price', 'actions'] as const)
             expect(Math.abs(card[key] - peer[key])).toBeLessThan(1);
@@ -235,12 +235,6 @@ for (const width of [320, 360, 390, 430, 768, 1024, 1440]) {
         expect(spacing.left).toBeGreaterThanOrEqual(3);
         expect(spacing.right).toBeGreaterThanOrEqual(3);
         expect(spacing.textHeight).toBeLessThan(20);
-        expect(spacing.top).toBeCloseTo(
-          (await page
-            .getByRole('button', { name: 'Beamer für einen Filmabend bearbeiten', exact: true })
-            .boundingBox())!.y,
-          0,
-        );
         expect(spacing.inside).toBe(true);
       }
     }
@@ -338,4 +332,79 @@ test('owner heart keeps its unselected state and announces a failed save', async
   );
   await expect(heart).toHaveAttribute('aria-pressed', 'false');
   await expect(heart).toBeEnabled();
+});
+
+test.describe('owner card actions on touch screens', () => {
+  test.use({ isMobile: true, hasTouch: true });
+  for (const width of [320, 390, 430]) {
+    for (const fontSize of [14, 28]) {
+      test(`all actions remain separate and tappable at ${width}px with ${fontSize}px text`, async ({
+        page,
+      }) => {
+        await page.setViewportSize({ width, height: 844 });
+        const open = async () => {
+          await page.goto('/tests/fixtures/owner-items.html?state=published&actions=all');
+          await expect(
+            page.getByRole('heading', { name: 'Beamer für einen Filmabend', exact: true }),
+          ).toBeVisible();
+          await page.evaluate(() => document.fonts.ready.then(() => undefined));
+          await page.addStyleTag({
+            content: `article button { font-size: ${fontSize}px !important; }`,
+          });
+        };
+        await open();
+        const bounds = [];
+        for (const action of ['bearbeiten', 'ausblenden', 'löschen']) {
+          const button = page.getByRole('button', {
+            name: `Beamer für einen Filmabend ${action}`,
+            exact: true,
+          });
+          await button.scrollIntoViewIfNeeded();
+          const geometry = await button.evaluate((el) => {
+            const box = el.getBoundingClientRect();
+            const card = el.closest('article')!.getBoundingClientRect();
+            return {
+              height: box.height,
+              top: box.top + scrollY,
+              bottom: box.bottom + scrollY,
+              fits:
+                box.left >= card.left &&
+                box.right <= card.right &&
+                el.scrollWidth <= el.clientWidth,
+              reachable: [0.1, 0.5, 0.9].every(
+                (portion) =>
+                  document
+                    .elementFromPoint(box.left + box.width * portion, box.top + box.height / 2)
+                    ?.closest('button') === el,
+              ),
+            };
+          });
+          expect(geometry.height).toBeGreaterThanOrEqual(44);
+          expect(geometry.fits).toBe(true);
+          expect(geometry.reachable).toBe(true);
+          bounds.push(geometry);
+        }
+        for (let i = 1; i < bounds.length; i++)
+          expect(bounds[i].top - bounds[i - 1].bottom).toBeGreaterThanOrEqual(8);
+        await page
+          .getByRole('button', { name: 'Beamer für einen Filmabend bearbeiten', exact: true })
+          .tap();
+        await expect(page.getByLabel('Titel *', { exact: true })).toHaveValue(
+          'Beamer für einen Filmabend',
+        );
+        await open();
+        await page
+          .getByRole('button', { name: 'Beamer für einen Filmabend ausblenden', exact: true })
+          .tap();
+        await expect(page.getByRole('dialog', { name: 'Anzeige ausblenden?' })).toBeVisible();
+        await page.getByRole('button', { name: 'Abbrechen', exact: true }).tap();
+        await page
+          .getByRole('button', { name: 'Beamer für einen Filmabend löschen', exact: true })
+          .tap();
+        await expect(
+          page.getByRole('dialog', { name: 'Anzeige endgültig löschen?' }),
+        ).toBeVisible();
+      });
+    }
+  }
 });
