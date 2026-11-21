@@ -589,5 +589,7 @@
   "resultsCount_many": "{{count}} Anzeigen gefunden",
   "unreadMessages_many": "{{count}} ungelesen",
   "resultsCount_other": "{{count}} Anzeigen gefunden",
-  "unreadMessages_other": "{{count}} ungelesen"
+  "unreadMessages_other": "{{count}} ungelesen",
+  "Sprachauswahl schließen": "Sprachauswahl schließen",
+  "Wähle die Sprache für RentTogether.": "Wähle die Sprache für RentTogether."
 }

@@ -66,7 +66,36 @@ async function api(page: Page) {
   });
   return state;
 }
-const picker = (page: Page) => page.locator('header').getByRole('combobox');
+const picker = (page: Page) =>
+  page.locator('button[data-language]').filter({ visible: true }).first();
+const names: Record<string, string> = {
+  de: 'Deutsch',
+  en: 'English',
+  uk: 'Українська',
+  ru: 'Русский',
+};
+async function chooseLanguage(page: Page, language: string) {
+  await picker(page).click();
+  const dialog = page
+    .getByRole('dialog')
+    .filter({ has: page.locator('button[lang][aria-pressed]') });
+  await expect(dialog).toBeVisible();
+  expect(
+    await dialog.evaluate((element) => {
+      const rect = element.getBoundingClientRect();
+      return (
+        rect.left >= 0 && rect.right <= innerWidth && rect.top >= 0 && rect.bottom <= innerHeight
+      );
+    }),
+  ).toBe(true);
+  if (language === 'de' && test.info().title.includes('fit')) {
+    const path = test.info().outputPath(`language-picker-${test.info().attachments.length}.png`);
+    await dialog.screenshot({ path });
+    await test.info().attach('language-picker', { path, contentType: 'image/png' });
+  }
+  await dialog.getByRole('button', { name: names[language], exact: true }).click();
+  await expect(dialog).not.toBeVisible();
+}
 const open = (page: Page, account = 'guest') =>
   page.goto('/tests/i18n/index.html?account=' + account);
 
@@ -76,14 +105,14 @@ test('guest choice translates immediately, preserves a draft, persists after rel
   const state = await api(page);
   await open(page);
   await page.getByLabel('Test draft').fill('Mein Entwurf / мой текст');
-  await picker(page).selectOption('en');
+  await chooseLanguage(page, 'en');
   await expect(
     page.getByRole('heading', { name: 'Rent what you need. Share what you have.' }),
   ).toBeVisible();
   await expect(page.locator('html')).toHaveAttribute('lang', 'en');
   await expect(page.getByLabel('Test draft')).toHaveValue('Mein Entwurf / мой текст');
   await page.reload();
-  await expect(picker(page)).toHaveValue('en');
+  await expect(picker(page)).toHaveAttribute('data-language', 'en');
   expect(state.writes).toEqual([]);
 });
 test('browser language is used initially; unsupported browser languages fall back to German', async ({
@@ -98,7 +127,7 @@ test('browser language is used initially; unsupported browser languages fall bac
       const page = await context.newPage();
       await api(page);
       await open(page);
-      await expect(picker(page)).toHaveValue(expected);
+      await expect(picker(page)).toHaveAttribute('data-language', expected);
     } finally {
       await context.close();
     }
@@ -111,8 +140,8 @@ test('account preference overrides device choice and selected language survives 
   const state = await api(page);
   await page.addInitScript(() => localStorage.setItem('renttogether-language', 'en'));
   await open(page, 'owner');
-  await expect(picker(page)).toHaveValue('ru');
-  await picker(page).selectOption('uk');
+  await expect(picker(page)).toHaveAttribute('data-language', 'ru');
+  await chooseLanguage(page, 'uk');
   await expect.poll(() => state.accounts.owner.preferredLocale).toBe('uk');
   expect(state.writes).toEqual([{ account: 'owner', preferredLocale: 'uk' }]);
   // A new browser context has no device storage; use the same persisted server preference.
@@ -122,7 +151,7 @@ test('account preference overrides device choice and selected language survives 
     const second = await api(device);
     second.accounts.owner.preferredLocale = state.accounts.owner.preferredLocale;
     await open(device, 'owner');
-    await expect(picker(device)).toHaveValue('uk');
+    await expect(picker(device)).toHaveAttribute('data-language', 'uk');
   } finally {
     await context.close();
   }
@@ -132,12 +161,12 @@ test('switching accounts loads that account language and never saves the previou
 }) => {
   const state = await api(page);
   await open(page, 'owner');
-  await expect(picker(page)).toHaveValue('ru');
+  await expect(picker(page)).toHaveAttribute('data-language', 'ru');
   await page.evaluate(() => {
     (window as unknown as { languageTestAccount: string }).languageTestAccount = 'other';
     window.dispatchEvent(new Event('language-test-account'));
   });
-  await expect(picker(page)).toHaveValue('uk');
+  await expect(picker(page)).toHaveAttribute('data-language', 'uk');
   expect(state.writes).toEqual([]);
 });
 test('a failed profile save keeps the device language, shows an error and offers an explicit retry', async ({
@@ -145,11 +174,11 @@ test('a failed profile save keeps the device language, shows an error and offers
 }) => {
   const state = await api(page);
   await open(page, 'owner');
-  await expect(picker(page)).toHaveValue('ru');
+  await expect(picker(page)).toHaveAttribute('data-language', 'ru');
   state.saveFails = true;
-  await picker(page).selectOption('en');
+  await chooseLanguage(page, 'en');
   await expect(page.getByRole('alert')).toContainText('could not be saved to your account');
-  await expect(picker(page)).toHaveValue('en');
+  await expect(picker(page)).toHaveAttribute('data-language', 'en');
   expect(state.accounts.owner.preferredLocale).toBe('ru');
   state.saveFails = false;
   await page.getByRole('button', { name: 'Try again', exact: true }).click();
@@ -161,7 +190,7 @@ test('category labels translate while the API filter still receives the category
 }) => {
   await api(page);
   await open(page);
-  await picker(page).selectOption('en');
+  await chooseLanguage(page, 'en');
   await page.locator('header').getByRole('link', { name: 'Explore', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Explore', exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Tools', exact: true })).toBeVisible();
@@ -182,22 +211,15 @@ for (const width of [320, 390, 768, 1024, 1440]) {
       for (const language of ['de', 'en', 'uk', 'ru']) {
         if (width < 1024) {
           // Keep a stable selector while the accessible menu label changes language.
-          await page.locator('header button[aria-haspopup="dialog"]').click();
+          await page.locator('header button[aria-haspopup="dialog"]:not([data-language])').click();
           await expect(page.getByRole('dialog')).toBeVisible();
-          const select = page.getByRole('dialog').getByRole('combobox');
-          await select.selectOption(language);
-          await expect(select).toHaveValue(language);
-          expect(
-            await select.evaluate((el) => {
-              const b = el.getBoundingClientRect();
-              return b.width >= 80 && b.left >= 0 && b.right <= innerWidth;
-            }),
-          ).toBe(true);
+          await chooseLanguage(page, language);
+          await expect(picker(page)).toHaveAttribute('data-language', language);
           const controls = page.getByRole('dialog').getByRole('button');
           // The first button is the close control; remaining settings stay in the dialog.
           await controls.first().click();
         } else {
-          await picker(page).selectOption(language);
+          await chooseLanguage(page, language);
         }
         await expect(page.locator('html')).toHaveAttribute('lang', language);
         expect(
@@ -207,7 +229,8 @@ for (const width of [320, 390, 768, 1024, 1440]) {
         ).toBe(true);
       }
       if (theme === 'light') {
-        if (width < 1024) await page.locator('header button[aria-haspopup="dialog"]').click();
+        if (width < 1024)
+          await page.locator('header button[aria-haspopup="dialog"]:not([data-language])').click();
         await page
           .getByRole('button', { name: /Dunkles Design|dark theme|тёмную тему|темну тему/ })
           .filter({ visible: true })
@@ -222,12 +245,12 @@ test('rapid language changes are saved in order and the last choice wins', async
   const state = await api(page);
   state.saveDelayMs = 100;
   await open(page, 'owner');
-  await expect(picker(page)).toHaveValue('ru');
-  await picker(page).selectOption('en');
-  await picker(page).selectOption('ru');
-  await picker(page).selectOption('uk');
+  await expect(picker(page)).toHaveAttribute('data-language', 'ru');
+  await chooseLanguage(page, 'en');
+  await chooseLanguage(page, 'ru');
+  await chooseLanguage(page, 'uk');
   await expect.poll(() => state.accounts.owner.preferredLocale).toBe('uk');
-  await expect(picker(page)).toHaveValue('uk');
+  await expect(picker(page)).toHaveAttribute('data-language', 'uk');
   expect(state.writes.map((write) => write.preferredLocale)).toEqual(['en', 'ru', 'uk']);
 });
 test('language switching works when browser storage is blocked', async ({ page }) => {
@@ -240,7 +263,7 @@ test('language switching works when browser storage is blocked', async ({ page }
   );
   await api(page);
   await open(page);
-  await picker(page).selectOption('uk');
+  await chooseLanguage(page, 'uk');
   await expect(page.locator('html')).toHaveAttribute('lang', 'uk');
   await expect(
     page.getByRole('heading', { name: 'Орендуйте потрібне. Діліться тим, що маєте.' }),
@@ -273,7 +296,7 @@ test('a manual choice made while account settings are loading is not overwritten
     });
   });
   await open(page, 'owner');
-  await picker(page).selectOption('en');
+  await chooseLanguage(page, 'en');
   await expect.poll(() => state.accounts.owner.preferredLocale).toBe('en');
   const loaded = page.waitForResponse(
     (response) =>
@@ -281,5 +304,32 @@ test('a manual choice made while account settings are loading is not overwritten
   );
   release();
   await loaded;
-  await expect(picker(page)).toHaveValue('en');
+  await expect(picker(page)).toHaveAttribute('data-language', 'en');
 });
+
+for (const mobile of [false, true]) {
+  test(`language dialog supports Escape, keyboard choice and focus return (${mobile ? 'mobile' : 'desktop'})`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: mobile ? 390 : 1440, height: 600 });
+    await api(page);
+    await open(page);
+    if (mobile)
+      await page.locator('header button[aria-haspopup="dialog"]:not([data-language])').click();
+    await picker(page).click();
+    const dialog = page
+      .getByRole('dialog')
+      .filter({ has: page.locator('button[lang][aria-pressed]') });
+    await expect(dialog.getByRole('button', { name: 'Deutsch', exact: true })).toBeFocused();
+    await page.keyboard.press('Escape');
+    await expect(dialog).not.toBeVisible();
+    await expect(picker(page)).toBeFocused();
+    if (mobile) await expect(page.getByRole('dialog')).toBeVisible();
+    await picker(page).press('Enter');
+    await page.keyboard.press('Tab');
+    await expect(dialog.getByRole('button', { name: 'English', exact: true })).toBeFocused();
+    await page.keyboard.press('Enter');
+    await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+    await expect(picker(page)).toBeFocused();
+  });
+}
