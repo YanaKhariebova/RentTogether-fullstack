@@ -1,3 +1,4 @@
+import { translate as t } from '../../../i18n/config';
 // Основа последовательности запросов — прототип Яны (6b13365).
 // Query-кеш изолирован по Clerk userId; сохранение фото вынесено в тестируемую сессию.
 import { useRef } from 'react';
@@ -58,7 +59,10 @@ export function useOwnerItems() {
         if (session.itemId) {
           const message = itemErrorMessage(error);
           throw new Error(
-            `${message} Bereits gespeicherte Angaben und Fotos findest du unter „Meine Anzeigen“. Du kannst hier erneut speichern.`,
+            t(
+              '{{value0}} Bereits gespeicherte Angaben und Fotos findest du unter „Meine Anzeigen“. Du kannst hier erneut speichern.',
+              { value0: message },
+            ),
             { cause: error },
           );
         }

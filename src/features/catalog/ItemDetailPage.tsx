@@ -1,3 +1,6 @@
+import { formatLocale } from '../../i18n/config';
+import { useTranslation } from 'react-i18next';
+import { translate as t } from '../../i18n/config';
 import { ApiError } from '@/shared/api/client';
 import { Button, IconButton, Spinner, Textarea } from '@/shared/ui/atoms';
 import { useAuth } from '@clerk/react';
@@ -14,6 +17,7 @@ import { type ItemReportReason, useReportItemMutation } from './api/useReportIte
 import styles from './ItemDetailPage.module.css';
 
 export function ItemDetailPage() {
+  useTranslation();
   const { isLoaded, isSignedIn } = useAuth();
   const navigate = useNavigate();
   const { itemId } = useParams({ from: '/items/$itemId' });
@@ -36,7 +40,7 @@ export function ItemDetailPage() {
     return (
       <section className={styles.page}>
         <section className={styles.empty}>
-          <Spinner label="Anzeige wird geladen …" />
+          <Spinner label={t('Anzeige wird geladen …')} />
         </section>
       </section>
     );
@@ -46,9 +50,9 @@ export function ItemDetailPage() {
     return (
       <section className={styles.page}>
         <div className={styles.empty} role="alert">
-          <h1>Anzeige konnte nicht geladen werden</h1>
-          <p>{error.message}</p>
-          <Button onClick={() => void refetch()}>Erneut versuchen</Button>
+          <h1>{t('Anzeige konnte nicht geladen werden')}</h1>
+          <p>{t(error.message)}</p>
+          <Button onClick={() => void refetch()}>{t('Erneut versuchen')}</Button>
         </div>
       </section>
     );
@@ -56,8 +60,8 @@ export function ItemDetailPage() {
     return (
       <section className={styles.page}>
         <section className={styles.empty}>
-          <h1>Anzeige nicht gefunden</h1>
-          <Link to="/catalog">Zurück zum Katalog</Link>
+          <h1>{t('Anzeige nicht gefunden')}</h1>
+          <Link to="/catalog">{t('Zurück zum Katalog')}</Link>
         </section>
       </section>
     );
@@ -73,7 +77,7 @@ export function ItemDetailPage() {
     images.findIndex((image) => image.id === selectedImage?.id),
   );
   const imageUrl = selectedImage?.url ?? 'https://picsum.photos/seed/rent-together/1200/900';
-  const formattedPrice = new Intl.NumberFormat('de-DE', {
+  const formattedPrice = new Intl.NumberFormat(formatLocale(), {
     style: 'currency',
     currency: 'EUR',
   }).format(Number(item.pricePerDay));
@@ -90,13 +94,13 @@ export function ItemDetailPage() {
     <section className={styles.page}>
       <section className={styles.content} aria-labelledby="item-title">
         <Link className={styles.backLink} to="/catalog">
-          ← Zurück zu Entdecken
+          {t('← Zurück zu Entdecken')}
         </Link>
 
         <div className={styles.layout}>
           <section
             className={styles.gallery}
-            aria-label={`Fotos: ${item.title}`}
+            aria-label={t('Fotos: {{value0}}', { value0: item.title })}
             aria-describedby={images.length > 1 ? 'gallery-keyboard-help' : undefined}
             tabIndex={images.length > 1 ? 0 : undefined}
             onKeyDown={(event) => {
@@ -116,10 +120,10 @@ export function ItemDetailPage() {
             {images.length > 1 && (
               <>
                 <p id="gallery-keyboard-help" className={styles.srOnly}>
-                  Mit der linken und rechten Pfeiltaste zwischen Fotos wechseln.
+                  {t('Mit der linken und rechten Pfeiltaste zwischen Fotos wechseln.')}
                 </p>
                 <p className={styles.srOnly} aria-live="polite" aria-atomic="true">
-                  Foto {selectedImageIndex + 1} von {images.length}
+                  {t('Foto')} {selectedImageIndex + 1} {t('von')} {images.length}
                 </p>
                 <div className={styles.thumbnails}>
                   {images.map((image, index) => (
@@ -127,7 +131,7 @@ export function ItemDetailPage() {
                       key={image.id}
                       type="button"
                       className={image.id === selectedImage?.id ? styles.selectedThumbnail : ''}
-                      aria-label={`Foto ${index + 1} anzeigen`}
+                      aria-label={t('Foto {{value0}} anzeigen', { value0: index + 1 })}
                       aria-pressed={image.id === selectedImage?.id}
                       onClick={() => setSelectedImageId(image.id)}
                     >
@@ -141,15 +145,15 @@ export function ItemDetailPage() {
 
           <div className={styles.details}>
             <div className={styles.categoryRow}>
-              <span className={styles.category}>{item.category.name}</span>
+              <span className={styles.category}>{t(item.category.name)}</span>
               <IconButton
                 className={styles.favorite}
                 label={
                   !isLoaded || !isSignedIn
-                    ? 'Bitte melde dich an, um Favoriten zu speichern.'
+                    ? t('Bitte melde dich an, um Favoriten zu speichern.')
                     : isFavorite
-                      ? `${item.title} aus Favoriten entfernen`
-                      : `${item.title} zu Favoriten hinzufügen`
+                      ? t('{{value0}} aus Favoriten entfernen', { value0: item.title })
+                      : t('{{value0}} zu Favoriten hinzufügen', { value0: item.title })
                 }
                 aria-pressed={isFavorite}
                 aria-busy={favoriteMutation.isPending || undefined}
@@ -168,7 +172,7 @@ export function ItemDetailPage() {
             </div>
             {favoriteMutation.isError && (
               <p role="alert">
-                Favoriten konnten nicht gespeichert werden. Bitte versuche es erneut.
+                {t('Favoriten konnten nicht gespeichert werden. Bitte versuche es erneut.')}
               </p>
             )}
             <p className={styles.city}>
@@ -178,18 +182,22 @@ export function ItemDetailPage() {
               </svg>
               {item.city}
             </p>
-            <p className={styles.price}>{formattedPrice} / Tag</p>
+            <p className={styles.price}>
+              {formattedPrice} {t('/ Tag')}
+            </p>
             <p className={styles.description}>{item.description}</p>
-            <p className={styles.owner}>Angeboten von {item.owner.name}</p>
+            <p className={styles.owner}>
+              {t('Angeboten von')} {item.owner.name}
+            </p>
             {isLoaded && isSignedIn && !isOwnItem && (
-              <section className={styles.report} aria-label="Anzeige melden">
+              <section className={styles.report} aria-label={t('Anzeige melden')}>
                 <button
                   type="button"
                   className={styles.reportToggle}
                   onClick={() => setReportOpen((open) => !open)}
                   aria-expanded={reportOpen}
                 >
-                  Anzeige melden
+                  {t('Anzeige melden')}
                 </button>
                 {reportOpen && (
                   <form
@@ -205,22 +213,24 @@ export function ItemDetailPage() {
                     }}
                   >
                     <label>
-                      Grund
+                      {t('Grund')}{' '}
                       <select
                         value={reportReason}
                         onChange={(event) =>
                           setReportReason(event.target.value as ItemReportReason)
                         }
                       >
-                        <option>Unangemessener Inhalt</option>
-                        <option>Betrug oder verdächtiges Angebot</option>
-                        <option>Verbotener Artikel</option>
-                        <option>Falsche Angaben</option>
-                        <option>Anderer Grund</option>
+                        <option value="Unangemessener Inhalt">{t('Unangemessener Inhalt')}</option>
+                        <option value="Betrug oder verdächtiges Angebot">
+                          {t('Betrug oder verdächtiges Angebot')}
+                        </option>
+                        <option value="Verbotener Artikel">{t('Verbotener Artikel')}</option>
+                        <option value="Falsche Angaben">{t('Falsche Angaben')}</option>
+                        <option value="Anderer Grund">{t('Anderer Grund')}</option>
                       </select>
                     </label>
                     <Textarea
-                      label="Zusätzliche Informationen (optional)"
+                      label={t('Zusätzliche Informationen (optional)')}
                       maxLength={500}
                       value={reportDetails}
                       onChange={(event) => setReportDetails(event.target.value)}
@@ -229,11 +239,11 @@ export function ItemDetailPage() {
                       <p role="alert">
                         {reportItem.error instanceof Error
                           ? reportItem.error.message
-                          : 'Die Meldung konnte nicht gesendet werden.'}
+                          : t('Die Meldung konnte nicht gesendet werden.')}
                       </p>
                     )}
                     <Button type="submit" loading={reportItem.isPending}>
-                      Meldung senden
+                      {t('Meldung senden')}
                     </Button>
                   </form>
                 )}
@@ -246,7 +256,7 @@ export function ItemDetailPage() {
                   className={styles.inquiryButton}
                   onClick={() => setInquiryOpen((open) => !open)}
                 >
-                  <span aria-hidden="true">✉</span> Nachricht schreiben
+                  <span aria-hidden="true">✉</span> {t('Nachricht schreiben')}
                 </Button>
                 {inquiryOpen && (
                   <form
@@ -264,21 +274,23 @@ export function ItemDetailPage() {
                     }}
                   >
                     <Textarea
-                      label="Nachricht an den Anbieter"
+                      label={t('Nachricht an den Anbieter')}
                       value={inquiryBody}
                       maxLength={2000}
-                      placeholder={`Frage ${item.owner.name} etwas zu diesem Artikel …`}
+                      placeholder={t('Frage {{value0}} etwas zu diesem Artikel …', {
+                        value0: item.owner.name,
+                      })}
                       onChange={(event) => setInquiryBody(event.target.value)}
                     />
                     {inquiry.isError && (
-                      <p role="alert">Die Nachricht konnte nicht gesendet werden.</p>
+                      <p role="alert">{t('Die Nachricht konnte nicht gesendet werden.')}</p>
                     )}
                     <Button
                       type="submit"
                       loading={inquiry.isPending}
                       disabled={!inquiryBody.trim()}
                     >
-                      Nachricht senden
+                      {t('Nachricht senden')}
                     </Button>
                   </form>
                 )}
@@ -286,12 +298,14 @@ export function ItemDetailPage() {
             )}
 
             {unavailableDates.isPending ? (
-              <Spinner label="Verfügbarkeit wird geladen …" />
+              <Spinner label={t('Verfügbarkeit wird geladen …')} />
             ) : unavailableDates.isError ? (
               <div role="alert">
-                <p>Die Verfügbarkeit konnte nicht geladen werden. Bitte versuche es erneut.</p>
+                <p>
+                  {t('Die Verfügbarkeit konnte nicht geladen werden. Bitte versuche es erneut.')}
+                </p>
                 <Button onClick={() => void unavailableDates.refetch()}>
-                  Verfügbarkeit erneut laden
+                  {t('Verfügbarkeit erneut laden')}
                 </Button>
               </div>
             ) : (

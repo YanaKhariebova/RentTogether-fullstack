@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next';
+import { translate as t } from '../../i18n/config';
 import { itemErrorMessage } from '@/features/items/model/itemErrorMessage';
 import { useRef, useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
@@ -5,6 +7,7 @@ import { MyItemsPage } from './MyItemsPage';
 import { UnpublishItemDialog } from '@/shared/ui/organisms/UnpublishItemDialog/UnpublishItemDialog';
 import { useOwnerItemsStore } from '@/features/items/hooks/useOwnerItemsStore';
 export function OwnerItemsWorkspace() {
+  useTranslation();
   const store = useOwnerItemsStore();
   const navigate = useNavigate();
   const favoriteRequests = useRef(new Set<string>());
@@ -16,7 +19,7 @@ export function OwnerItemsWorkspace() {
   const item = store.items.find((entry) => entry.id === confirmId) ?? null;
   return (
     <>
-      {actionError && <p role="alert">{actionError}</p>}
+      {actionError && <p role="alert">{t(actionError ?? '')}</p>}
       <MyItemsPage
         items={store.items}
         status={store.status}
@@ -55,7 +58,7 @@ export function OwnerItemsWorkspace() {
                 store.setNotice('');
                 void Promise.resolve()
                   .then(() => store.publish!(id))
-                  .then(() => store.setNotice('Deine Anzeige wurde veröffentlicht.'))
+                  .then(() => store.setNotice(t('Deine Anzeige wurde veröffentlicht.')))
                   .catch((error) => setActionError(itemErrorMessage(error)));
               }
             : undefined
@@ -80,7 +83,7 @@ export function OwnerItemsWorkspace() {
         action={action}
         item={item}
         busy={store.busy}
-        error={confirmError}
+        error={t(confirmError ?? '')}
         onCancel={() => setConfirmId(null)}
         onConfirm={async (id) => {
           setConfirmError(null);
@@ -91,8 +94,8 @@ export function OwnerItemsWorkspace() {
             setConfirmId(null);
             store.setNotice(
               action === 'delete'
-                ? 'Deine Anzeige wurde gelöscht.'
-                : 'Deine Anzeige wurde ausgeblendet.',
+                ? t('Deine Anzeige wurde gelöscht.')
+                : t('Deine Anzeige wurde ausgeblendet.'),
             );
           } catch (error) {
             setConfirmError(itemErrorMessage(error));

@@ -1,3 +1,6 @@
+import { formatLocale } from '../../../../i18n/config';
+import { useTranslation } from 'react-i18next';
+import { translate as t } from '../../../../i18n/config';
 import { Link } from '@tanstack/react-router';
 import type { ItemCardData } from '../../types/item';
 import styles from './ItemCard.module.css';
@@ -15,9 +18,10 @@ export function ItemCard({
   favoriteBusy = false,
   onFavoriteToggle,
 }: ItemCardProps) {
+  useTranslation();
   const imageUrl = item.images[0]?.url ?? 'https://picsum.photos/seed/rent-together/800/600';
 
-  const formattedPrice = new Intl.NumberFormat('de-DE', {
+  const formattedPrice = new Intl.NumberFormat(formatLocale(), {
     style: 'currency',
     currency: 'EUR',
   }).format(Number(item.pricePerDay));
@@ -33,7 +37,7 @@ export function ItemCard({
               <path d="m5 15 3.5-3.5 2.5 2.5 2-2 2 2" />
               <path d="M7 3h10a2 2 0 0 1 2 2v10" />
             </svg>
-            {item.images.length} Fotos
+            {item.images.length} {t('Fotos')}
           </span>
         )}
 
@@ -49,9 +53,11 @@ export function ItemCard({
           </p>
 
           <div className={styles.footer}>
-            <span className={styles.category}>{item.category.name}</span>
+            <span className={styles.category}>{t(item.category.name)}</span>
 
-            <strong className={styles.price}>{formattedPrice} / Tag</strong>
+            <strong className={styles.price}>
+              {formattedPrice} {t('/ Tag')}
+            </strong>
           </div>
         </div>
       </Link>
@@ -61,10 +67,10 @@ export function ItemCard({
         className={styles.favorite}
         aria-label={
           !onFavoriteToggle
-            ? 'Bitte melde dich an, um Favoriten zu speichern.'
+            ? t('Bitte melde dich an, um Favoriten zu speichern.')
             : isFavorite
-              ? `${item.title} aus Favoriten entfernen`
-              : `${item.title} zu Favoriten hinzufügen`
+              ? t('{{value0}} aus Favoriten entfernen', { value0: item.title })
+              : t('{{value0}} zu Favoriten hinzufügen', { value0: item.title })
         }
         aria-pressed={isFavorite}
         aria-busy={favoriteBusy || undefined}

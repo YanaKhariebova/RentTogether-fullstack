@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next';
+import { translate as t } from '../../../../i18n/config';
 import type { ButtonHTMLAttributes } from 'react';
 import styles from './Button.module.css';
 export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
@@ -13,6 +15,7 @@ export function Button({
   children,
   ...props
 }: ButtonProps) {
+  useTranslation();
   return (
     <button
       {...props}
@@ -21,7 +24,7 @@ export function Button({
       disabled={disabled || loading}
       aria-busy={loading}
     >
-      {loading ? 'Bitte warten …' : children}
+      {loading ? t('Bitte warten …') : children}
     </button>
   );
 }

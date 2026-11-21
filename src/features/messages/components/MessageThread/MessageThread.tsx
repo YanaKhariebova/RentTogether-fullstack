@@ -1,3 +1,6 @@
+import { formatLocale } from '../../../../i18n/config';
+import { useTranslation } from 'react-i18next';
+import { translate as t } from '../../../../i18n/config';
 import { useEffect, useRef, useState } from 'react';
 import type { ChatMessage } from '../../types/message';
 import styles from './MessageThread.module.css';
@@ -15,7 +18,7 @@ type MessageThreadProps = {
 };
 
 function formatTime(value: string) {
-  return new Intl.DateTimeFormat('de-DE', { hour: '2-digit', minute: '2-digit' }).format(
+  return new Intl.DateTimeFormat(formatLocale(), { hour: '2-digit', minute: '2-digit' }).format(
     new Date(value),
   );
 }
@@ -26,10 +29,10 @@ function dateLabel(value: string) {
   const yesterday = new Date();
   yesterday.setDate(today.getDate() - 1);
 
-  if (date.toDateString() === today.toDateString()) return 'Heute';
-  if (date.toDateString() === yesterday.toDateString()) return 'Gestern';
+  if (date.toDateString() === today.toDateString()) return t('Heute');
+  if (date.toDateString() === yesterday.toDateString()) return t('Gestern');
 
-  return new Intl.DateTimeFormat('de-DE', {
+  return new Intl.DateTimeFormat(formatLocale(), {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
@@ -47,6 +50,7 @@ export function MessageThread({
   onDelete,
   readOnly = false,
 }: MessageThreadProps) {
+  useTranslation();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editBody, setEditBody] = useState('');
   const [menuMessageId, setMenuMessageId] = useState<string | null>(null);
@@ -73,14 +77,19 @@ export function MessageThread({
           <path d="M22 28h1m9 0h1m9 0h1" />
           <path d="M43 27h9a7 7 0 0 1 7 7v12a7 7 0 0 1-7 7h-3v6l-7-6h-9a7 7 0 0 1-6.7-5" />
         </svg>
-        <strong>Noch keine Nachrichten</strong>
-        <span>Schreibe die erste Nachricht.</span>
+        <strong>{t('Noch keine Nachrichten')}</strong>
+        <span>{t('Schreibe die erste Nachricht.')}</span>
       </div>
     );
   }
 
   return (
-    <ol ref={listRef} className={styles.list} aria-label="Nachrichtenverlauf" aria-live="polite">
+    <ol
+      ref={listRef}
+      className={styles.list}
+      aria-label={t('Nachrichtenverlauf')}
+      aria-live="polite"
+    >
       {messages.map((message, index) => {
         const isOwnMessage = message.senderId === currentUserId;
         const isEditing = editingId === message.id;
@@ -136,7 +145,9 @@ export function MessageThread({
                         })
                         .catch(() => {
                           setActionError(
-                            'Die Nachricht konnte nicht bearbeitet werden. Sie muss deine eigene, höchstens 15 Minuten alte Nachricht in einer aktiven Anfrage sein.',
+                            t(
+                              'Die Nachricht konnte nicht bearbeitet werden. Sie muss deine eigene, höchstens 15 Minuten alte Nachricht in einer aktiven Anfrage sein.',
+                            ),
                           );
                         });
                     }}
@@ -146,7 +157,7 @@ export function MessageThread({
                       onChange={(event) => setEditBody(event.target.value)}
                     />
                     <button type="submit" disabled={!editBody.trim()}>
-                      Speichern
+                      {t('Speichern')}
                     </button>
                   </form>
                 ) : (
@@ -157,14 +168,14 @@ export function MessageThread({
                   {isOwnMessage && (
                     <span
                       className={message.readAt ? styles.readReceipt : styles.sentReceipt}
-                      aria-label={message.readAt ? 'Gelesen' : 'Gesendet'}
-                      title={message.readAt ? 'Gelesen' : 'Gesendet'}
+                      aria-label={message.readAt ? t('Gelesen') : t('Gesendet')}
+                      title={message.readAt ? t('Gelesen') : t('Gesendet')}
                     >
                       {message.readAt ? '✓✓' : '✓'}
                     </span>
                   )}
                 </span>
-                {message.editedAt && <span className={styles.edited}>Bearbeitet</span>}
+                {message.editedAt && <span className={styles.edited}>{t('Bearbeitet')}</span>}
                 {menuMessageId === message.id && !readOnly && !isEditing && (
                   <div className={styles.contextMenu} role="menu">
                     <button
@@ -175,7 +186,7 @@ export function MessageThread({
                         setMenuMessageId(null);
                       }}
                     >
-                      Antworten
+                      {t('Antworten')}
                     </button>
                     {isOwnMessage && (
                       <>
@@ -188,7 +199,7 @@ export function MessageThread({
                             setMenuMessageId(null);
                           }}
                         >
-                          Bearbeiten
+                          {t('Bearbeiten')}
                         </button>
                         <button
                           type="button"
@@ -198,13 +209,15 @@ export function MessageThread({
                               .then(() => setActionError(null))
                               .catch(() => {
                                 setActionError(
-                                  'Die Nachricht konnte nicht gelöscht werden. Sie muss deine eigene Nachricht in einer aktiven Anfrage sein.',
+                                  t(
+                                    'Die Nachricht konnte nicht gelöscht werden. Sie muss deine eigene Nachricht in einer aktiven Anfrage sein.',
+                                  ),
                                 );
                               });
                             setMenuMessageId(null);
                           }}
                         >
-                          Löschen
+                          {t('Löschen')}
                         </button>
                       </>
                     )}
@@ -217,7 +230,7 @@ export function MessageThread({
       })}
       {actionError && (
         <li className={styles.actionError} role="alert">
-          {actionError}
+          {t(actionError ?? '')}
         </li>
       )}
     </ol>

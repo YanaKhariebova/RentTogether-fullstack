@@ -1,0 +1,58 @@
+.picker {
+  min-width: 0;
+  max-width: 100%;
+}
+.label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding-inline: 8px;
+  color: var(--color-text);
+  background: var(--color-surface);
+}
+.label svg {
+  flex: 0 0 auto;
+}
+.label select {
+  min-width: 0;
+  width: 100%;
+  max-width: 140px;
+  min-height: 42px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+.label:focus-within {
+  outline: 3px solid var(--color-emphasis);
+  outline-offset: 2px;
+}
+.error {
+  display: block;
+  max-width: 180px;
+  white-space: normal;
+  font-size: 12px;
+  color: var(--color-error-text);
+  margin-top: 6px;
+}
+.retry {
+  background: transparent;
+  color: var(--color-emphasis);
+  border: 0;
+  min-height: 44px;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

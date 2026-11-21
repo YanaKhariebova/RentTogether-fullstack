@@ -1,9 +1,12 @@
+import { useTranslation } from 'react-i18next';
+import { translate as t } from '../../i18n/config';
 import { useState } from 'react';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { EditItemPage } from './EditItemPage';
 import { useOwnerItemsStore } from '@/features/items/hooks/useOwnerItemsStore';
 import { Button, Spinner } from '@/shared/ui/atoms';
 export function EditItemRoutePage() {
+  useTranslation();
   const { itemId } = useParams({ from: '/account/items/$itemId/edit' });
   const store = useOwnerItemsStore();
   const [sessionKey] = useState(() => crypto.randomUUID());
@@ -16,23 +19,23 @@ export function EditItemRoutePage() {
   if (store.status === 'error' || store.categoriesStatus === 'error')
     return (
       <div role="alert">
-        <p>{store.loadError || 'Deine Anzeige konnte nicht geladen werden.'}</p>
+        <p>{store.loadError || t('Deine Anzeige konnte nicht geladen werden.')}</p>
         <Button
           onClick={() => {
             store.retry();
             store.retryCategories();
           }}
         >
-          Erneut versuchen
+          {t('Erneut versuchen')}
         </Button>
       </div>
     );
   if (!item)
     return (
       <section>
-        <h1>Anzeige nicht gefunden</h1>
-        <p>Diese Anzeige existiert nicht oder gehört einem anderen Mitglied.</p>
-        <Button onClick={back}>Meine Anzeigen</Button>
+        <h1>{t('Anzeige nicht gefunden')}</h1>
+        <p>{t('Diese Anzeige existiert nicht oder gehört einem anderen Mitglied.')}</p>
+        <Button onClick={back}>{t('Meine Anzeigen')}</Button>
       </section>
     );
   return (
@@ -42,7 +45,7 @@ export function EditItemRoutePage() {
       onCancel={back}
       onSave={async (values) => {
         await store.saveItem(values, item.id, sessionKey);
-        store.setNotice('Deine Änderungen wurden gespeichert.');
+        store.setNotice(t('Deine Änderungen wurden gespeichert.'));
         back();
       }}
     />

@@ -1,6 +1,10 @@
+import { formatLocale } from '../../../../i18n/config';
+import { useTranslation } from 'react-i18next';
+import { translate as t } from '../../../../i18n/config';
 import { useRef, useState } from 'react';
 import { DayPicker, type DateRange } from 'react-day-picker';
-import { de } from 'react-day-picker/locale';
+import { de, enGB, ru, uk } from 'react-day-picker/locale';
+import { currentLanguage } from '@/i18n/config';
 import 'react-day-picker/style.css';
 import { Button } from '@/shared/ui/atoms';
 import styles from './DateRangePicker.module.css';
@@ -44,6 +48,7 @@ export function DateRangePicker({
   errorMessage,
   onDatesChange,
 }: DateRangePickerProps) {
+  useTranslation();
   const [selectedRange, setSelectedRange] = useState<DateRange>();
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [sentRanges, setSentRanges] = useState<string[]>([]);
@@ -83,16 +88,16 @@ export function DateRangePicker({
         )
       : 0;
   const totalPrice = totalDays * Number(pricePerDay);
-  const formattedTotalPrice = new Intl.NumberFormat('de-DE', {
+  const formattedTotalPrice = new Intl.NumberFormat(formatLocale(), {
     style: 'currency',
     currency: 'EUR',
   }).format(totalPrice);
   const formattedSelectedRange =
     selectedRange?.from && selectedRange.to
-      ? `${selectedRange.from.toLocaleDateString('de-DE', {
+      ? `${selectedRange.from.toLocaleDateString(formatLocale(), {
           day: '2-digit',
           month: 'short',
-        })} – ${selectedRange.to.toLocaleDateString('de-DE', {
+        })} – ${selectedRange.to.toLocaleDateString(formatLocale(), {
           day: '2-digit',
           month: 'short',
         })}`
@@ -101,8 +106,8 @@ export function DateRangePicker({
   return (
     <section className={styles.picker}>
       <div>
-        <h2>Zeitraum auswählen</h2>
-        <p className={styles.hint}>Wähle Abhol- und Rückgabedatum aus.</p>
+        <h2>{t('Zeitraum auswählen')}</h2>
+        <p className={styles.hint}>{t('Wähle Abhol- und Rückgabedatum aus.')}</p>
       </div>
 
       <div className={styles.selectionActions}>
@@ -122,16 +127,16 @@ export function DateRangePicker({
         >
           <span>
             {isCalendarOpen
-              ? 'Kalender schließen'
+              ? t('Kalender schließen')
               : formattedSelectedRange
-                ? 'Zeitraum ändern'
-                : 'Zeitraum auswählen'}
+                ? t('Zeitraum ändern')
+                : t('Zeitraum auswählen')}
           </span>
           {formattedSelectedRange && (
             <span className={styles.periodSummary}>
               <span>{formattedSelectedRange}</span>
               <span>
-                {totalDays} {totalDays === 1 ? 'Tag' : 'Tage'} · Gesamt: {formattedTotalPrice}
+                {t('dayCount', { count: totalDays })} {t('· Gesamt:')} {formattedTotalPrice}
               </span>
             </span>
           )}
@@ -140,7 +145,11 @@ export function DateRangePicker({
           disabled={!pickupDate || !returnDate || totalDays <= 0 || busy || isSubmitted}
           onClick={() => void submit()}
         >
-          {busy ? 'Anfrage wird gesendet…' : isSubmitted ? 'Anfrage gesendet' : 'Anfrage senden'}
+          {busy
+            ? t('Anfrage wird gesendet…')
+            : isSubmitted
+              ? t('Anfrage gesendet')
+              : t('Anfrage senden')}
         </Button>
       </div>
 
@@ -148,7 +157,7 @@ export function DateRangePicker({
         <div id="booking-calendar" className={styles.calendarPanel}>
           <DayPicker
             mode="range"
-            locale={de}
+            locale={{ de, en: enGB, ru, uk }[currentLanguage()]}
             selected={selectedRange}
             onSelect={(range) => {
               setSelectedRange(range);
@@ -169,7 +178,7 @@ export function DateRangePicker({
 
           {unavailableDateRanges.length > 0 && (
             <p className={styles.legend}>
-              <span aria-hidden="true" /> Bereits vergeben
+              <span aria-hidden="true" /> {t('Bereits vergeben')}
             </p>
           )}
         </div>
@@ -181,8 +190,8 @@ export function DateRangePicker({
             <path d="m5 12 4.2 4.2L19 6.5" />
           </svg>
           <div>
-            <strong>Anfrage gesendet</strong>
-            <span>Du findest sie jetzt unter „Meine Mieten“.</span>
+            <strong>{t('Anfrage gesendet')}</strong>
+            <span>{t('Du findest sie jetzt unter „Meine Mieten“.')}</span>
           </div>
         </div>
       )}

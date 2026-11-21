@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next';
+import { translate as t } from '../../i18n/config';
 import { Link } from '@tanstack/react-router';
 import { ItemGrid } from '@/features/catalog/components/ItemGrid/ItemGrid';
 import { Button, Spinner } from '@/shared/ui/atoms';
@@ -5,6 +7,7 @@ import { useFavoriteMutation, useFavoritesQuery } from './api/useFavorites';
 import styles from './FavoritesPage.module.css';
 
 export function FavoritesPage() {
+  useTranslation();
   const favoritesQuery = useFavoritesQuery();
   const favoriteMutation = useFavoriteMutation();
   const items = favoritesQuery.data?.items ?? [];
@@ -13,22 +16,22 @@ export function FavoritesPage() {
   return (
     <section className={styles.page} aria-labelledby="favorites-title">
       <div className={styles.content}>
-        <h1 id="favorites-title">Favoriten</h1>
-        <p className={styles.intro}>Deine gespeicherten Anzeigen.</p>
+        <h1 id="favorites-title">{t('Favoriten')}</h1>
+        <p className={styles.intro}>{t('Deine gespeicherten Anzeigen.')}</p>
 
         {favoritesQuery.isPending ? (
           <div className={styles.empty}>
-            <Spinner label="Favoriten werden geladen …" />
+            <Spinner label={t('Favoriten werden geladen …')} />
           </div>
         ) : favoritesQuery.isError ? (
           <div className={styles.empty}>
-            <p role="alert">Favoriten konnten nicht geladen werden.</p>
-            <Button onClick={() => void favoritesQuery.refetch()}>Erneut versuchen</Button>
+            <p role="alert">{t('Favoriten konnten nicht geladen werden.')}</p>
+            <Button onClick={() => void favoritesQuery.refetch()}>{t('Erneut versuchen')}</Button>
           </div>
         ) : items.length === 0 ? (
           <div className={styles.empty}>
-            <p>Du hast noch keine Favoriten gespeichert.</p>
-            <Link to="/catalog">Anzeigen entdecken</Link>
+            <p>{t('Du hast noch keine Favoriten gespeichert.')}</p>
+            <Link to="/catalog">{t('Anzeigen entdecken')}</Link>
           </div>
         ) : (
           <ItemGrid
@@ -39,7 +42,9 @@ export function FavoritesPage() {
           />
         )}
         {favoriteMutation.isError && (
-          <p role="alert">Favoriten konnten nicht gespeichert werden. Bitte versuche es erneut.</p>
+          <p role="alert">
+            {t('Favoriten konnten nicht gespeichert werden. Bitte versuche es erneut.')}
+          </p>
         )}
       </div>
     </section>

@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next';
+import { translate as t, translateFeedback } from '../../../../i18n/config';
 import { Button, Input, Textarea } from '@/shared/ui/atoms';
 import { useEffect, useId, useRef } from 'react';
 import type { ReactNode } from 'react';
@@ -37,6 +39,7 @@ interface ItemFormProps {
 
 // Только представление: запросы и состояние остаются в features/items.
 export function ItemForm(props: ItemFormProps) {
+  useTranslation();
   const id = useId();
   const formRef = useRef<HTMLFormElement>(null);
   const lastAttempt = useRef(0);
@@ -58,39 +61,39 @@ export function ItemForm(props: ItemFormProps) {
         void props.onSubmit();
       }}
     >
-      <p className={styles.hint}>Mit * markierte Felder sind Pflichtfelder.</p>
+      <p className={styles.hint}>{t('Mit * markierte Felder sind Pflichtfelder.')}</p>
       {Object.values(errors).some(Boolean) && (
         <p className={styles.error} role="alert">
-          Bitte überprüfe die markierten Felder.
+          {t('Bitte überprüfe die markierten Felder.')}
         </p>
       )}
       <fieldset className={styles.fields} disabled={props.isSubmitting}>
-        <legend className={styles.legend}>Angaben zur Anzeige</legend>
+        <legend className={styles.legend}>{t('Angaben zur Anzeige')}</legend>
         <Input
-          label="Titel *"
+          label={t('Titel *')}
           name="title"
           required
           value={values.title}
           maxLength={100}
-          placeholder="Zum Beispiel: Beamer für einen Filmabend"
+          placeholder={t('Zum Beispiel: Beamer für einen Filmabend')}
           error={errors.title}
           onChange={(event) => props.onFieldChange('title', event.currentTarget.value)}
         />
         <Textarea
-          label="Beschreibung *"
+          label={t('Beschreibung *')}
           name="description"
           required
           rows={5}
           maxLength={5000}
           value={values.description}
-          placeholder="Beschreibe deine Sache und das Zubehör."
+          placeholder={t('Beschreibe deine Sache und das Zubehör.')}
           error={errors.description}
           onChange={(event) => props.onFieldChange('description', event.currentTarget.value)}
         />
         <div className={styles.row}>
           {props.cityField ?? (
             <Input
-              label="Ort *"
+              label={t('Ort *')}
               name="city"
               required
               maxLength={100}
@@ -114,25 +117,29 @@ export function ItemForm(props: ItemFormProps) {
           onChange={(value) => props.onFieldChange('pricePerDay', value)}
         />
         <section aria-labelledby={`${id}-photos`}>
-          <h2 id={`${id}-photos`}>Fotos *</h2>
-          <p>Das erste Foto ist dein Titelbild. Mit den Pfeilen änderst du die Reihenfolge.</p>
+          <h2 id={`${id}-photos`}>{t('Fotos *')}</h2>
+          <p>
+            {t('Das erste Foto ist dein Titelbild. Mit den Pfeilen änderst du die Reihenfolge.')}
+          </p>
           <ImageUploader
             accept={props.imageAccept}
             disabled={props.images.length >= props.maxImages}
             error={
               props.imageErrors.length > 0
-                ? 'Einige Dateien konnten nicht hinzugefügt werden. Bitte prüfe die Hinweise unten.'
+                ? t(
+                    'Einige Dateien konnten nicht hinzugefügt werden. Bitte prüfe die Hinweise unten.',
+                  )
                 : errors.images
             }
             onFilesSelected={props.onFilesSelected}
           />
           <p role="status">
-            {props.images.length} von {props.maxImages} Fotos
+            {t('photoCount', { count: props.images.length, limit: props.maxImages })}
           </p>
           {props.imageErrors.length > 0 && (
             <ul className={styles.error} role="alert">
               {props.imageErrors.map((error, index) => (
-                <li key={`${index}-${error}`}>{error}</li>
+                <li key={`${index}-${error}`}>{translateFeedback(error)}</li>
               ))}
             </ul>
           )}

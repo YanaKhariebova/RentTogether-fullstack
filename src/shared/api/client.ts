@@ -1,10 +1,11 @@
+import { translate as t } from '../../i18n/config';
 import type { ApiErrorBody } from './types';
 
 export class ApiError extends Error {
   status: number;
   detail: ApiErrorBody['error'];
   constructor(status: number, detail: ApiErrorBody['error']) {
-    super(detail.message);
+    super(t(detail.message));
     this.status = status;
     this.detail = detail;
   }
@@ -26,7 +27,7 @@ export function createApiClient(
     } catch {
       throw new ApiError(0, {
         code: 'NETWORK_ERROR',
-        message: 'Die Verbindung ist fehlgeschlagen. Bitte versuche es erneut.',
+        message: t('Die Verbindung ist fehlgeschlagen. Bitte versuche es erneut.'),
         fields: {},
       });
     }
@@ -36,7 +37,7 @@ export function createApiClient(
         response.status,
         body?.error ?? {
           code: 'HTTP_ERROR',
-          message: 'Die Anfrage ist fehlgeschlagen.',
+          message: t('Die Anfrage ist fehlgeschlagen.'),
           fields: {},
         },
       );

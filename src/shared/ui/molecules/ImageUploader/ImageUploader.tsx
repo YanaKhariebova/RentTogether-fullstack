@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next';
+import { translate as t } from '../../../../i18n/config';
 import { Input } from '@/shared/ui/atoms';
 import styles from './ImageUploader.module.css';
 interface ImageUploaderProps {
@@ -12,12 +14,14 @@ export function ImageUploader({
   error,
   onFilesSelected,
 }: ImageUploaderProps) {
-  const formatsHint =
-    'Erlaubte Formate: JPG/JPEG (.jpg, .jpeg), PNG (.png), WebP (.webp). Maximal 5 MB pro Foto, bis zu 8 Fotos. HEIC, GIF und PDF werden nicht unterstützt.';
+  useTranslation();
+  const formatsHint = t(
+    'Erlaubte Formate: JPG/JPEG (.jpg, .jpeg), PNG (.png), WebP (.webp). Maximal 5 MB pro Foto, bis zu 8 Fotos. HEIC, GIF und PDF werden nicht unterstützt.',
+  );
   return (
     <div className={styles.uploader}>
       <Input
-        label="Fotos auswählen"
+        label={t('Fotos auswählen')}
         name="images"
         type="file"
         accept={accept}

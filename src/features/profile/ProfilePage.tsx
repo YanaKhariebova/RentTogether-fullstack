@@ -1,3 +1,6 @@
+import { LanguagePicker } from '@/i18n/LanguagePicker';
+import { useTranslation } from 'react-i18next';
+import { translate as t } from '../../i18n/config';
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { z } from 'zod';
@@ -17,6 +20,7 @@ const schema = z.object({
 });
 
 function ProfileForm({ user }: { user: CurrentUser }) {
+  useTranslation();
   const update = useUpdateProfile();
   const [fields, setFields] = useState<Record<string, string[]>>({});
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -37,7 +41,7 @@ function ProfileForm({ user }: { user: CurrentUser }) {
   return (
     <form onSubmit={submit} className={styles.form}>
       <Input
-        label="Name"
+        label={t('Name')}
         name="name"
         autoComplete="name"
         required
@@ -46,7 +50,7 @@ function ProfileForm({ user }: { user: CurrentUser }) {
         error={fields.name?.[0]}
       />
       <Input
-        label="Stadt"
+        label={t('Stadt')}
         name="city"
         autoComplete="address-level2"
         maxLength={100}
@@ -54,57 +58,62 @@ function ProfileForm({ user }: { user: CurrentUser }) {
         error={fields.city?.[0]}
       />
       <Input
-        label="Telefonnummer"
+        label={t('Telefonnummer')}
         name="phone"
         type="tel"
         autoComplete="tel"
         maxLength={50}
         defaultValue={user.phone}
-        hint="Optional. Wird nicht in öffentlichen Anzeigen angezeigt."
+        hint={t('Optional. Wird nicht in öffentlichen Anzeigen angezeigt.')}
         error={fields.phone?.[0]}
       />
       <Input
-        label="E-Mail-Adresse"
+        label={t('E-Mail-Adresse')}
         type="email"
         value={user.email}
         readOnly
-        hint="Du kannst deine E-Mail-Adresse über dein Benutzerkonto ändern."
+        hint={t('Du kannst deine E-Mail-Adresse über dein Benutzerkonto ändern.')}
       />
-      {update.isError && <p role="alert">{update.error.message}</p>}
+      {update.isError && <p role="alert">{t(update.error.message)}</p>}
       {update.isSuccess && (
         <p role="status" className={styles.success}>
-          Dein Profil wurde gespeichert.
+          {t('Dein Profil wurde gespeichert.')}
         </p>
       )}
       <Button type="submit" loading={update.isPending}>
-        Änderungen speichern
+        {t('Änderungen speichern')}
       </Button>
     </form>
   );
 }
 
 export function ProfilePage() {
+  useTranslation();
   const user = useCurrentUser();
   return (
     <section className={styles.panel}>
       <div className={styles.heading}>
-        <h1>Mein Profil</h1>
+        <h1>{t('Mein Profil')}</h1>
         {['MODERATOR', 'ADMIN'].includes(user.data?.user.role ?? '') && (
           <Link className={styles.moderationLink} to="/account/moderation">
-            Zur Moderation
+            {t('Zur Moderation')}
           </Link>
         )}
       </div>
-      <p>So lernen dich andere Mitglieder kennen.</p>
+      <p>{t('So lernen dich andere Mitglieder kennen.')}</p>
       {user.isPending ? (
         <Spinner />
       ) : user.isError ? (
         <div role="alert">
-          <p>{user.error.message}</p>
-          <Button onClick={() => void user.refetch()}>Erneut versuchen</Button>
+          <p>{t(user.error.message)}</p>
+          <Button onClick={() => void user.refetch()}>{t('Erneut versuchen')}</Button>
         </div>
       ) : (
         <>
+          <div>
+            <h2>{t('Sprache')}</h2>
+            <LanguagePicker />
+          </div>
           <ProfileForm key={user.data.user.id} user={user.data.user} />
         </>
       )}

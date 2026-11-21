@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next';
+import { translate as t } from '../../../../i18n/config';
 import { Select } from '@/shared/ui/atoms';
 import styles from './CategorySelect.module.css';
 interface CategorySelectProps {
@@ -7,18 +9,19 @@ interface CategorySelectProps {
   onChange: (value: string) => void;
 }
 export function CategorySelect({ categories, value, error, onChange }: CategorySelectProps) {
+  useTranslation();
   return (
     <div className={styles.field}>
       <Select
-        label="Kategorie *"
+        label={t('Kategorie *')}
         name="categoryId"
         required
         value={value}
         error={error}
         onChange={(event) => onChange(event.currentTarget.value)}
         options={[
-          { value: '', label: 'Kategorie auswählen' },
-          ...categories.map(({ id, name }) => ({ value: id, label: name })),
+          { value: '', label: t('Kategorie auswählen') },
+          ...categories.map(({ id, name }) => ({ value: id, label: t(name) })),
         ]}
       />
     </div>

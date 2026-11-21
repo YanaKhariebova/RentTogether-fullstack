@@ -1,3 +1,4 @@
+import { translate as t } from '../../../i18n/config';
 import { ApiError } from '@/shared/api/client';
 import type { ItemFormValues } from './itemFormSchema';
 
@@ -37,5 +38,5 @@ export function itemErrorMessage(error: unknown): string {
   }
   return error instanceof Error
     ? error.message
-    : 'Speichern fehlgeschlagen. Bitte versuche es erneut.';
+    : t('Speichern fehlgeschlagen. Bitte versuche es erneut.');
 }

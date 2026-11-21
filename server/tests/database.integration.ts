@@ -114,3 +114,66 @@ test('anonymous profile writes are rejected with no database changes', async () 
   assert.equal(response.status, 401);
   assert.equal(await prisma.user.count(), beforeCount);
 });
+
+test('language preference survives identity sync and a new database connection', async () => {
+  const headers = { 'x-test-subject': ownerSubject, 'Content-Type': 'application/json' };
+  const saved = await fetch(`${base}/api/me`, {
+    method: 'PATCH',
+    headers,
+    body: JSON.stringify({ preferredLocale: 'ru' }),
+  });
+  assert.equal(saved.status, 200);
+  const result = await saved.json();
+  assert.equal(result.user.preferredLocale, 'ru');
+  const separate = createPrisma();
+  try {
+    assert.equal(
+      (await separate.user.findUniqueOrThrow({ where: { clerkUserId: ownerSubject } }))
+        .preferredLocale,
+      'ru',
+    );
+  } finally {
+    await separate.$disconnect();
+  }
+  const reauthenticated = await (await fetch(`${base}/api/me`, { headers })).json();
+  assert.equal(reauthenticated.user.preferredLocale, 'ru');
+});
+test('language settings belong to each authenticated account', async () => {
+  const headers = { 'x-test-subject': renterSubject, 'Content-Type': 'application/json' };
+  const response = await fetch(`${base}/api/me`, {
+    method: 'PATCH',
+    headers,
+    body: JSON.stringify({ preferredLocale: 'uk' }),
+  });
+  assert.equal(response.status, 200);
+  assert.equal((await response.json()).user.preferredLocale, 'uk');
+  assert.equal(
+    (await prisma.user.findUniqueOrThrow({ where: { clerkUserId: ownerSubject } })).preferredLocale,
+    'ru',
+  );
+});
+test('unsupported languages and attempts to change another account are rejected', async () => {
+  for (const data of [
+    { preferredLocale: 'xx' },
+    { preferredLocale: '<script>' },
+    { preferredLocale: 'ru', clerkUserId: ownerSubject },
+  ]) {
+    const result = await fetch(`${base}/api/me`, {
+      method: 'PATCH',
+      headers: { 'x-test-subject': renterSubject, 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    assert.equal(result.status, 400);
+  }
+  const anonymous = await fetch(`${base}/api/me`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ preferredLocale: 'en' }),
+  });
+  assert.equal(anonymous.status, 401);
+  assert.equal(
+    (await prisma.user.findUniqueOrThrow({ where: { clerkUserId: renterSubject } }))
+      .preferredLocale,
+    'uk',
+  );
+});

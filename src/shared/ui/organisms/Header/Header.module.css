@@ -256,7 +256,7 @@
   border-radius: 3px;
   background: currentColor;
 }
-@media (min-width: 1024px) and (max-width: 1199px) {
+@media (min-width: 1024px) and (max-width: 1799px) {
   .desktop .navLabel {
     position: absolute;
     width: 1px;
@@ -390,4 +390,15 @@
 .rent,
 .together {
   color: var(--color-brand);
+}
+
+@media (max-width: 1023px) {
+  .brand,
+  .brand > span:last-child {
+    min-width: 0;
+  }
+  .tagline {
+    white-space: normal;
+    line-height: 1.3;
+  }
 }

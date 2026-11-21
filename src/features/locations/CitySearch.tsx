@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next';
+import { translate as t } from '../../i18n/config';
 import { useEffect, useId, useState } from 'react';
 import { z } from 'zod';
 import { Input } from '@/shared/ui/atoms';
@@ -30,6 +32,7 @@ export function CitySearch({
   error?: string;
   disabled?: boolean;
 }) {
+  useTranslation();
   const id = useId();
   const [open, setOpen] = useState(false);
   const [places, setPlaces] = useState<Place[]>([]);
@@ -67,7 +70,7 @@ export function CitySearch({
       } catch {
         if (!controller.signal.aborted) {
           setPlaces([]);
-          setFailure('Ortssuche nicht erreichbar. Bitte versuche es erneut.');
+          setFailure(t('Ortssuche nicht erreichbar. Bitte versuche es erneut.'));
         }
       } finally {
         if (!controller.signal.aborted) {
@@ -97,7 +100,7 @@ export function CitySearch({
     >
       <Input
         id={id + '-input'}
-        label="Ort *"
+        label={t('Ort *')}
         name="city"
         required
         maxLength={100}
@@ -114,12 +117,12 @@ export function CitySearch({
           error ??
           failure ??
           (noMatches
-            ? 'Kein Ort gefunden. Prüfe die Schreibweise oder suche nach der Postleitzahl.'
+            ? t('Kein Ort gefunden. Prüfe die Schreibweise oder suche nach der Postleitzahl.')
             : undefined)
         }
         disabled={disabled}
-        placeholder="Ortsname oder PLZ, z. B. Berlin oder 39104"
-        hint="Ort in Deutschland suchen und aus den Vorschlägen wählen."
+        placeholder={t('Ortsname oder PLZ, z. B. Berlin oder 39104')}
+        hint={t('Ort in Deutschland suchen und aus den Vorschlägen wählen.')}
         onFocus={() => setOpen(true)}
         onChange={(event) => {
           onChange(event.currentTarget.value);
@@ -154,17 +157,17 @@ export function CitySearch({
       />
       {open && query.length >= 2 && (
         <div className={styles.dropdown}>
-          {loading && <p role="status">Orte werden gesucht …</p>}
+          {loading && <p role="status">{t('Orte werden gesucht …')}</p>}
           {failure ? (
             <div role="alert">
               <p>{failure}</p>
               <button type="button" onClick={() => setRetry((current) => current + 1)}>
-                Erneut versuchen
+                {t('Erneut versuchen')}
               </button>
             </div>
           ) : (
             <>
-              <ul id={id + '-results'} role="listbox" aria-label="Ortsvorschläge">
+              <ul id={id + '-results'} role="listbox" aria-label={t('Ortsvorschläge')}>
                 {places.map((place, index) => (
                   <li key={place.id} role="presentation">
                     <button
@@ -192,13 +195,13 @@ export function CitySearch({
               </ul>
               {!loading && searched && places.length === 0 && (
                 <p role="status">
-                  Kein Ort gefunden. Prüfe die Schreibweise oder suche nach der Postleitzahl.
+                  {t('Kein Ort gefunden. Prüfe die Schreibweise oder suche nach der Postleitzahl.')}
                 </p>
               )}
             </>
           )}
           <small>
-            Ortsdaten:{' '}
+            {t('Ortsdaten:')}{' '}
             <a href="https://www.openplzapi.org/de/" target="_blank" rel="noreferrer">
               OpenPLZ API
             </a>

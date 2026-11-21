@@ -1,3 +1,6 @@
+import { useTranslation } from 'react-i18next';
+import { translate as t } from '../i18n/config';
+import { LanguagePicker } from '@/i18n/LanguagePicker';
 import { useAuth, useClerk, useUser, UserButton } from '@clerk/react';
 import { Link } from '@tanstack/react-router';
 import { HeaderView } from '@/shared/ui/organisms/Header/Header';
@@ -11,6 +14,7 @@ import { useMessageNotificationSound } from '@/features/messages/api/useMessageN
 import styles from '@/shared/ui/organisms/Header/Header.module.css';
 
 export function AppHeader() {
+  useTranslation();
   const { isLoaded, isSignedIn } = useAuth();
   const { signOut } = useClerk();
   const { user } = useUser();
@@ -28,7 +32,7 @@ export function AppHeader() {
         ) : (
           <Link to="/sign-in" className={styles.signInLink}>
             <NavigationIcon name="user" />
-            <span>Anmelden</span>
+            <span>{t('Anmelden')}</span>
           </Link>
         ))
       }
@@ -39,6 +43,7 @@ export function AppHeader() {
         messageNotifications.isError ? undefined : messageNotifications.data?.count
       }
       notificationBadge={(count) => <NotificationBadge count={count} />}
+      languagePicker={<LanguagePicker />}
       themeToggle={<ThemeToggle />}
       avatarUrl={user?.imageUrl}
       avatarName={user?.fullName ?? user?.username ?? undefined}

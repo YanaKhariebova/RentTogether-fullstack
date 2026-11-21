@@ -1,3 +1,4 @@
+import { translate as t } from '../../../i18n/config';
 import { useMemo, useState, type Dispatch, type SetStateAction } from 'react';
 import { catalogPrice } from './catalogPrice';
 
@@ -19,9 +20,9 @@ export function useCatalogFilters() {
   const normalizedMax = catalogPrice(maxPrice);
   const priceError =
     normalizedMin === null || normalizedMax === null
-      ? 'Bitte gib einen gültigen Preis mit höchstens zwei Nachkommastellen ein.'
+      ? t('Bitte gib einen gültigen Preis mit höchstens zwei Nachkommastellen ein.')
       : normalizedMin && normalizedMax && Number(normalizedMin) > Number(normalizedMax)
-        ? 'Der Mindestpreis darf nicht höher als der Höchstpreis sein.'
+        ? t('Der Mindestpreis darf nicht höher als der Höchstpreis sein.')
         : null;
   const query = useMemo(
     () => ({

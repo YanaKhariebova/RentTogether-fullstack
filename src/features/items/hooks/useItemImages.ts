@@ -1,3 +1,4 @@
+import { translate as t } from '../../../i18n/config';
 import { useEffect, useRef, useState } from 'react';
 import type { FormImage } from '../model/itemFormSchema';
 import { moveImage, validateImageSelection } from '../model/imageSelection';
@@ -14,7 +15,7 @@ export function useItemImages(initialImages: Extract<FormImage, { kind: 'stored'
     initialImages.map((image) => ({
       id: image.id,
       url: image.url,
-      name: 'Gespeichertes Foto',
+      name: t('Gespeichertes Foto'),
       image,
     })),
   );

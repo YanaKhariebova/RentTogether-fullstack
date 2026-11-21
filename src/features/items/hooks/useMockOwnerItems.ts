@@ -1,3 +1,4 @@
+import { translate as t } from '../../../i18n/config';
 import { useEffect, useRef, useState } from 'react';
 import { mockCategories, mockOwnerItems } from '../mocks/items';
 import { buildMockItem, unpublishMockItem } from '../model/mockItemChanges';
@@ -41,13 +42,13 @@ export function useMockOwnerItems(loadItems = loadMockItems) {
 
   function saveItem(form: ValidatedItemForm, id?: string) {
     const previous = id ? items.find((item) => item.id === id) : undefined;
-    if (id && !previous) throw new Error('Anzeige nicht gefunden.');
+    if (id && !previous) throw new Error(t('Anzeige nicht gefunden.'));
     const newUrls: string[] = [];
     try {
       const images: ItemImage[] = form.images.map((image, order) => {
         if (image.kind === 'stored') {
           const stored = previous?.images.find((entry) => entry.id === image.id);
-          if (!stored) throw new Error('Foto nicht gefunden.');
+          if (!stored) throw new Error(t('Foto nicht gefunden.'));
           return { ...stored, order };
         }
         // У кабинета собственный URL: форма освобождает свои URL при закрытии.

@@ -12,7 +12,11 @@ export default defineConfig({
   // One Vite instance serves fixture pages and app routes. Running browser tests
   // serially avoids intermittent connection resets while that server is rebuilding.
   workers: 1,
-  use: { baseURL: frontend.origin, channel: process.env.PLAYWRIGHT_CHANNEL },
+  use: {
+    locale: 'de-DE',
+    baseURL: frontend.origin,
+    channel: process.env.PLAYWRIGHT_CHANNEL,
+  },
   webServer: {
     command: `npm run dev -- --host ${frontend.hostname} --port ${frontend.port || 5173} --strictPort`,
     url: frontend.origin,

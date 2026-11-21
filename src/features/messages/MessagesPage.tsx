@@ -1,3 +1,6 @@
+import { formatLocale } from '../../i18n/config';
+import { useTranslation } from 'react-i18next';
+import { translate as t } from '../../i18n/config';
 import { Link } from '@tanstack/react-router';
 import { useAuth } from '@clerk/react';
 import { useEffect, useId, useRef, useState } from 'react';
@@ -7,12 +10,13 @@ import { orderConversations } from './model/conversationPresentation';
 import styles from './MessagesPage.module.css';
 
 function formatUpdatedAt(value: string) {
-  return new Intl.DateTimeFormat('de-DE', { hour: '2-digit', minute: '2-digit' }).format(
+  return new Intl.DateTimeFormat(formatLocale(), { hour: '2-digit', minute: '2-digit' }).format(
     new Date(value),
   );
 }
 
 export function MessagesPage() {
+  useTranslation();
   const { userId } = useAuth();
   const conversations = useConversationsQuery();
   const hideConversation = useHideConversationMutation();
@@ -31,20 +35,20 @@ export function MessagesPage() {
   return (
     <section className={styles.page} aria-labelledby="messages-title">
       <div className={styles.content}>
-        <h1 id="messages-title">Nachrichten</h1>
-        <p className={styles.intro}>Deine Unterhaltungen zu Anfragen und Ausleihen.</p>
+        <h1 id="messages-title">{t('Nachrichten')}</h1>
+        <p className={styles.intro}>{t('Deine Unterhaltungen zu Anfragen und Ausleihen.')}</p>
 
         {conversations.isPending ? (
           <div className={styles.empty}>
-            <Spinner label="Nachrichten werden geladen …" />
+            <Spinner label={t('Nachrichten werden geladen …')} />
           </div>
         ) : conversations.isError ? (
           <div className={styles.empty}>
-            <p role="alert">Nachrichten konnten nicht geladen werden.</p>
-            <Button onClick={() => void conversations.refetch()}>Erneut versuchen</Button>
+            <p role="alert">{t('Nachrichten konnten nicht geladen werden.')}</p>
+            <Button onClick={() => void conversations.refetch()}>{t('Erneut versuchen')}</Button>
           </div>
         ) : orderedConversations.length ? (
-          <ul className={styles.list} aria-label="Unterhaltungen">
+          <ul className={styles.list} aria-label={t('Unterhaltungen')}>
             {orderedConversations.map((conversation) => (
               <li
                 key={conversation.id}
@@ -74,22 +78,22 @@ export function MessagesPage() {
                     <span className={styles.itemTitle}>
                       <span className={styles.itemName}>{conversation.itemTitle}</span> ·{' '}
                       {conversation.kind === 'ITEM_INQUIRY'
-                        ? 'Frage zum Artikel'
-                        : 'Chat zur Buchung'}
+                        ? t('Frage zum Artikel')
+                        : t('Chat zur Buchung')}
                     </span>
                     <span
                       className={`${styles.preview} ${
                         conversation.unreadCount > 0 ? styles.unreadPreview : ''
                       }`}
                     >
-                      {conversation.lastMessage?.senderId === userId ? 'Du: ' : ''}
-                      {conversation.lastMessage?.body ?? 'Noch keine Nachrichten'}
+                      {conversation.lastMessage?.senderId === userId ? t('Du: ') : ''}
+                      {conversation.lastMessage?.body ?? t('Noch keine Nachrichten')}
                     </span>
                   </span>
                   {conversation.unreadCount > 0 && (
                     <span
                       className={styles.badge}
-                      aria-label={`${conversation.unreadCount} ungelesen`}
+                      aria-label={t('unreadMessages', { count: conversation.unreadCount })}
                     >
                       {conversation.unreadCount > 99 ? '99+' : conversation.unreadCount}
                     </span>
@@ -99,8 +103,10 @@ export function MessagesPage() {
                   type="button"
                   className={styles.hideButton}
                   disabled={hideConversation.isPending}
-                  aria-label={`Unterhaltung zu ${conversation.itemTitle} löschen`}
-                  title="Unterhaltung löschen"
+                  aria-label={t('Unterhaltung zu {{value0}} löschen', {
+                    value0: conversation.itemTitle,
+                  })}
+                  title={t('Unterhaltung löschen')}
                   onClick={() => {
                     setConversationToHide({
                       id: conversation.id,
@@ -117,9 +123,11 @@ export function MessagesPage() {
           </ul>
         ) : (
           <div className={styles.empty}>
-            <h2>Noch keine Nachrichten</h2>
-            <p>Sobald es zu einer Anfrage etwas zu besprechen gibt, erscheint der Chat hier.</p>
-            <Link to="/account/bookings/my-rentals">Meine Anfragen ansehen</Link>
+            <h2>{t('Noch keine Nachrichten')}</h2>
+            <p>
+              {t('Sobald es zu einer Anfrage etwas zu besprechen gibt, erscheint der Chat hier.')}
+            </p>
+            <Link to="/account/bookings/my-rentals">{t('Meine Anfragen ansehen')}</Link>
           </div>
         )}
       </div>
@@ -133,10 +141,13 @@ export function MessagesPage() {
           if (!hideConversation.isPending) setConversationToHide(null);
         }}
       >
-        <h2 id={`${dialogId}-title`}>Unterhaltung ausblenden?</h2>
+        <h2 id={`${dialogId}-title`}>{t('Unterhaltung ausblenden?')}</h2>
         <p id={`${dialogId}-description`}>
           {conversationToHide
-            ? `„${conversationToHide.itemTitle}“ wird nur aus deiner Liste entfernt. Die Nachrichten bleiben für die andere Person erhalten.`
+            ? t(
+                '„{{value0}}“ wird nur aus deiner Liste entfernt. Die Nachrichten bleiben für die andere Person erhalten.',
+                { value0: conversationToHide.itemTitle },
+              )
             : ''}
         </p>
         <div className={styles.dialogActions}>
@@ -145,7 +156,7 @@ export function MessagesPage() {
             disabled={hideConversation.isPending}
             onClick={() => setConversationToHide(null)}
           >
-            Abbrechen
+            {t('Abbrechen')}
           </Button>
           <Button
             type="button"
@@ -158,7 +169,7 @@ export function MessagesPage() {
                 .then(() => setConversationToHide(null));
             }}
           >
-            Unterhaltung löschen
+            {t('Unterhaltung löschen')}
           </Button>
         </div>
       </dialog>
